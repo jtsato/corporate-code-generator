@@ -1,0 +1,57 @@
+@startuml 03-ComponentDiagram
+!include <C4/C4_Container>
+
+/' Level 3: Component diagram
+   The Component diagram shows how a container is made up of a number of "components", 
+   what each of those components are,  their responsibilities and the technology/implementation details.
+'/
+
+title "Corporate Code Generator - Generator Core Components"
+
+LAYOUT_LEFT_RIGHT()
+
+Container(cli, "Codegen CLI", "Node.js / TypeScript", "Receives commands and creates Generation Requests.")
+Container(templateEngine, "Template Engine Adapter", "TypeScript / Nunjucks", "Renders Template Models.")
+Container(generatorAssets, "Generator Assets", "YAML / JSON Schema / Nunjucks", "Schemas,  Profiles,  Modules and Template Packs.")
+
+Container_Boundary(core, "Generator Core") {
+    Container(generationOrchestrator, "Generation Orchestrator", "TypeScript", "Coordinates the complete deterministic generation pipeline.")
+    Container(modelLoader, "Model Loader", "TypeScript", "Loads declarative YAML or JSON application models.")
+    Container(schemaValidator, "Schema Validator", "TypeScript / JSON Schema", "Performs structural validation of input models.")
+    Container(parser, "Model Parser", "TypeScript", "Converts validated documents into the technology-agnostic Intermediate Representation.")
+    Container(semanticValidator, "Semantic Validator", "TypeScript", "Validates semantic consistency and resolved references in the IR.")
+    Container(profileResolver, "Profile Resolver", "TypeScript", "Resolves the requested Golden Path Profile and its configuration.")
+    Container(moduleResolver, "Module Resolver", "TypeScript", "Resolves selected Modules,  dependencies and generation order.")
+    Container(technologyAdapters, "Technology Adapters", "TypeScript", "Resolve technology-specific representations such as types,  naming,  namespaces,  packages and conventions.")
+    Container(rulesEngine, "Rules", "TypeScript", "Applies explicit and testable generation decisions.")
+    Container(transformers, "Transformers", "TypeScript", "Transforms semantic IR elements into render-ready Template Models.")
+    Container(templateResolver, "Template Resolver", "TypeScript", "Resolves templates applicable to selected Modules and Profile.")
+    Container(filePlanBuilder, "File Plan Builder", "TypeScript", "Builds the complete set of planned filesystem operations.")
+    Container(filePlanValidator, "File Plan Validator", "TypeScript", "Validates paths,  conflicts and operations before filesystem mutation.")
+    Container(fileWriter, "File Writer", "TypeScript", "Executes validated File Plan operations against the target filesystem.")
+    Container(formatter, "Formatter", "TypeScript", "Applies deterministic formatting to generated artifacts.")
+}
+
+Rel(cli, generationOrchestrator, "Submits Generation Request")
+Rel(generationOrchestrator, modelLoader, "Loads model using")
+Rel(modelLoader, schemaValidator, "Submits document for structural validation")
+Rel(schemaValidator, parser, "Provides validated document to")
+Rel(parser, semanticValidator, "Provides resolved IR to")
+Rel(generationOrchestrator, profileResolver, "Resolves Profile using")
+Rel(profileResolver, generatorAssets, "Loads Profile definitions from")
+Rel(generationOrchestrator, moduleResolver, "Resolves Modules using")
+Rel(moduleResolver, generatorAssets, "Loads Module definitions from")
+Rel(transformers, technologyAdapters, "Uses technology representations from")
+Rel(transformers, rulesEngine, "Applies generation decisions using")
+Rel(generationOrchestrator, transformers, "Transforms IR using")
+Rel(generationOrchestrator, templateResolver, "Resolves applicable templates using")
+Rel(templateResolver, generatorAssets, "Loads Template Pack metadata from")
+Rel(generationOrchestrator, templateEngine, "Renders Template Models using")
+Rel(generationOrchestrator, filePlanBuilder, "Builds File Plan using")
+Rel(filePlanBuilder, filePlanValidator, "Validates complete plan using")
+Rel(filePlanValidator, fileWriter, "Provides validated operations to")
+Rel(fileWriter, formatter, "Formats generated artifacts using")
+
+SHOW_LEGEND()
+
+@enduml

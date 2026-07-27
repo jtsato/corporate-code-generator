@@ -1,0 +1,38 @@
+@startuml 02-ContainerDiagram
+!include <C4/C4_Container>
+
+/' Nível 2: Diagrama de contêiner
+   Um contêiner é algo como um aplicativo Web do lado do servidor, um aplicativo de página única, um aplicativo de desktop, 
+   aplicativo móvel, esquema de banco de dados, sistema de arquivos, etc. 
+   Essencialmente, um contêiner é uma unidade executável/implantável separadamente (por exemplo, um espaço de processo separado) 
+   que executa código ou armazena dados.
+'/
+
+title "Corporate Code Generator - Container Diagram"
+
+LAYOUT_LEFT_RIGHT()
+
+Person(developer, "Developer", "Generates applications using corporate Golden Paths.")
+Person(platformEngineer, "Platform Engineer","Maintains Profiles, Modules, Adapters and Template Packs.")
+
+System_Ext(sourceControl,"Source Control Platform","Stores models and generated projects.")
+System_Ext(cicd,"CI/CD Platform","Executes generation and validates generated applications.")
+
+System_Boundary(generatorBoundary,"Corporate Code Generator") {
+    Container(cli, "Codegen CLI", "Node.js / TypeScript", "Command-line interface responsible for receiving generation requests, validation commands, module selection, dry-run and configuration.")
+    Container(core, "Generator Core", "TypeScript", "Technology-agnostic generation engine responsible for parsing models, validation, IR, Profiles, Modules, Rules, Transformers and File Plans.")
+    Container(templateEngine, "Template Engine Adapter", "TypeScript / Nunjucks", "Renders prepared Template Models using versioned templates without containing generation decisions.")
+    Container(generatorAssets, "Generator Assets", "YAML / JSON Schema / Nunjucks", "Versioned Model Schemas, Profiles, Module definitions and Template Packs used during generation.")
+}
+
+Rel(developer,cli, "Executes generation and validation commands using")
+Rel(cicd,cli, "Executes", "CLI")
+Rel(platformEngineer,generatorAssets, "Maintains")
+Rel(cli,core, "Submits Generation Request to", "TypeScript API")
+Rel(core,generatorAssets, "Loads schemas, Profiles, Modules and Template Packs from", "Filesystem / Package")
+Rel(core,templateEngine, "Requests template rendering from", "TemplateEngine interface")
+Rel(core,sourceControl, "Produces generated application files ultimately stored in")
+
+SHOW_LEGEND()
+
+@enduml

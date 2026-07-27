@@ -1,0 +1,30 @@
+{
+  "name": "corporate-code-generator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Model-driven application scaffolding generator for corporate Golden Paths.",
+  "keywords": [
+    "code-generation",
+    "scaffolding",
+    "golden-path",
+    "model-driven",
+    "platform-engineering"
+  ],
+  "license": "UNLICENSED",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

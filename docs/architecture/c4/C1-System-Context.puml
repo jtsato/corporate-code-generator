@@ -1,0 +1,31 @@
+@startuml 01-ContextDiagram
+!include <C4/C4_Container>
+
+/' Level 1: System Context diagram
+   A System Context diagram is a good starting point for diagramming and documenting a software system,
+   allowing you to step back and see the big picture.
+'/
+
+title "Corporate Code Generator - System Context"
+
+LAYOUT_LEFT_RIGHT()
+
+Person(developer,"Developer","Uses the generator to create applications compliant with corporate Golden Paths.")
+Person(platformEngineer,"Platform Engineer","Maintains Profiles, Modules, Technology Adapters, Template Packs and corporate Golden Paths.")
+Person(architect,"Software Architect","Defines architectural standards, conventions and Golden Paths.")
+
+System(codeGenerator,"Corporate Code Generator","Model-driven application scaffolding platform that deterministically generates applications from declarative models and versioned corporate Golden Paths.")
+System_Ext(sourceControl,"Source Control Platform","Stores application models, generated projects, generator source code, Profiles and Template Packs.")
+System_Ext(cicd,"CI/CD Platform","Executes generator commands, builds generated applications and validates generated artifacts.")
+System_Ext(artifactRegistry,"Artifact / Package Registry","Distributes versioned Profiles, Template Packs or generator packages when remote distribution is enabled.")
+
+Rel(developer,codeGenerator,"Generates and validates applications using","CLI")
+Rel(platformEngineer,codeGenerator,"Develops and maintains Golden Paths in")
+Rel(architect,codeGenerator,"Defines architectural standards represented by")
+Rel(codeGenerator,sourceControl,"Reads models and produces artifacts stored in")
+Rel(cicd,codeGenerator,"Executes","CLI")
+Rel(codeGenerator,artifactRegistry,"Retrieves versioned packages from","Package protocol")
+
+SHOW_LEGEND()
+
+@enduml
