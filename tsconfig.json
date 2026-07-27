@@ -20,9 +20,10 @@
 
     "resolveJsonModule": true
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "coverage"
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    }
   ]
 }
