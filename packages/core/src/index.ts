@@ -22,3 +22,13 @@ export { ModelParser } from "./parser/ModelParser.js";
 
 export { SchemaValidator } from "./validation/SchemaValidator.js";
 export { SchemaValidationError } from "./validation/SchemaValidationError.js";
+
+export { SemanticValidator } from "./validation/SemanticValidator.js";
+
+export {
+  SemanticValidationError,
+} from "./validation/SemanticValidationError.js";
+
+export type {
+  SemanticValidationIssue,
+} from "./validation/SemanticValidationError.js";

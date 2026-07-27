@@ -9,6 +9,7 @@ import {
   ModelParser,
   SchemaValidationError,
   SchemaValidator,
+  SemanticValidator,
 } from "../src/index.js";
 
 describe("Application Model Pipeline", () => {
@@ -20,15 +21,18 @@ describe("Application Model Pipeline", () => {
       ),
     );
 
-    const loader = new ModelLoader();
-    const validator = new SchemaValidator(modelSchema);
-    const parser = new ModelParser();
+    const loader: ModelLoader = new ModelLoader();
+    const validator: SchemaValidator = new SchemaValidator(modelSchema);
+    const parser: ModelParser = new ModelParser();
 
     const document = await loader.load(modelPath);
 
     validator.validate(document);
 
     const model = parser.parse(document);
+
+    const semanticValidator: SemanticValidator = new SemanticValidator();
+    semanticValidator.validate(model);    
 
     expect(model).toEqual({
       schemaVersion: "1.0",
@@ -60,14 +64,13 @@ describe("Application Model Pipeline", () => {
     const modelPath = fileURLToPath(
       new URL("./fixtures/invalid-model.yaml", import.meta.url),
     );
-  
-    const loader = new ModelLoader();
-    const validator = new SchemaValidator(modelSchema);
-  
+
+    const loader: ModelLoader = new ModelLoader();
+    const validator: SchemaValidator = new SchemaValidator(modelSchema);
+
     const document = await loader.load(modelPath);
-  
+
     expect(() => validator.validate(document))
       .toThrow(SchemaValidationError);
   });
-
 });
