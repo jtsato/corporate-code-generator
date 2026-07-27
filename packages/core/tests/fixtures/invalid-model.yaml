@@ -1,0 +1,11 @@
+schemaVersion: "1.0"
+
+application:
+  name: invalid-service
+
+entities:
+  - name: Customer
+
+    attributes:
+      - name: id
+        type: Guid
