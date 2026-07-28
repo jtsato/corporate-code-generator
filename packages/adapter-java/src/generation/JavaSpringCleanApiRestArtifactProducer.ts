@@ -30,10 +30,18 @@ export class JavaSpringCleanApiRestArtifactProducer
 
   private createControllerInvocation(namespace: string, entityName: string): TemplateInvocation {
     const className = `${toJavaTypeName(entityName)}Controller`;
+    const imports = new JavaImportCollector();
+    imports.add("java.util.List");
+    imports.add("org.springframework.web.bind.annotation.GetMapping");
+    imports.add("org.springframework.web.bind.annotation.RequestMapping");
+    imports.add("org.springframework.web.bind.annotation.RestController");
     const model: JavaRestControllerTemplateModel = {
       packageName: `${namespace}.api`,
+      imports: imports.values(),
       className,
       requestMapping: toRestCollectionPath(entityName),
+      responseClassName: `${toJavaTypeName(entityName)}Response`,
+      findAllMethodName: "findAll",
     };
     return {
       templateId: "rest-controller",

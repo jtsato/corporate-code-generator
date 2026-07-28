@@ -1458,6 +1458,10 @@ deverá falhar explicitamente.
 
 # 35. CLI
 
+Neste estágio, o primeiro endpoint GET REST é estrutural: usa `findAll()` e
+retorna provisoriamente `List.of()`, sem delegação para service, persistência,
+mapper ou comportamento de negócio real.
+
 A CLI será a interface inicial.
 
 No Milestone 3.8, o primeiro comando implementado é:

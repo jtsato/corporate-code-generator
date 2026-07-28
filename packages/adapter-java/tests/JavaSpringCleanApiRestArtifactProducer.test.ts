@@ -17,7 +17,14 @@ describe("JavaSpringCleanApiRestArtifactProducer", () => {
     expect(artifacts).toEqual([
       {
         templateId: "rest-controller",
-        model: { packageName: "io.github.jtsato.walletservice.api", className: "WalletController", requestMapping: "/wallets" },
+        model: {
+          packageName: "io.github.jtsato.walletservice.api",
+          imports: ["java.util.List", "org.springframework.web.bind.annotation.GetMapping", "org.springframework.web.bind.annotation.RequestMapping", "org.springframework.web.bind.annotation.RestController"],
+          className: "WalletController",
+          requestMapping: "/wallets",
+          responseClassName: "WalletResponse",
+          findAllMethodName: "findAll",
+        },
         outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "WalletController" },
       },
       {

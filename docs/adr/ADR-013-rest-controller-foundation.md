@@ -22,3 +22,6 @@ as a temporary convention.
 
 This decision does not introduce DTOs, endpoints, persistence, validation,
 security, OpenAPI, Java tests, or other web behavior.
+
+The first GET endpoint is a structural placeholder returning `List.of()`.
+It does not delegate to an application service or implement business behavior.
