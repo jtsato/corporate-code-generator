@@ -156,6 +156,8 @@ mvn compile
 - `api-rest` também gera response DTOs como Java records no package `.api`, derivados dos atributos do modelo;
 - controllers ainda não referenciam os DTOs e não há endpoints ou mappers;
 - o primeiro GET REST é estrutural, usa `findAll()` com `List.of()` e não possui delegação para service, persistência ou comportamento de negócio real;
+- entidades de domínio permanecem classes com fields `final`, constructor completo e getters JavaBean;
+- não são gerados setters, constructor sem argumentos, `equals`, `hashCode` ou `toString` neste estágio;
 - a geração completa inclui `spring-boot-starter-web`; planos parciais podem não ser compiláveis isoladamente;
 - somente operação `CREATE`;
 - não há overwrite, skip, merge ou rollback;

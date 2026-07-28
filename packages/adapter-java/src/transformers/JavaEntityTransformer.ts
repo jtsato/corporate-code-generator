@@ -7,9 +7,7 @@ import {
   JavaImportCollector,
 } from "../model/JavaImportCollector.js";
 
-import type {
-  JavaClassTemplateModel,
-} from "../model/JavaClassTemplateModel.js";
+import type { JavaEntityTemplateModel } from "../model/JavaEntityTemplateModel.js";
 
 import type {
   JavaFieldModel,
@@ -28,7 +26,7 @@ export class JavaEntityTransformer {
   public transform(
     application: ApplicationModel,
     entity: Entity,
-  ): JavaClassTemplateModel {
+  ): JavaEntityTemplateModel {
     const imports =
       new JavaImportCollector();
 
@@ -42,11 +40,20 @@ export class JavaEntityTransformer {
         return {
           name: attribute.name,
           type: javaType.name,
-          modifiers: [
-            "private",
-          ],
+          modifiers: ["private", "final"],
         };
       });
+
+    const constructorParameters = fields.map((field) => ({
+      name: field.name,
+      type: field.type,
+    }));
+
+    const getters = fields.map((field) => ({
+      name: `get${field.name[0]?.toUpperCase() ?? ""}${field.name.slice(1)}`,
+      returnType: field.type,
+      fieldName: field.name,
+    }));
 
     return {
       packageName: this.resolvePackageName(
@@ -58,6 +65,8 @@ export class JavaEntityTransformer {
         "public",
       ],
       fields,
+      constructorParameters,
+      getters,
     };
   }
 

@@ -19,6 +19,12 @@ export type {
 } from "./model/JavaClassTemplateModel.js";
 
 export type {
+  JavaEntityTemplateModel,
+  JavaGetterTemplateModel,
+  JavaParameterModel,
+} from "./model/JavaEntityTemplateModel.js";
+
+export type {
   MavenPomTemplateModel,
 } from "./model/MavenPomTemplateModel.js";
 

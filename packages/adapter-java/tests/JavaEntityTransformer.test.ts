@@ -78,6 +78,7 @@ describe("JavaEntityTransformer", () => {
           type: "UUID",
           modifiers: [
             "private",
+            "final",
           ],
         },
         {
@@ -85,8 +86,19 @@ describe("JavaEntityTransformer", () => {
           type: "BigDecimal",
           modifiers: [
             "private",
+            "final",
           ],
         },
+      ],
+
+      constructorParameters: [
+        { name: "id", type: "UUID" },
+        { name: "balance", type: "BigDecimal" },
+      ],
+
+      getters: [
+        { name: "getId", returnType: "UUID", fieldName: "id" },
+        { name: "getBalance", returnType: "BigDecimal", fieldName: "balance" },
       ],
     });
   });

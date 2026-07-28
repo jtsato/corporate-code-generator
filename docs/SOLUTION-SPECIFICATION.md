@@ -1462,6 +1462,10 @@ Neste estágio, o primeiro endpoint GET REST é estrutural: usa `findAll()` e
 retorna provisoriamente `List.of()`, sem delegação para service, persistência,
 mapper ou comportamento de negócio real.
 
+Entidades Java permanecem classes com fields finais, constructor completo e
+getters JavaBean. Setters, constructor sem argumentos, `equals`, `hashCode` e
+`toString` não são gerados neste estágio e a decisão não é otimizada para JPA.
+
 A CLI será a interface inicial.
 
 No Milestone 3.8, o primeiro comando implementado é:
