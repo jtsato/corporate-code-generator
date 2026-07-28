@@ -26,7 +26,14 @@ export type {
   JavaBootstrapTemplateModel,
 } from "./model/JavaBootstrapTemplateModel.js";
 
+export type {
+  JavaRestControllerTemplateModel,
+} from "./model/JavaRestControllerTemplateModel.js";
+
+export type { MavenDependencyTemplateModel } from "./model/MavenPomTemplateModel.js";
+
 export { toJavaTypeName } from "./naming/JavaTypeName.js";
+export { toRestCollectionPath } from "./naming/RestCollectionPath.js";
 export { springBootVersion } from "./spring/SpringBootVersion.js";
 
 export {
@@ -48,3 +55,7 @@ export {
 export {
   JavaSpringCleanBootstrapArtifactProducer,
 } from "./generation/JavaSpringCleanBootstrapArtifactProducer.js";
+
+export {
+  JavaSpringCleanApiRestArtifactProducer,
+} from "./generation/JavaSpringCleanApiRestArtifactProducer.js";

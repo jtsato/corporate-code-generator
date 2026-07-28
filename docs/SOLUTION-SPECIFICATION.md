@@ -1476,7 +1476,9 @@ conteúdo de arquivos e sem mutação do filesystem. O output root não é
 necessário nesse modo.
 
 O suporte concreto está limitado ao Profile `java-spring-clean` com os
-módulos `build`, `domain`, `application` e `bootstrap`. O módulo `build`
+módulos `build`, `domain`, `application`, `bootstrap` e `api-rest`. O módulo `api-rest`
+requer `application` e gera controllers estruturais no package `.api`; o
+starter web é incluído condicionalmente quando esse módulo está resolvido. O módulo `build`
 gera um `pom.xml` Maven com materialização mínima de Spring Boot 4.1.0; o
 módulo `bootstrap` gera a classe principal `@SpringBootApplication`. A CLI compõe explicitamente um producer
 por módulo conhecido, sem registry de producers,

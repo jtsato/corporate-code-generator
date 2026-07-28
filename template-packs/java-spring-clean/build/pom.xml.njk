@@ -18,10 +18,12 @@
   </properties>
 
   <dependencies>
+{% for dependency in dependencies %}
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
+      <groupId>{{ dependency.groupId }}</groupId>
+      <artifactId>{{ dependency.artifactId }}</artifactId>
     </dependency>
+{% endfor %}
   </dependencies>
 
   <build>

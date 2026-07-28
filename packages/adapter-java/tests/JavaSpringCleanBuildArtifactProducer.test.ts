@@ -34,6 +34,7 @@ describe("JavaSpringCleanBuildArtifactProducer", () => {
         javaVersion: "25",
         mavenCompilerPluginVersion: "3.14.0",
         springBootVersion: "4.1.0",
+        dependencies: [{ groupId: "org.springframework.boot", artifactId: "spring-boot-starter" }],
       },
       outputVariables: {},
     }]);

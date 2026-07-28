@@ -1,3 +1,8 @@
+export interface MavenDependencyTemplateModel {
+  readonly groupId: string;
+  readonly artifactId: string;
+}
+
 export interface MavenPomTemplateModel {
   readonly modelVersion: string;
   readonly groupId: string;
@@ -6,4 +11,5 @@ export interface MavenPomTemplateModel {
   readonly javaVersion: string;
   readonly mavenCompilerPluginVersion: string;
   readonly springBootVersion: string;
+  readonly dependencies: readonly MavenDependencyTemplateModel[];
 }

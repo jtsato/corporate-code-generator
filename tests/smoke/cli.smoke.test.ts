@@ -35,6 +35,7 @@ describe("CLI smoke test", () => {
     const partialRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-partial-"));
     const buildRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-build-"));
     const bootstrapRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-bootstrap-"));
+    const restRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-rest-"));
     try {
       const model = "examples/wallet-service/model.yaml";
       const common = ["generate", model, "--profile", "java-spring-clean"];
@@ -48,6 +49,7 @@ describe("CLI smoke test", () => {
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/domain/Wallet.java");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/application/WalletService.java");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java");
+      expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/api/WalletController.java");
       await expect(readdir(dryRunRoot)).resolves.toEqual([]);
 
       const generation = await runCli([...common, "--output", outputRoot]);
@@ -67,13 +69,17 @@ describe("CLI smoke test", () => {
       const goldenBootstrap = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "bootstrap", "WalletServiceApplication.java"), "utf8");
       expect(normalizeLineEndings(generatedBootstrap)).toBe(normalizeLineEndings(goldenBootstrap));
 
+      const generatedController = await readFile(join(outputRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "api", "WalletController.java"), "utf8");
+      const goldenController = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "api-rest", "WalletController.java"), "utf8");
+      expect(normalizeLineEndings(generatedController)).toBe(normalizeLineEndings(goldenController));
+
       const generatedPom = await readFile(join(outputRoot, "pom.xml"), "utf8");
       const goldenPom = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "build", "pom.xml"), "utf8");
       expect(normalizeLineEndings(generatedPom)).toBe(normalizeLineEndings(goldenPom));
 
       const buildOnly = await runCli([...common, "--module", "build", "--output", buildRoot]);
       expect(buildOnly.code).toBe(0);
-      await expect(readFile(join(buildRoot, "pom.xml"))).resolves.toBeTruthy();
+      await expect(readFile(join(buildRoot, "pom.xml"), "utf8")).resolves.not.toContain("spring-boot-starter-web");
       await expect(readFile(join(buildRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).rejects.toMatchObject({ code: "ENOENT" });
 
       const bootstrapOnly = await runCli([...common, "--module", "bootstrap", "--output", bootstrapRoot]);
@@ -85,12 +91,21 @@ describe("CLI smoke test", () => {
       expect(partial.code).toBe(0);
       await expect(readFile(join(partialRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).resolves.toBeTruthy();
       await expect(readFile(join(partialRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "application", "WalletService.java"))).rejects.toMatchObject({ code: "ENOENT" });
+
+      const restOnly = await runCli([...common, "--module", "api-rest", "--output", restRoot]);
+      expect(restOnly.code).toBe(0);
+      await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).resolves.toBeTruthy();
+      await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "application", "WalletService.java"))).resolves.toBeTruthy();
+      await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "api", "WalletController.java"))).resolves.toBeTruthy();
+      await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "WalletServiceApplication.java"))).rejects.toMatchObject({ code: "ENOENT" });
+      await expect(readFile(join(restRoot, "pom.xml"))).rejects.toMatchObject({ code: "ENOENT" });
     } finally {
       await rm(dryRunRoot, { recursive: true, force: true });
       await rm(outputRoot, { recursive: true, force: true });
       await rm(partialRoot, { recursive: true, force: true });
       await rm(buildRoot, { recursive: true, force: true });
       await rm(bootstrapRoot, { recursive: true, force: true });
+      await rm(restRoot, { recursive: true, force: true });
     }
   });
 });

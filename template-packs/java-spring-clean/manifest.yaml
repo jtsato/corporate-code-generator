@@ -18,3 +18,7 @@ templates:
     module: bootstrap
     template: bootstrap/application.java.njk
     output: src/main/java/{{ packagePath }}/{{ className }}.java
+  - id: rest-controller
+    module: api-rest
+    template: api-rest/controller.java.njk
+    output: src/main/java/{{ packagePath }}/api/{{ className }}.java

@@ -32,6 +32,12 @@ export class JavaSpringCleanBuildArtifactProducer
       javaVersion: request.profile.technology.languageVersion,
       mavenCompilerPluginVersion: "3.14.0",
       springBootVersion,
+      dependencies: [
+        { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
+        ...(request.modules.some((module) => module.id === "api-rest")
+          ? [{ groupId: "org.springframework.boot", artifactId: "spring-boot-starter-web" }]
+          : []),
+      ],
     };
 
     return [{

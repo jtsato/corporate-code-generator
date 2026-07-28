@@ -24,3 +24,6 @@ modules:
   - id: bootstrap
     requires:
       - application
+  - id: api-rest
+    requires:
+      - application

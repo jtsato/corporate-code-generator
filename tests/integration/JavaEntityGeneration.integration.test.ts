@@ -110,6 +110,7 @@ describe("Java entity generation", () => {
       "domain",
       "application",
       "bootstrap",
+      "api-rest",
     ]);
 
     const resolvedTemplatePack = await new TemplatePackResolver(

@@ -145,12 +145,15 @@ mvn compile
 
 ## Limitações atuais
 
-- somente o Profile `java-spring-clean` com os módulos `build`, `domain`, `application` e `bootstrap`;
+- somente o Profile `java-spring-clean` com os módulos `build`, `domain`, `application`, `bootstrap` e `api-rest`;
 - sem `--module`, gera `pom.xml`, domain, application e a classe principal Spring Boot;
 - `--module build` gera somente `pom.xml`;
 - `--module application` gera domain e application, sem `pom.xml`;
 - `--module bootstrap` gera domain, application e a classe principal, sem `pom.xml`;
+- `--module api-rest` gera domain, application e o controller REST, sem `pom.xml`;
 - não há aplicação web funcional, REST ou JPA neste estágio;
+- o controller REST inicial fica no package `.api`, sem endpoints reais;
+- a geração completa inclui `spring-boot-starter-web`; planos parciais podem não ser compiláveis isoladamente;
 - somente operação `CREATE`;
 - não há overwrite, skip, merge ou rollback;
 - o output root deve existir;
