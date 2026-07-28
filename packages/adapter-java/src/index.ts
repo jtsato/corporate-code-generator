@@ -22,6 +22,13 @@ export type {
   MavenPomTemplateModel,
 } from "./model/MavenPomTemplateModel.js";
 
+export type {
+  JavaBootstrapTemplateModel,
+} from "./model/JavaBootstrapTemplateModel.js";
+
+export { toJavaTypeName } from "./naming/JavaTypeName.js";
+export { springBootVersion } from "./spring/SpringBootVersion.js";
+
 export {
   JavaEntityTransformer,
 } from "./transformers/JavaEntityTransformer.js";
@@ -37,3 +44,7 @@ export {
 export {
   JavaSpringCleanBuildArtifactProducer,
 } from "./generation/JavaSpringCleanBuildArtifactProducer.js";
+
+export {
+  JavaSpringCleanBootstrapArtifactProducer,
+} from "./generation/JavaSpringCleanBootstrapArtifactProducer.js";

@@ -21,3 +21,6 @@ modules:
   - id: application
     requires:
       - domain
+  - id: bootstrap
+    requires:
+      - application

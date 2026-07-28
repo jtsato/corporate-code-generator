@@ -1476,8 +1476,9 @@ conteúdo de arquivos e sem mutação do filesystem. O output root não é
 necessário nesse modo.
 
 O suporte concreto está limitado ao Profile `java-spring-clean` com os
-módulos `build`, `domain` e `application`. O módulo `build` gera um
-`pom.xml` Maven Java puro, sem materializar Spring Boot. A CLI compõe explicitamente um producer
+módulos `build`, `domain`, `application` e `bootstrap`. O módulo `build`
+gera um `pom.xml` Maven com materialização mínima de Spring Boot 4.1.0; o
+módulo `bootstrap` gera a classe principal `@SpringBootApplication`. A CLI compõe explicitamente um producer
 por módulo conhecido, sem registry de producers,
 plugins, `OVERWRITE`, `SKIP`, `MERGE` ou rollback. Uso inválido produz
 `CLI001`; combinação de Profile/Module não suportada pela CLI produz

@@ -8,7 +8,7 @@ modelos de aplicação, Profiles e Templates em scaffolds de código.
 O primeiro Golden Path suporta atualmente:
 
 - Profile: `java-spring-clean`;
-- Modules: `build`, `domain` e `application` (`application` requer `domain`);
+- Modules: `build`, `domain`, `application` e `bootstrap` (`application` requer `domain` e `bootstrap` requer `application`);
 - tecnologia: Java;
 - entidade de referência: `Wallet`.
 
@@ -83,10 +83,11 @@ O arquivo gerado estará em:
 ```text
 generated/src/main/java/io/github/jtsato/walletservice/domain/Wallet.java
 generated/pom.xml
+generated/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java
 ```
 
-Maven é o build tool inicial. O `pom.xml` atual é Java puro, sem parent ou
-dependências Spring Boot. Se Maven e Java 25 estiverem instalados, a
+Maven é o build tool inicial. O `pom.xml` atual materializa Spring Boot
+mínimo na versão `4.1.0`, sem web, REST ou JPA. Se Maven e Java 25 estiverem instalados, a
 compilação do projeto gerado pode ser executada opcionalmente com:
 
 ```bash
@@ -118,10 +119,12 @@ Ele valida `validate`, dry-run, geração física e o Golden Test de `Wallet.jav
 
 ## Limitações atuais
 
-- somente o Profile `java-spring-clean` com os módulos `build`, `domain` e `application`;
-- sem `--module`, gera `pom.xml`, domain e application;
+- somente o Profile `java-spring-clean` com os módulos `build`, `domain`, `application` e `bootstrap`;
+- sem `--module`, gera `pom.xml`, domain, application e a classe principal Spring Boot;
 - `--module build` gera somente `pom.xml`;
 - `--module application` gera domain e application, sem `pom.xml`;
+- `--module bootstrap` gera domain, application e a classe principal, sem `pom.xml`;
+- não há aplicação web funcional, REST ou JPA neste estágio;
 - somente operação `CREATE`;
 - não há overwrite, skip, merge ou rollback;
 - o output root deve existir;

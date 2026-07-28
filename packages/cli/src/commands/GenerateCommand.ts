@@ -16,6 +16,7 @@ import {
 } from "@corporate-code-generator/core";
 import {
   JavaSpringCleanApplicationArtifactProducer,
+  JavaSpringCleanBootstrapArtifactProducer,
   JavaSpringCleanBuildArtifactProducer,
   JavaSpringCleanDomainArtifactProducer,
 } from "@corporate-code-generator/adapter-java";
@@ -90,6 +91,7 @@ export class GenerateCommand {
       if (module.id === "build") producers.push(new JavaSpringCleanBuildArtifactProducer());
       else if (module.id === "domain") producers.push(new JavaSpringCleanDomainArtifactProducer());
       else if (module.id === "application") producers.push(new JavaSpringCleanApplicationArtifactProducer());
+      else if (module.id === "bootstrap") producers.push(new JavaSpringCleanBootstrapArtifactProducer());
       else throw new CliCapabilityError(`Module '${module.id}' is not supported by this CLI.`);
     }
     return producers;

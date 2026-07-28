@@ -5,4 +5,5 @@ export interface MavenPomTemplateModel {
   readonly version: string;
   readonly javaVersion: string;
   readonly mavenCompilerPluginVersion: string;
+  readonly springBootVersion: string;
 }

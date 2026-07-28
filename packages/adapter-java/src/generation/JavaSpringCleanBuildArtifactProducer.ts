@@ -4,6 +4,7 @@ import type {
   TemplateInvocation,
 } from "@corporate-code-generator/core";
 import type { MavenPomTemplateModel } from "../model/MavenPomTemplateModel.js";
+import { springBootVersion } from "../spring/SpringBootVersion.js";
 
 export class JavaSpringCleanBuildArtifactProducer
   implements GenerationArtifactProducer {
@@ -30,6 +31,7 @@ export class JavaSpringCleanBuildArtifactProducer
       version: `${request.profile.version}-SNAPSHOT`,
       javaVersion: request.profile.technology.languageVersion,
       mavenCompilerPluginVersion: "3.14.0",
+      springBootVersion,
     };
 
     return [{

@@ -14,3 +14,7 @@ templates:
     module: application
     template: application/service.java.njk
     output: src/main/java/{{ packagePath }}/application/{{ className }}.java
+  - id: spring-boot-application
+    module: bootstrap
+    template: bootstrap/application.java.njk
+    output: src/main/java/{{ packagePath }}/{{ className }}.java

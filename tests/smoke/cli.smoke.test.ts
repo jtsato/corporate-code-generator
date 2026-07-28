@@ -34,6 +34,7 @@ describe("CLI smoke test", () => {
     const outputRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-output-"));
     const partialRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-partial-"));
     const buildRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-build-"));
+    const bootstrapRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-bootstrap-"));
     try {
       const model = "examples/wallet-service/model.yaml";
       const common = ["generate", model, "--profile", "java-spring-clean"];
@@ -46,6 +47,7 @@ describe("CLI smoke test", () => {
       expect(dryRun.stdout).toContain("CREATE pom.xml");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/domain/Wallet.java");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/application/WalletService.java");
+      expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java");
       await expect(readdir(dryRunRoot)).resolves.toEqual([]);
 
       const generation = await runCli([...common, "--output", outputRoot]);
@@ -61,6 +63,10 @@ describe("CLI smoke test", () => {
       const [generatedService, serviceGolden] = await Promise.all([readFile(generatedServicePath, "utf8"), readFile(serviceGoldenPath, "utf8")]);
       expect(normalizeLineEndings(generatedService)).toBe(normalizeLineEndings(serviceGolden));
 
+      const generatedBootstrap = await readFile(join(outputRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "WalletServiceApplication.java"), "utf8");
+      const goldenBootstrap = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "bootstrap", "WalletServiceApplication.java"), "utf8");
+      expect(normalizeLineEndings(generatedBootstrap)).toBe(normalizeLineEndings(goldenBootstrap));
+
       const generatedPom = await readFile(join(outputRoot, "pom.xml"), "utf8");
       const goldenPom = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "build", "pom.xml"), "utf8");
       expect(normalizeLineEndings(generatedPom)).toBe(normalizeLineEndings(goldenPom));
@@ -69,6 +75,11 @@ describe("CLI smoke test", () => {
       expect(buildOnly.code).toBe(0);
       await expect(readFile(join(buildRoot, "pom.xml"))).resolves.toBeTruthy();
       await expect(readFile(join(buildRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).rejects.toMatchObject({ code: "ENOENT" });
+
+      const bootstrapOnly = await runCli([...common, "--module", "bootstrap", "--output", bootstrapRoot]);
+      expect(bootstrapOnly.code).toBe(0);
+      await expect(readFile(join(bootstrapRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "WalletServiceApplication.java"))).resolves.toBeTruthy();
+      await expect(readFile(join(bootstrapRoot, "pom.xml"))).rejects.toMatchObject({ code: "ENOENT" });
 
       const partial = await runCli([...common, "--module", "domain", "--output", partialRoot]);
       expect(partial.code).toBe(0);
@@ -79,6 +90,7 @@ describe("CLI smoke test", () => {
       await rm(outputRoot, { recursive: true, force: true });
       await rm(partialRoot, { recursive: true, force: true });
       await rm(buildRoot, { recursive: true, force: true });
+      await rm(bootstrapRoot, { recursive: true, force: true });
     }
   });
 });

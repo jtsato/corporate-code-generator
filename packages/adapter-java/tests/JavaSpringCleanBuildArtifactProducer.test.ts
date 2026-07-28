@@ -33,6 +33,7 @@ describe("JavaSpringCleanBuildArtifactProducer", () => {
         version: "0.1.0-SNAPSHOT",
         javaVersion: "25",
         mavenCompilerPluginVersion: "3.14.0",
+        springBootVersion: "4.1.0",
       },
       outputVariables: {},
     }]);
