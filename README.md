@@ -8,7 +8,7 @@ modelos de aplicação, Profiles e Templates em scaffolds de código.
 O primeiro Golden Path suporta atualmente:
 
 - Profile: `java-spring-clean`;
-- Modules: `domain` e `application` (`application` requer `domain`);
+- Modules: `build`, `domain` e `application` (`application` requer `domain`);
 - tecnologia: Java;
 - entidade de referência: `Wallet`.
 
@@ -82,6 +82,15 @@ O arquivo gerado estará em:
 
 ```text
 generated/src/main/java/io/github/jtsato/walletservice/domain/Wallet.java
+generated/pom.xml
+```
+
+Maven é o build tool inicial. O `pom.xml` atual é Java puro, sem parent ou
+dependências Spring Boot. Se Maven e Java 25 estiverem instalados, a
+compilação do projeto gerado pode ser executada opcionalmente com:
+
+```bash
+mvn compile
 ```
 
 Para limpar a saída local:
@@ -109,7 +118,10 @@ Ele valida `validate`, dry-run, geração física e o Golden Test de `Wallet.jav
 
 ## Limitações atuais
 
-- somente o Profile `java-spring-clean` com os módulos `domain` e `application`;
+- somente o Profile `java-spring-clean` com os módulos `build`, `domain` e `application`;
+- sem `--module`, gera `pom.xml`, domain e application;
+- `--module build` gera somente `pom.xml`;
+- `--module application` gera domain e application, sem `pom.xml`;
 - somente operação `CREATE`;
 - não há overwrite, skip, merge ou rollback;
 - o output root deve existir;

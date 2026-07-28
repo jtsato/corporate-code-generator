@@ -2,6 +2,10 @@ id: java-spring-clean
 version: 0.1.0
 
 templates:
+  - id: maven-pom
+    module: build
+    template: build/pom.xml.njk
+    output: pom.xml
   - id: domain-entity
     module: domain
     template: domain/entity.java.njk

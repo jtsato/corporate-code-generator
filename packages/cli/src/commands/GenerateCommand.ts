@@ -16,6 +16,7 @@ import {
 } from "@corporate-code-generator/core";
 import {
   JavaSpringCleanApplicationArtifactProducer,
+  JavaSpringCleanBuildArtifactProducer,
   JavaSpringCleanDomainArtifactProducer,
 } from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
@@ -86,7 +87,8 @@ export class GenerateCommand {
     }
     const producers: GenerationArtifactProducer[] = [];
     for (const module of modules) {
-      if (module.id === "domain") producers.push(new JavaSpringCleanDomainArtifactProducer());
+      if (module.id === "build") producers.push(new JavaSpringCleanBuildArtifactProducer());
+      else if (module.id === "domain") producers.push(new JavaSpringCleanDomainArtifactProducer());
       else if (module.id === "application") producers.push(new JavaSpringCleanApplicationArtifactProducer());
       else throw new CliCapabilityError(`Module '${module.id}' is not supported by this CLI.`);
     }

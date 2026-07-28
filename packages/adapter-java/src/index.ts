@@ -18,6 +18,10 @@ export type {
   JavaClassTemplateModel,
 } from "./model/JavaClassTemplateModel.js";
 
+export type {
+  MavenPomTemplateModel,
+} from "./model/MavenPomTemplateModel.js";
+
 export {
   JavaEntityTransformer,
 } from "./transformers/JavaEntityTransformer.js";
@@ -29,3 +33,7 @@ export {
 export {
   JavaSpringCleanApplicationArtifactProducer,
 } from "./generation/JavaSpringCleanApplicationArtifactProducer.js";
+
+export {
+  JavaSpringCleanBuildArtifactProducer,
+} from "./generation/JavaSpringCleanBuildArtifactProducer.js";

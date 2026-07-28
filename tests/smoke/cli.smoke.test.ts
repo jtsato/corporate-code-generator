@@ -33,6 +33,7 @@ describe("CLI smoke test", () => {
     const dryRunRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-dry-"));
     const outputRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-output-"));
     const partialRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-partial-"));
+    const buildRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-build-"));
     try {
       const model = "examples/wallet-service/model.yaml";
       const common = ["generate", model, "--profile", "java-spring-clean"];
@@ -42,6 +43,7 @@ describe("CLI smoke test", () => {
 
       const dryRun = await runCli([...common, "--dry-run"]);
       expect(dryRun.code).toBe(0);
+      expect(dryRun.stdout).toContain("CREATE pom.xml");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/domain/Wallet.java");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/application/WalletService.java");
       await expect(readdir(dryRunRoot)).resolves.toEqual([]);
@@ -59,6 +61,15 @@ describe("CLI smoke test", () => {
       const [generatedService, serviceGolden] = await Promise.all([readFile(generatedServicePath, "utf8"), readFile(serviceGoldenPath, "utf8")]);
       expect(normalizeLineEndings(generatedService)).toBe(normalizeLineEndings(serviceGolden));
 
+      const generatedPom = await readFile(join(outputRoot, "pom.xml"), "utf8");
+      const goldenPom = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "build", "pom.xml"), "utf8");
+      expect(normalizeLineEndings(generatedPom)).toBe(normalizeLineEndings(goldenPom));
+
+      const buildOnly = await runCli([...common, "--module", "build", "--output", buildRoot]);
+      expect(buildOnly.code).toBe(0);
+      await expect(readFile(join(buildRoot, "pom.xml"))).resolves.toBeTruthy();
+      await expect(readFile(join(buildRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).rejects.toMatchObject({ code: "ENOENT" });
+
       const partial = await runCli([...common, "--module", "domain", "--output", partialRoot]);
       expect(partial.code).toBe(0);
       await expect(readFile(join(partialRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).resolves.toBeTruthy();
@@ -67,6 +78,7 @@ describe("CLI smoke test", () => {
       await rm(dryRunRoot, { recursive: true, force: true });
       await rm(outputRoot, { recursive: true, force: true });
       await rm(partialRoot, { recursive: true, force: true });
+      await rm(buildRoot, { recursive: true, force: true });
     }
   });
 });

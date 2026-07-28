@@ -106,6 +106,7 @@ describe("Java entity generation", () => {
     const modules = new ModuleResolver().resolveAll(profile.modules);
 
     expect(modules.map((module) => module.id)).toEqual([
+      "build",
       "domain",
       "application",
     ]);
