@@ -22,3 +22,7 @@ templates:
     module: api-rest
     template: api-rest/controller.java.njk
     output: src/main/java/{{ packagePath }}/api/{{ className }}.java
+  - id: rest-response
+    module: api-rest
+    template: api-rest/response.java.njk
+    output: src/main/java/{{ packagePath }}/api/{{ className }}.java

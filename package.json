@@ -18,7 +18,7 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "typecheck": "tsc --build --pretty",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/smoke/maven-compile.smoke.test.ts",
     "smoke": "npm run build && vitest run tests/smoke/cli.smoke.test.ts",
     "smoke:maven": "npm run build && vitest run tests/smoke/maven-compile.smoke.test.ts",
     "test:watch": "vitest",

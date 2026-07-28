@@ -30,6 +30,11 @@ export type {
   JavaRestControllerTemplateModel,
 } from "./model/JavaRestControllerTemplateModel.js";
 
+export type {
+  JavaRecordComponentModel,
+  JavaRestResponseTemplateModel,
+} from "./model/JavaRestResponseTemplateModel.js";
+
 export type { MavenDependencyTemplateModel } from "./model/MavenPomTemplateModel.js";
 
 export { toJavaTypeName } from "./naming/JavaTypeName.js";

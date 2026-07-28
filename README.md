@@ -153,6 +153,8 @@ mvn compile
 - `--module api-rest` gera domain, application e o controller REST, sem `pom.xml`;
 - não há aplicação web funcional, REST ou JPA neste estágio;
 - o controller REST inicial fica no package `.api`, sem endpoints reais;
+- `api-rest` também gera response DTOs como Java records no package `.api`, derivados dos atributos do modelo;
+- controllers ainda não referenciam os DTOs e não há endpoints ou mappers;
 - a geração completa inclui `spring-boot-starter-web`; planos parciais podem não ser compiláveis isoladamente;
 - somente operação `CREATE`;
 - não há overwrite, skip, merge ou rollback;

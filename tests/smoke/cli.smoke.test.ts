@@ -50,6 +50,7 @@ describe("CLI smoke test", () => {
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/application/WalletService.java");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java");
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/api/WalletController.java");
+      expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/api/WalletResponse.java");
       await expect(readdir(dryRunRoot)).resolves.toEqual([]);
 
       const generation = await runCli([...common, "--output", outputRoot]);
@@ -72,6 +73,10 @@ describe("CLI smoke test", () => {
       const generatedController = await readFile(join(outputRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "api", "WalletController.java"), "utf8");
       const goldenController = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "api-rest", "WalletController.java"), "utf8");
       expect(normalizeLineEndings(generatedController)).toBe(normalizeLineEndings(goldenController));
+
+      const generatedResponse = await readFile(join(outputRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "api", "WalletResponse.java"), "utf8");
+      const goldenResponse = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "api-rest", "WalletResponse.java"), "utf8");
+      expect(normalizeLineEndings(generatedResponse)).toBe(normalizeLineEndings(goldenResponse));
 
       const generatedPom = await readFile(join(outputRoot, "pom.xml"), "utf8");
       const goldenPom = await readFile(join(repoRoot, "tests", "golden", "java-spring-clean", "build", "pom.xml"), "utf8");
@@ -97,6 +102,7 @@ describe("CLI smoke test", () => {
       await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).resolves.toBeTruthy();
       await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "application", "WalletService.java"))).resolves.toBeTruthy();
       await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "api", "WalletController.java"))).resolves.toBeTruthy();
+      await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "api", "WalletResponse.java"))).resolves.toBeTruthy();
       await expect(readFile(join(restRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "WalletServiceApplication.java"))).rejects.toMatchObject({ code: "ENOENT" });
       await expect(readFile(join(restRoot, "pom.xml"))).rejects.toMatchObject({ code: "ENOENT" });
     } finally {
