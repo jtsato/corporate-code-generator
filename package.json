@@ -19,7 +19,8 @@
     "clean": "tsc --build --clean",
     "typecheck": "tsc --build --pretty",
     "test": "vitest run",
-    "smoke": "npm run build && vitest run tests/smoke",
+    "smoke": "npm run build && vitest run tests/smoke/cli.smoke.test.ts",
+    "smoke:maven": "npm run build && vitest run tests/smoke/maven-compile.smoke.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },

@@ -117,6 +117,32 @@ npm run smoke
 
 Ele valida `validate`, dry-run, geração física e o Golden Test de `Wallet.java`.
 
+### Smoke Maven opcional
+
+Para validar também a compilação do projeto gerado, execute:
+
+```bash
+npm run smoke:maven
+```
+
+Esse smoke não faz parte de `npm run smoke`. Ele requer Maven instalado e um
+JDK compatível com Java 25. Na primeira execução, Maven pode baixar o parent,
+plugins e dependências; por isso a execução pode ser lenta com o cache vazio.
+
+Se Maven não estiver instalado, o teste é pulado por padrão com uma mensagem
+clara. Para tornar a ausência de Maven uma falha, use:
+
+```bash
+CODEGEN_REQUIRE_MAVEN_SMOKE=true npm run smoke:maven
+```
+
+O comando manual equivalente, após gerar um projeto, é:
+
+```bash
+cd <generated-output>
+mvn compile
+```
+
 ## Limitações atuais
 
 - somente o Profile `java-spring-clean` com os módulos `build`, `domain`, `application` e `bootstrap`;
