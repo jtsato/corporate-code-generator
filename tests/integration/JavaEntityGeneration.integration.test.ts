@@ -107,6 +107,7 @@ describe("Java entity generation", () => {
 
     expect(modules.map((module) => module.id)).toEqual([
       "domain",
+      "application",
     ]);
 
     const resolvedTemplatePack = await new TemplatePackResolver(

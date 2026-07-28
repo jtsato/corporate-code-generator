@@ -32,6 +32,25 @@ describe("GenerateCommand", () => {
     expect(writer).toHaveBeenCalledOnce();
   });
 
+  it("resolves application transitively and combines domain before application", async () => {
+    let targetPaths: readonly string[] = [];
+    const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
+      targetPaths = plan.operations.map((operation) => operation.targetPath);
+    });
+    const exitCode = await new GenerateCommand(writer).execute({
+      modelPath: "examples/wallet-service/model.yaml",
+      profileId: "java-spring-clean",
+      moduleIds: ["application"],
+      outputDirectory: "generated",
+      dryRun: false,
+    });
+    expect(exitCode).toBe(0);
+    expect(targetPaths).toEqual([
+      "src/main/java/io/github/jtsato/walletservice/domain/Wallet.java",
+      "src/main/java/io/github/jtsato/walletservice/application/WalletService.java",
+    ]);
+  });
+
   it("requires output when not running dry-run", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
     try {

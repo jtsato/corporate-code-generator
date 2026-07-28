@@ -16,3 +16,6 @@ templatePack:
 modules:
   - id: domain
     requires: []
+  - id: application
+    requires:
+      - domain

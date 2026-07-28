@@ -10,11 +10,14 @@ import {
   SchemaVersionDetector,
   SemanticValidator,
   TemplatePackResolver,
-  type FilePlan,
+  FilePlan,
   type GenerationArtifactProducer,
   type GenerationRequest,
 } from "@corporate-code-generator/core";
-import { JavaSpringCleanDomainArtifactProducer } from "@corporate-code-generator/adapter-java";
+import {
+  JavaSpringCleanApplicationArtifactProducer,
+  JavaSpringCleanDomainArtifactProducer,
+} from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 import { NodeFileWriter } from "@corporate-code-generator/file-writer-node";
 import { formatCliError } from "../CliErrorFormatter.js";
@@ -37,16 +40,22 @@ export class GenerateCommand {
       const modules = options.moduleIds.length === 0
         ? new ModuleResolver().resolveAll(profile.modules)
         : new ModuleResolver().resolveSelected(profile.modules, options.moduleIds);
-      const producer = this.createProducer(profile.id, modules);
+      const producers = this.createProducers(profile.id, modules);
       const resolvedPack = await new TemplatePackResolver(
         resolve(process.cwd(), "template-packs"),
       ).resolve(profile.templatePack);
-      const planner = new GenerationPlanner(
-        new NunjucksTemplateEngine([resolvedPack.directory]),
-        producer,
-        resolvedPack.templatePack,
-      );
-      const plan = await planner.plan({ application, profile, modules } satisfies GenerationRequest);
+      const request = { application, profile, modules } satisfies GenerationRequest;
+      const operations = [];
+      for (const producer of producers) {
+        const planner = new GenerationPlanner(
+          new NunjucksTemplateEngine([resolvedPack.directory]),
+          producer,
+          resolvedPack.templatePack,
+        );
+        const currentPlan = await planner.plan(request);
+        operations.push(...currentPlan.operations);
+      }
+      const plan = FilePlan.create(operations);
       if (options.dryRun) {
         printDryRun(plan);
       } else {
@@ -71,11 +80,17 @@ export class GenerateCommand {
     return application;
   }
 
-  private createProducer(profileId: string, modules: readonly { readonly id: string }[]): GenerationArtifactProducer {
-    if (profileId !== "java-spring-clean" || !modules.some((module) => module.id === "domain")) {
+  private createProducers(profileId: string, modules: readonly { readonly id: string }[]): readonly GenerationArtifactProducer[] {
+    if (profileId !== "java-spring-clean") {
       throw new CliCapabilityError(`Profile/module combination is not supported by this CLI: ${profileId}.`);
     }
-    return new JavaSpringCleanDomainArtifactProducer();
+    const producers: GenerationArtifactProducer[] = [];
+    for (const module of modules) {
+      if (module.id === "domain") producers.push(new JavaSpringCleanDomainArtifactProducer());
+      else if (module.id === "application") producers.push(new JavaSpringCleanApplicationArtifactProducer());
+      else throw new CliCapabilityError(`Module '${module.id}' is not supported by this CLI.`);
+    }
+    return producers;
   }
 }
 

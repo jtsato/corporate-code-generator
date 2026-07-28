@@ -5,10 +5,10 @@ modelos de aplicação, Profiles e Templates em scaffolds de código.
 
 ## Status atual
 
-O primeiro vertical slice suporta somente o Golden Path:
+O primeiro Golden Path suporta atualmente:
 
 - Profile: `java-spring-clean`;
-- Module: `domain`;
+- Modules: `domain` e `application` (`application` requer `domain`);
 - tecnologia: Java;
 - entidade de referência: `Wallet`.
 
@@ -109,7 +109,7 @@ Ele valida `validate`, dry-run, geração física e o Golden Test de `Wallet.jav
 
 ## Limitações atuais
 
-- somente `java-spring-clean/domain`;
+- somente o Profile `java-spring-clean` com os módulos `domain` e `application`;
 - somente operação `CREATE`;
 - não há overwrite, skip, merge ou rollback;
 - o output root deve existir;

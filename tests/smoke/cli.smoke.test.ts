@@ -30,10 +30,12 @@ describe("CLI smoke test", () => {
   it("validates, previews, and generates the wallet Golden Path", async () => {
     await expect(access(cliEntryPoint)).resolves.toBeUndefined();
 
-    const outputRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-"));
+    const dryRunRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-dry-"));
+    const outputRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-output-"));
+    const partialRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-partial-"));
     try {
       const model = "examples/wallet-service/model.yaml";
-      const common = ["generate", model, "--profile", "java-spring-clean", "--module", "domain"];
+      const common = ["generate", model, "--profile", "java-spring-clean"];
 
       const validation = await runCli(["validate", model]);
       expect(validation.code).toBe(0);
@@ -41,7 +43,8 @@ describe("CLI smoke test", () => {
       const dryRun = await runCli([...common, "--dry-run"]);
       expect(dryRun.code).toBe(0);
       expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/domain/Wallet.java");
-      await expect(readdir(outputRoot)).resolves.toEqual([]);
+      expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/application/WalletService.java");
+      await expect(readdir(dryRunRoot)).resolves.toEqual([]);
 
       const generation = await runCli([...common, "--output", outputRoot]);
       expect(generation.code).toBe(0);
@@ -50,8 +53,20 @@ describe("CLI smoke test", () => {
       const goldenPath = join(repoRoot, "tests", "golden", "java-spring-clean", "domain", "Wallet.java");
       const [generated, golden] = await Promise.all([readFile(generatedPath, "utf8"), readFile(goldenPath, "utf8")]);
       expect(normalizeLineEndings(generated)).toBe(normalizeLineEndings(golden));
+
+      const generatedServicePath = join(outputRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "application", "WalletService.java");
+      const serviceGoldenPath = join(repoRoot, "tests", "golden", "java-spring-clean", "application", "WalletService.java");
+      const [generatedService, serviceGolden] = await Promise.all([readFile(generatedServicePath, "utf8"), readFile(serviceGoldenPath, "utf8")]);
+      expect(normalizeLineEndings(generatedService)).toBe(normalizeLineEndings(serviceGolden));
+
+      const partial = await runCli([...common, "--module", "domain", "--output", partialRoot]);
+      expect(partial.code).toBe(0);
+      await expect(readFile(join(partialRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java"))).resolves.toBeTruthy();
+      await expect(readFile(join(partialRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "application", "WalletService.java"))).rejects.toMatchObject({ code: "ENOENT" });
     } finally {
+      await rm(dryRunRoot, { recursive: true, force: true });
       await rm(outputRoot, { recursive: true, force: true });
+      await rm(partialRoot, { recursive: true, force: true });
     }
   });
 });

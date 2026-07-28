@@ -25,3 +25,7 @@ export {
 export {
   JavaSpringCleanDomainArtifactProducer,
 } from "./generation/JavaSpringCleanDomainArtifactProducer.js";
+
+export {
+  JavaSpringCleanApplicationArtifactProducer,
+} from "./generation/JavaSpringCleanApplicationArtifactProducer.js";

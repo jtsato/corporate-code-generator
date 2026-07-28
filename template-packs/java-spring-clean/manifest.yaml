@@ -6,3 +6,7 @@ templates:
     module: domain
     template: domain/entity.java.njk
     output: src/main/java/{{ packagePath }}/domain/{{ className }}.java
+  - id: application-service
+    module: application
+    template: application/service.java.njk
+    output: src/main/java/{{ packagePath }}/application/{{ className }}.java
