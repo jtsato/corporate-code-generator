@@ -37,6 +37,9 @@
     },
     {
       "path": "./packages/cli"
+    },
+    {
+      "path": "./packages/file-writer-node"
     }
   ]
 }

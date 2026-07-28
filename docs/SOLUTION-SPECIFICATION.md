@@ -792,8 +792,8 @@ version: 1.0.0
 
 technology:
   language: csharp
+  languageVersion: "10"
   framework: dotnet
-  frameworkVersion: 10
 
 architecture:
   style: clean-architecture
@@ -817,6 +817,16 @@ modules:
 Um Profile responde:
 
 > **Qual Golden Path corporativo deverá ser utilizado?**
+
+No MVP, Modules serão declarados inline no manifesto local do Profile.
+Cada Module utiliza o campo `requires` para declarar suas dependências.
+`technology.languageVersion` será tratado pelo Core como identificador
+opaco em formato string.
+
+No MVP, Profiles serão resolvidos localmente a partir de um
+`profilesDirectory`, no caminho `<profilesDirectory>/<profileId>/profile.yaml`.
+Não haverá registry, package discovery, resolução remota ou resolução
+sofisticada de versões nesta fase.
 
 ---
 
@@ -920,6 +930,14 @@ domain
 ```
 
 Dependências circulares deverão resultar em erro.
+
+O Module Resolver deverá oferecer resolução total e resolução parcial.
+Na resolução parcial, os Modules solicitados incluirão transitivamente
+todos os Modules declarados em `requires` e serão retornados em ordem
+topológica determinística.
+
+Exemplo: selecionar `api-rest`, que requer `application`, que requer
+`domain`, resulta em `domain`, `application`, `api-rest`.
 
 ---
 
@@ -1135,6 +1153,41 @@ import {{ import }};
 
 Templates serão agrupados em Template Packs versionados.
 
+Um Template Pack é uma unidade declarativa de configuração que associa um identificador de template a um module, a um arquivo de template e a um padrão de saída. O Generation Planner resolve a definição do pack, valida a compatibilidade com o producer e produz um File Plan com caminhos de saída determinísticos.
+
+No MVP, um Profile referencia exatamente um Template Pack por `id` e
+`version`. O resolver local procura o manifest em
+`<templatePacksDirectory>/<id>/manifest.yaml`; não há ranges, fallback,
+registry ou resolução remota.
+
+O manifest mínimo é:
+
+```yaml
+id: java-spring-clean
+version: 0.1.0
+
+templates:
+  - id: domain-entity
+    module: domain
+    template: domain/entity.java.njk
+    output: src/main/java/{{ packagePath }}/domain/{{ className }}.java
+```
+
+`template` é um path POSIX relativo ao Template Pack. `output` é um
+path POSIX relativo ao diretório de geração. Ambos devem ser não vazios,
+não absolutos e não podem conter traversal.
+
+O output aceita somente placeholders estritos no formato
+`{{ identifier }}`, com whitespace opcional. O identifier segue
+`[A-Za-z_][A-Za-z0-9_]*`. Não são permitidos filtros, expressões,
+acesso a propriedades, condições ou loops. Placeholder sem variável
+correspondente é erro; ele nunca é preservado ou substituído por vazio.
+
+O producer retorna uma Template Invocation com `templateId`, Template
+Model e `OutputPathVariables` explícitas. O Generation Planner combina a
+invocation com a Template Definition, resolve o output, renderiza por meio
+da porta Template Engine e cria operações `CREATE` no File Plan.
+
 Exemplo:
 
 ```text
@@ -1198,7 +1251,6 @@ templates:
   - id: domain-entity
     module: domain
     template: domain/entity.njk
-    foreach: entities
     output: src/Domain/Entities/{{ className }}.cs
 
   - id: dockerfile
@@ -1246,7 +1298,7 @@ Module
     "Que capacidade será gerada?"
 
 Template Pack
-    "Como os artefatos são escritos?"
+    "Como os artefatos são declarados e posicionados?"
 
 Profile
     "Qual composição corporativa será utilizada?"
@@ -1324,13 +1376,26 @@ MERGE
 DELETE
 ```
 
-O MVP suportará inicialmente:
+No estado atual (Milestone 3.7), o único operation kind suportado é:
 
 ```text
 CREATE
-OVERWRITE
-SKIP
 ```
+
+`CREATE` é exclusivo: o target deve ser inexistente; targets existentes
+falham e nunca são sobrescritos ou silenciosamente ignorados. `OVERWRITE`
+e `SKIP` permanecem operações planejadas para milestones futuros.
+
+O `FilePlan` contém apenas caminhos POSIX relativos e conteúdo, sendo
+independente de qualquer output root. O output root é fornecido
+explicitamente pelo caller do writer e deve existir previamente. Antes da
+primeira mutação, o writer executa preflight completo do plano, incluindo
+segurança lógica do caminho, contenção física no root, ancestors e
+symlinks intermediários. Esse preflight reduz escrita parcial, mas não
+oferece rollback nem atomicidade contra concorrência ou falhas físicas.
+
+Dry-run é decisão do caller: o plano pode ser apresentado sem invocar o
+writer.
 
 `MERGE` será posterior devido à complexidade de modificar arquivos existentes preservando alterações manuais.
 
@@ -1373,11 +1438,48 @@ interface GenerationContext {
 
 Nenhum componente deverá depender desnecessariamente de estado global.
 
+## 34.1 Generation Planning
+
+Generation Planning receberá uma Application Model e um Profile com
+Modules já resolvidos. O Core orquestrará a produção de artifacts,
+rendering por meio da porta Template Engine e construção do File Plan.
+
+O Core não poderá conhecer templates, target paths ou Template Models
+específicos de tecnologia. Essas informações serão produzidas por um
+componente específico de Profile e Module, que declarará explicitamente
+seu `profileId` e `moduleId`.
+
+Antes de produzir artifacts, o Generation Planner validará a
+compatibilidade entre esse componente, o Profile e os Modules do request.
+Um componente compatível poderá produzir zero artifacts; incompatibilidade
+deverá falhar explicitamente.
+
 ---
 
 # 35. CLI
 
 A CLI será a interface inicial.
+
+No Milestone 3.8, o primeiro comando implementado é:
+
+```bash
+codegen generate <model> --profile <profile-id> [--module <module-id> ...] [--output <directory>] [--dry-run]
+```
+
+`--profile` é obrigatório. `--module` é opcional e repetível; quando
+omitido, todos os módulos do Profile são resolvidos. `--output` é
+obrigatório quando não há `--dry-run` e deve apontar para um diretório
+existente. A CLI não cria o output root.
+
+`--dry-run` produz somente uma listagem determinística do File Plan, sem
+conteúdo de arquivos e sem mutação do filesystem. O output root não é
+necessário nesse modo.
+
+O suporte concreto está limitado a `java-spring-clean/domain`, com
+composição explícita de um único producer. Não há registry de producers,
+plugins, `OVERWRITE`, `SKIP`, `MERGE` ou rollback. Uso inválido produz
+`CLI001`; combinação de Profile/Module não suportada pela CLI produz
+`CLI002`. Sucesso retorna exit code `0`; erros retornam `1`.
 
 Geração completa:
 
@@ -1812,6 +1914,46 @@ TEMPLATExxx
 GENxxx
 FILEPLANxxx
 IOxxx
+```
+
+`FILEPLANxxx` is the official category for errors identified while
+constructing or validating a File Plan, before any filesystem mutation.
+
+Os códigos de File Plan e escrita Node são:
+
+```text
+FILEPLAN001  target vazio.
+FILEPLAN002  target duplicado.
+FILEPLAN003  target logicamente inseguro.
+
+IO001  output root inexistente ou não diretório.
+IO002  target CREATE já existe.
+IO003  parent incompatível, escape físico ou symlink inseguro.
+IO004  falha física durante mkdir ou escrita.
+```
+
+Os códigos iniciais de Profile e Module são:
+
+```text
+PROFILE001  Profile não encontrado.
+PROFILE002  Manifest de Profile inválido.
+PROFILE003  ID solicitado diverge do ID do manifest.
+
+MODULE001   IDs de Module duplicados.
+MODULE002   Module requerido inexistente.
+MODULE003   Dependência circular entre Modules.
+MODULE004   Module solicitado inexistente.
+
+GEN001      Producer de artifacts incompatível com o request de geração.
+
+TEMPLATE001  Template Pack não encontrado.
+TEMPLATE002  Manifest de Template Pack inválido.
+TEMPLATE003  ID do Template Pack diverge da referência.
+TEMPLATE004  Versão do Template Pack diverge da referência.
+TEMPLATE005  ID de Template Definition duplicado.
+TEMPLATE006  Template Definition solicitada não existe.
+TEMPLATE007  Template Definition incompatível com o Module do producer.
+TEMPLATE008  Template/output path inválido ou impossível de resolver.
 ```
 
 Exemplo:

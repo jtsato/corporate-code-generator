@@ -21,3 +21,7 @@ export type {
 export {
   JavaEntityTransformer,
 } from "./transformers/JavaEntityTransformer.js";
+
+export {
+  JavaSpringCleanDomainArtifactProducer,
+} from "./generation/JavaSpringCleanDomainArtifactProducer.js";

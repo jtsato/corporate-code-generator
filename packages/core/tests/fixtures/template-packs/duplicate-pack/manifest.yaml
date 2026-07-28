@@ -1,0 +1,12 @@
+id: java-spring-clean
+version: 0.1.0
+
+templates:
+  - id: domain-entity
+    module: domain
+    template: domain/entity.java.njk
+    output: src/main/java/{{ packagePath }}/domain/{{ className }}.java
+  - id: domain-entity
+    module: domain
+    template: domain/other.java.njk
+    output: src/main/java/{{ packagePath }}/domain/{{ className }}.java

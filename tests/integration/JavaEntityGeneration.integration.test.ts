@@ -18,16 +18,20 @@ import {
 } from "vitest";
 
 import {
+  GenerationPlanner,
+  ModuleResolver,
   ModelLoader,
   ModelParser,
   ModelSchemaRegistry,
+  ProfileResolver,
   SchemaValidator,
   SchemaVersionDetector,
   SemanticValidator,
+  TemplatePackResolver,
 } from "@corporate-code-generator/core";
 
 import {
-  JavaEntityTransformer,
+  JavaSpringCleanDomainArtifactProducer,
 } from "@corporate-code-generator/adapter-java";
 
 import {
@@ -95,43 +99,34 @@ describe("Java entity generation", () => {
 
     semanticValidator.validate(application);
 
-    const wallet =
-      application.entities.find(
-        (entity) => entity.name === "Wallet",
-      );
+    const profile = await new ProfileResolver(
+      resolve(rootDirectory, "profiles"),
+    ).resolve("java-spring-clean");
 
-    expect(wallet).toBeDefined();
+    const modules = new ModuleResolver().resolveAll(profile.modules);
 
-    if (wallet === undefined) {
-      throw new Error(
-        "Expected Wallet entity.",
-      );
-    }
+    expect(modules.map((module) => module.id)).toEqual([
+      "domain",
+    ]);
 
-    const transformer =
-      new JavaEntityTransformer();
-
-    const templateModel =
-      transformer.transform(
-        application,
-        wallet,
-      );
-
-    const templateDirectory = resolve(
-      rootDirectory,
-      "template-packs",
-      "java-spring-clean",
-    );
+    const resolvedTemplatePack = await new TemplatePackResolver(
+      resolve(rootDirectory, "template-packs"),
+    ).resolve(profile.templatePack);
 
     const engine =
       new NunjucksTemplateEngine([
-        templateDirectory,
+        resolvedTemplatePack.directory,
       ]);
 
-    const actual = await engine.render(
-      "domain/entity.java.njk",
-      templateModel,
-    );
+    const plan = await new GenerationPlanner(
+      engine,
+      new JavaSpringCleanDomainArtifactProducer(),
+      resolvedTemplatePack.templatePack,
+    ).plan({
+      application,
+      profile,
+      modules,
+    });
 
     const expectedPath = resolve(
       rootDirectory,
@@ -145,9 +140,17 @@ describe("Java entity generation", () => {
     const expected =
       await readFile(expectedPath, "utf8");
 
-    expect(normalize(actual)).toBe(
+    expect(plan.operations).toHaveLength(1);
+    expect(plan.operations[0]).toMatchObject({
+      kind: "CREATE",
+      targetPath:
+        "src/main/java/io/github/jtsato/walletservice/domain/Wallet.java",
+    });
+
+    expect(normalize(plan.operations[0]?.content ?? "")).toBe(
       normalize(expected),
     );
+
   });
 });
 

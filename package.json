@@ -19,6 +19,7 @@
     "clean": "tsc --build --clean",
     "typecheck": "tsc --build --pretty",
     "test": "vitest run",
+    "smoke": "npm run build && vitest run tests/smoke",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },

@@ -1,5 +1,5 @@
-id: java-spring-clean
-version: 0.1.0
+id: test-profile
+version: 1.0.0
 
 technology:
   language: java

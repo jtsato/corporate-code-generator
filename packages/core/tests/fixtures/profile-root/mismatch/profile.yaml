@@ -1,10 +1,9 @@
-id: java-spring-clean
-version: 0.1.0
+id: another-profile
+version: 1.0.0
 
 technology:
   language: java
   languageVersion: "25"
-  framework: spring-boot
 
 architecture:
   style: clean-architecture

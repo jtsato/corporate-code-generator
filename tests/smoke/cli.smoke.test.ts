@@ -1,0 +1,57 @@
+import { access, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { describe, expect, it } from "vitest";
+
+const execFileAsync = promisify(execFile);
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const cliEntryPoint = join(repoRoot, "packages", "cli", "dist", "index.js");
+
+interface CommandResult { readonly code: number; readonly stdout: string; readonly stderr: string; }
+
+async function runCli(args: readonly string[]): Promise<CommandResult> {
+  try {
+    const result = await execFileAsync(process.execPath, [cliEntryPoint, ...args], { cwd: repoRoot });
+    return { code: 0, stdout: result.stdout, stderr: result.stderr };
+  } catch (error) {
+    const failure = error as { code?: number; stdout?: string; stderr?: string };
+    return { code: typeof failure.code === "number" ? failure.code : 1, stdout: failure.stdout ?? "", stderr: failure.stderr ?? "" };
+  }
+}
+
+function normalizeLineEndings(content: string): string {
+  return content.replaceAll("\r\n", "\n");
+}
+
+describe("CLI smoke test", () => {
+  it("validates, previews, and generates the wallet Golden Path", async () => {
+    await expect(access(cliEntryPoint)).resolves.toBeUndefined();
+
+    const outputRoot = await mkdtemp(join(tmpdir(), "ccg-smoke-"));
+    try {
+      const model = "examples/wallet-service/model.yaml";
+      const common = ["generate", model, "--profile", "java-spring-clean", "--module", "domain"];
+
+      const validation = await runCli(["validate", model]);
+      expect(validation.code).toBe(0);
+
+      const dryRun = await runCli([...common, "--dry-run"]);
+      expect(dryRun.code).toBe(0);
+      expect(dryRun.stdout).toContain("CREATE src/main/java/io/github/jtsato/walletservice/domain/Wallet.java");
+      await expect(readdir(outputRoot)).resolves.toEqual([]);
+
+      const generation = await runCli([...common, "--output", outputRoot]);
+      expect(generation.code).toBe(0);
+
+      const generatedPath = join(outputRoot, "src", "main", "java", "io", "github", "jtsato", "walletservice", "domain", "Wallet.java");
+      const goldenPath = join(repoRoot, "tests", "golden", "java-spring-clean", "domain", "Wallet.java");
+      const [generated, golden] = await Promise.all([readFile(generatedPath, "utf8"), readFile(goldenPath, "utf8")]);
+      expect(normalizeLineEndings(generated)).toBe(normalizeLineEndings(golden));
+    } finally {
+      await rm(outputRoot, { recursive: true, force: true });
+    }
+  });
+});
