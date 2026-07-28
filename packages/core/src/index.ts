@@ -48,3 +48,7 @@ export {
 export {
   MissingSchemaVersionError,
 } from "./schema/MissingSchemaVersionError.js";
+
+export type {
+  TemplateEngine,
+} from "./templates/TemplateEngine.js";

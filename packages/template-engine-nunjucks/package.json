@@ -1,0 +1,25 @@
+{
+  "name": "@corporate-code-generator/template-engine-nunjucks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@corporate-code-generator/core": "0.1.0",
+    "nunjucks": "^3.2.4"
+  },
+  "devDependencies": {
+    "@types/nunjucks": "^3.2.6"
+  }
+}
