@@ -1,13 +1,15 @@
 import {
+  MissingSchemaVersionError,
   ModelLoader,
   ModelParser,
+  ModelSchemaRegistry,
   SchemaValidationError,
   SchemaValidator,
+  SchemaVersionDetector,
   SemanticValidationError,
   SemanticValidator,
+  UnsupportedSchemaVersionError,
 } from "@corporate-code-generator/core";
-
-import { readFile } from "node:fs/promises";
 
 export interface ValidateCommandResult {
   readonly exitCode: number;
@@ -16,32 +18,54 @@ export interface ValidateCommandResult {
 export class ValidateCommand {
   public async execute(
     modelPath: string,
-    schemaPath: string,
   ): Promise<ValidateCommandResult> {
     try {
-      const schema = await this.loadSchema(schemaPath);
+      const loader: ModelLoader =
+        new ModelLoader();
 
-      const loader: ModelLoader = new ModelLoader();
-      const schemaValidator: SchemaValidator =
-        new SchemaValidator(schema);
-
-      const parser: ModelParser = new ModelParser();
+      const parser: ModelParser =
+        new ModelParser();
 
       const semanticValidator: SemanticValidator =
         new SemanticValidator();
 
-      const document = await loader.load(modelPath);
+      const schemaVersionDetector: SchemaVersionDetector =
+        new SchemaVersionDetector();
+
+      const schemaRegistry: ModelSchemaRegistry =
+        new ModelSchemaRegistry();
+
+      const document =
+        await loader.load(modelPath);
+
+      const schemaVersion =
+        schemaVersionDetector.detect(document);
+
+      if (schemaVersion === undefined) {
+        throw new MissingSchemaVersionError();
+      }
+
+      const schema =
+        await schemaRegistry.get(schemaVersion);
+
+      const schemaValidator: SchemaValidator =
+        new SchemaValidator(schema);
 
       schemaValidator.validate(document);
 
-      const model = parser.parse(document);
+      const model =
+        parser.parse(document);
 
       semanticValidator.validate(model);
 
-      console.log(`Model is valid.`);
+      console.log("Model is valid.");
       console.log(`Application: ${model.name}`);
-      console.log(`Schema version: ${model.schemaVersion}`);
-      console.log(`Entities: ${model.entities.length}`);
+      console.log(
+        `Schema version: ${model.schemaVersion}`,
+      );
+      console.log(
+        `Entities: ${model.entities.length}`,
+      );
 
       return {
         exitCode: 0,
@@ -51,21 +75,21 @@ export class ValidateCommand {
     }
   }
 
-  private async loadSchema(path: string): Promise<object> {
-    const content = await readFile(path, "utf8");
-
-    return JSON.parse(content) as object;
-  }
-
-  private handleError(error: unknown): ValidateCommandResult {
+  private handleError(
+    error: unknown,
+  ): ValidateCommandResult {
     if (error instanceof SchemaValidationError) {
       console.error(
         `Error ${error.code}: ${error.message}`,
       );
 
-      for (const validationError of error.validationErrors) {
+      for (
+        const validationError
+        of error.validationErrors
+      ) {
         console.error(
-          `  ${validationError.instancePath || "/"}: ${validationError.message}`,
+          `  ${validationError.instancePath || "/"}: ` +
+          `${validationError.message}`,
         );
       }
 
@@ -90,10 +114,27 @@ export class ValidateCommand {
       };
     }
 
+    if (
+      error instanceof MissingSchemaVersionError ||
+      error instanceof UnsupportedSchemaVersionError
+    ) {
+      console.error(
+        `Error ${error.code}: ${error.message}`,
+      );
+
+      return {
+        exitCode: 1,
+      };
+    }
+
     if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
+      console.error(
+        `Error: ${error.message}`,
+      );
     } else {
-      console.error("An unexpected error occurred.");
+      console.error(
+        "An unexpected error occurred.",
+      );
     }
 
     return {

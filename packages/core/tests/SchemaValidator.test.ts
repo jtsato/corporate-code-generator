@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import modelSchema from "../../../schemas/model.schema.json";
+import modelSchema from "../schemas/1.0/model.schema.json";
 
 import {
   SchemaValidationError,

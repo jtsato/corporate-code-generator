@@ -45,17 +45,10 @@ async function executeValidate(
     return;
   }
 
-  const schemaPath = resolve(
-    process.cwd(),
-    "schemas",
-    "model.schema.json",
-  );
-
   const command = new ValidateCommand();
 
   const result = await command.execute(
     resolve(process.cwd(), modelPath),
-    schemaPath,
   );
 
   process.exitCode = result.exitCode;

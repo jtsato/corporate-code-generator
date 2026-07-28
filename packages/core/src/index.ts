@@ -32,3 +32,19 @@ export {
 export type {
   SemanticValidationIssue,
 } from "./validation/SemanticValidationError.js";
+
+export {
+  ModelSchemaRegistry,
+} from "./schema/ModelSchemaRegistry.js";
+
+export {
+  SchemaVersionDetector,
+} from "./schema/SchemaVersionDetector.js";
+
+export {
+  UnsupportedSchemaVersionError,
+} from "./schema/UnsupportedSchemaVersionError.js";
+
+export {
+  MissingSchemaVersionError,
+} from "./schema/MissingSchemaVersionError.js";
