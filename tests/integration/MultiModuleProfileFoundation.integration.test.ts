@@ -76,6 +76,7 @@ describe("Java multi-module profile foundation", () => {
       "infra-database-gateway-provider",
       "infra-database-persistence-entity",
       "infra-database-persistence-mapper",
+      "infra-database-repository",
       "configuration-application",
       "configuration-domain-wiring",
       "configuration-application-test",

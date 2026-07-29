@@ -33,7 +33,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
     ]);
     const infraDatabase = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-infra-database`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
-      { groupId: "jakarta.persistence", artifactId: "jakarta.persistence-api" },
+      { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa" },
     ]);
     const configuration = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-configuration`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
@@ -41,6 +41,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "${project.groupId}", artifactId: `${artifactId}-infra-database`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
+      { groupId: "com.h2database", artifactId: "h2", scope: "test" },
     ], true);
 
     return [

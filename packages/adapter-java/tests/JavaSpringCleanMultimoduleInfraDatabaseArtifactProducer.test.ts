@@ -52,6 +52,21 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       },
       outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletPersistenceMapper" },
     }, {
+      templateId: "infra-database-repository",
+      model: {
+        packageName: "io.github.jtsato.walletservice.infra.domains.wallet.repository",
+        imports: [
+          "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity",
+          "java.util.UUID",
+          "org.springframework.data.jpa.repository.JpaRepository",
+        ],
+        interfaceName: "WalletRepository",
+        entityType: "WalletEntity",
+        identifierType: "UUID",
+        baseRepositoryType: "JpaRepository",
+      },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletRepository" },
+    }, {
       templateId: "infra-database-gateway-provider",
       model: {
         packageName: "io.github.jtsato.walletservice.infra.domains.wallet",
@@ -71,5 +86,23 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         className: "WalletGatewayProvider",
       },
     }]);
+  });
+
+  it.each([
+    { attributes: [], message: "Cannot generate Spring Data repository for entity 'Wallet' because no identifier attribute was found." },
+    {
+      attributes: [
+        { name: "id", type: "uuid" as const, identifier: true, required: true },
+        { name: "legacyId", type: "uuid" as const, identifier: true, required: true },
+      ],
+      message: "Cannot generate Spring Data repository for entity 'Wallet' because multiple identifier attributes were found.",
+    },
+  ])("rejects invalid repository identifiers", ({ attributes, message }) => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    expect(() => producer.produce({
+      application: { schemaVersion: "1.0", name: "wallet-service", namespace: "io.github.jtsato.walletservice", entities: [{ name: "Wallet", attributes }] },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    })).toThrow(message);
   });
 });

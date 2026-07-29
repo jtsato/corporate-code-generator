@@ -61,7 +61,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
           packaging: "jar", hasSpringBootPlugin: false,
           dependencies: [
             { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
-            { groupId: "jakarta.persistence", artifactId: "jakarta.persistence-api" },
+            { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa" },
           ],
         }, outputVariables: {},
       },
@@ -77,6 +77,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
             { groupId: "${project.groupId}", artifactId: "wallet-service-infra-database", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
+            { groupId: "com.h2database", artifactId: "h2", scope: "test" },
           ],
         }, outputVariables: {},
       },

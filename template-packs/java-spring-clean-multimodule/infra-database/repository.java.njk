@@ -1,0 +1,6 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public interface {{ interfaceName }} extends {{ baseRepositoryType }}<{{ entityType }}, {{ identifierType }}> {
+}

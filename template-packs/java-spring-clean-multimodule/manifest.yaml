@@ -58,6 +58,10 @@ templates:
     module: infra-database
     template: infra-database/persistence-mapper.java.njk
     output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/mapper/{{ className }}.java
+  - id: infra-database-repository
+    module: infra-database
+    template: infra-database/repository.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/repository/{{ className }}.java
   - id: configuration-application
     module: configuration
     template: configuration/application.java.njk

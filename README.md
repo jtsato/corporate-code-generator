@@ -107,7 +107,8 @@ mvn compile
 ### Smoke de contexto Spring multi-módulo
 
 O Golden Path `java-spring-clean-multimodule` também possui um smoke dedicado
-que gera o projeto completo e executa `mvn test`, carregando o contexto Spring:
+que gera o projeto completo e executa `mvn test`, carregando o contexto Spring
+e validando o bootstrap Spring Data/JPA com H2 no classpath de teste:
 
 ```bash
 npm run smoke:spring-context:java-multimodule
@@ -115,9 +116,9 @@ npm run smoke:spring-context:java-multimodule
 
 Ele exige Maven e JDK compatível com Java 25. Como os demais smokes Maven, é
 ignorado quando Maven não estiver instalado, exceto se
-`CODEGEN_REQUIRE_MAVEN_SMOKE=true` for definido. O smoke valida somente o
-wiring Spring básico; não testa endpoint HTTP, Actuator, healthcheck ou
-persistence.
+`CODEGEN_REQUIRE_MAVEN_SMOKE=true` for definido. O smoke valida wiring e
+bootstrap de persistência, mas não testa endpoint HTTP, Actuator, healthcheck
+ou persistência funcional.
 
 Para limpar a saída local:
 

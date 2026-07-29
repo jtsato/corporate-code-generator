@@ -7,6 +7,7 @@ import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaGatewayProviderTemplateModel } from "../model/JavaGatewayProviderTemplateModel.js";
 import type { JavaPersistenceEntityTemplateModel } from "../model/JavaPersistenceEntityTemplateModel.js";
 import type { JavaPersistenceMapperTemplateModel } from "../model/JavaPersistenceMapperTemplateModel.js";
+import type { JavaSpringDataRepositoryTemplateModel } from "../model/JavaSpringDataRepositoryTemplateModel.js";
 import { toJavaDatabaseColumnName } from "../naming/JavaDatabaseColumnName.js";
 import { toJavaDatabaseTableName } from "../naming/JavaDatabaseTableName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
@@ -66,6 +67,26 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         toEntityArguments: entity.attributes.map((attribute) => `${domainParameterName}.get${toJavaTypeName(attribute.name)}()`),
         toDomainArguments: entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`),
       };
+      const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
+      if (identifiers.length === 0) {
+        throw new Error(`Cannot generate Spring Data repository for entity '${entity.name}' because no identifier attribute was found.`);
+      }
+      if (identifiers.length > 1) {
+        throw new Error(`Cannot generate Spring Data repository for entity '${entity.name}' because multiple identifier attributes were found.`);
+      }
+      const identifierType = typeResolver.resolve(identifiers[0]!.type);
+      const repositoryImports = new JavaImportCollector();
+      repositoryImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+      repositoryImports.add(identifierType.import);
+      repositoryImports.add("org.springframework.data.jpa.repository.JpaRepository");
+      const repositoryModel: JavaSpringDataRepositoryTemplateModel = {
+        packageName: `${namespace}.infra.domains.${domainName}.repository`,
+        imports: repositoryImports.values(),
+        interfaceName: `${entityType}Repository`,
+        entityType: `${entityType}Entity`,
+        identifierType: identifierType.name,
+        baseRepositoryType: "JpaRepository",
+      };
       const imports = new JavaImportCollector();
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
       imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -88,7 +109,13 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         {
           templateId: "infra-database-persistence-mapper", model: mapperModel,
           outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: mapperModel.className },
-        }, {
+        },
+        {
+          templateId: "infra-database-repository",
+          model: repositoryModel,
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: repositoryModel.interfaceName },
+        },
+        {
           templateId: "infra-database-gateway-provider",
           model,
           outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: model.className },
