@@ -54,3 +54,7 @@ templates:
     module: configuration
     template: configuration/application.java.njk
     output: configuration/src/main/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-domain-wiring
+    module: configuration
+    template: configuration/domain-configuration.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/domains/{{ domainName }}/{{ className }}.java

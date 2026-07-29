@@ -45,6 +45,10 @@ export type {
 } from "./model/JavaGatewayProviderTemplateModel.js";
 
 export type {
+  JavaDomainConfigurationTemplateModel,
+} from "./model/JavaDomainConfigurationTemplateModel.js";
+
+export type {
   JavaRecordComponentModel,
   JavaRestResponseTemplateModel,
 } from "./model/JavaRestResponseTemplateModel.js";

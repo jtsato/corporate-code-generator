@@ -1,0 +1,16 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@Configuration
+public class {{ className }} {
+    @Bean
+    public {{ gatewayType }} {{ gatewayBeanMethodName }}() {
+        return new {{ gatewayImplementationType }}();
+    }
+
+    @Bean
+    public {{ useCaseType }} {{ useCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ useCaseImplementationType }}({{ gatewayParameterName }});
+    }
+}

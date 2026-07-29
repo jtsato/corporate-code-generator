@@ -75,6 +75,7 @@ describe("Java multi-module profile foundation", () => {
       "entrypoints-rest-response",
       "infra-database-gateway-provider",
       "configuration-application",
+      "configuration-domain-wiring",
     ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([
       "build",

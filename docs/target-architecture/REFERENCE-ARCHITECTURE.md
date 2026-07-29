@@ -149,10 +149,13 @@ template-specific; it does not require the Core to know Maven module layout.
 > responses under `<base>.entrypoint.rest.domains.<domain>`. `infra-database`
 > generates an unannotated structural gateway provider that returns `List.of()`;
 > it has no JPA, repository, persistence entity, or mapper. Configuration
-> contributes the root Spring Boot application class and depends on the
-> infrastructure module, so the complete multi-module profile is generable.
-> The structural smoke compares all thirteen artifacts; Maven compile
-> validation remains active. REST controllers return `List.of()` and do not yet
+> contributes the root Spring Boot application class and domain-specific
+> `@Configuration` classes. Those classes explicitly register gateway and use
+> case beans, while core and infrastructure remain unannotated plain Java.
+> Configuration depends on the infrastructure module, so the complete
+> multi-module profile is generable. The structural smoke compares all fourteen
+> artifacts; Maven compile validation remains active. There is no Spring
+> runtime/context smoke yet. REST controllers return `List.of()` and do not yet
 > delegate to use cases, ports, persistence, or mappers.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
@@ -184,7 +187,8 @@ structural implementation only.
 6. 5.6 — Multi-module Maven Compile Smoke.
 7. 5.7 — Core Use Cases and Ports.
 8. 5.8 — Database Infrastructure Foundation.
-9. 5.9 — Operational and Quality Alignment.
+9. 5.9 — Spring Wiring Foundation.
+10. 5.10 — REST Delegation and Runtime Validation.
 
 ## Open questions and non-adopted reference details
 
