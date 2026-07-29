@@ -32,6 +32,9 @@ describe("Java multi-module CLI smoke test", () => {
         "entrypoints/rest/pom.xml",
         "configuration/pom.xml",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
         "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
         "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
@@ -43,7 +46,7 @@ describe("Java multi-module CLI smoke test", () => {
             "tests",
             "golden",
             "java-spring-clean-multimodule",
-            targetPath.includes("entrypoints/rest/src") ? "entrypoints-rest" : targetPath.includes("configuration/src") ? "configuration" : targetPath.endsWith("Wallet.java") ? "core" : "build",
+            goldenModule(targetPath),
             ...targetPath.split("/"),
           ), "utf8"),
         ]);
@@ -57,4 +60,11 @@ describe("Java multi-module CLI smoke test", () => {
 
 function normalizeLineEndings(content: string): string {
   return content.replaceAll("\r\n", "\n");
+}
+
+function goldenModule(targetPath: string): string {
+  if (targetPath.startsWith("core/src/")) return "core";
+  if (targetPath.startsWith("entrypoints/rest/src/")) return "entrypoints-rest";
+  if (targetPath.startsWith("configuration/src/")) return "configuration";
+  return "build";
 }

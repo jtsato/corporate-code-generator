@@ -57,6 +57,8 @@ export type {
 
 export { toJavaTypeName } from "./naming/JavaTypeName.js";
 export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
+export { toJavaPluralTypeName } from "./naming/JavaPluralTypeName.js";
+export { JavaSpringCleanMultimoduleCoreArtifactProducer } from "./generation/JavaSpringCleanMultimoduleCoreArtifactProducer.js";
 export { toRestCollectionPath } from "./naming/RestCollectionPath.js";
 export { deriveMavenGroupId } from "./maven/MavenCoordinates.js";
 export { springBootVersion } from "./spring/SpringBootVersion.js";
@@ -80,10 +82,6 @@ export {
 export {
   JavaSpringCleanMultimoduleBuildArtifactProducer,
 } from "./generation/JavaSpringCleanMultimoduleBuildArtifactProducer.js";
-
-export {
-  JavaSpringCleanMultimoduleCoreDomainArtifactProducer,
-} from "./generation/JavaSpringCleanMultimoduleCoreDomainArtifactProducer.js";
 
 export {
   JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer,

@@ -22,6 +22,18 @@ templates:
     module: core
     template: core/domain/entity.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/model/{{ className }}.java
+  - id: core-gateway
+    module: core
+    template: core/gateway/gateway.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/gateway/{{ className }}.java
+  - id: core-find-usecase
+    module: core
+    template: core/usecase/find/usecase.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-interactor
+    module: core
+    template: core/usecase/find/interactor.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
   - id: entrypoints-rest-controller
     module: entrypoints-rest
     template: entrypoints-rest/domain/controller.java.njk

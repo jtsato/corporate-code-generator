@@ -139,14 +139,17 @@ template-specific; it does not require the Core to know Maven module layout.
 > **GENERATOR DECISION** The first multi-module MVP contains `build`, `core`,
 > `entrypoints-rest`, and `configuration`. Persistence is deferred.
 
-> **GENERATOR DECISION** The `build` capability generates Maven Reactor POMs,
-> `core` generates domain models, and `entrypoints-rest` generates provisional
-> controllers and responses under
-> `<base>.core.domains.<domain>.model`. Complete multi-module generation is not
-> Configuration now contributes the root Spring Boot application class, so the
-> complete multi-module profile is generable. The structural smoke compares all
-> eight artifacts; Maven compile validation remains a separate milestone. REST controllers return
-> `List.of()` and do not yet use use cases, ports, persistence, or mappers.
+> **GENERATOR DECISION** The `build` capability generates Maven Reactor POMs.
+> `core` generates domain models, gateway ports, and structural find use cases
+> with interactors. The interactor is deliberately unannotated: it depends only
+> on the core gateway interface and is not a Spring bean until infrastructure
+> and wiring exist. `entrypoints-rest` generates provisional controllers and
+> responses under `<base>.entrypoint.rest.domains.<domain>`. Configuration
+> contributes the root Spring Boot application class, so the complete
+> multi-module profile is generable. The structural smoke compares all eleven
+> artifacts; Maven compile validation remains a separate milestone. REST
+> controllers return `List.of()` and do not yet delegate to use cases, ports,
+> persistence, or mappers.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
 > `smoke:maven:java-multimodule` generates the complete profile and runs

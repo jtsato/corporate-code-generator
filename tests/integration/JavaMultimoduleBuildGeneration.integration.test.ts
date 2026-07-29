@@ -15,14 +15,15 @@ import {
   TemplatePackResolver,
 } from "@corporate-code-generator/core";
 import { JavaSpringCleanMultimoduleBuildArtifactProducer } from "@corporate-code-generator/adapter-java";
-import { JavaSpringCleanMultimoduleCoreDomainArtifactProducer } from "@corporate-code-generator/adapter-java";
+import { JavaSpringCleanMultimoduleConfigurationArtifactProducer } from "@corporate-code-generator/adapter-java";
+import { JavaSpringCleanMultimoduleCoreArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
-describe("Java multi-module build generation", () => {
-  it("renders the Maven reactor and core domain artifacts", async () => {
+describe("Java multi-module generation", () => {
+  it("renders the eleven complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -31,7 +32,7 @@ describe("Java multi-module build generation", () => {
     const application = new ModelParser().parse(document);
     new SemanticValidator().validate(application);
     const profile = await new ProfileResolver(resolve(rootDirectory, "profiles")).resolve("java-spring-clean-multimodule");
-    const modules = new ModuleResolver().resolveSelected(profile.modules, ["build", "core", "entrypoints-rest"]);
+    const modules = new ModuleResolver().resolveAll(profile.modules);
     const resolvedPack = await new TemplatePackResolver(resolve(rootDirectory, "template-packs")).resolve(profile.templatePack);
     const buildPlan = await new GenerationPlanner(
       new NunjucksTemplateEngine([resolvedPack.directory]),
@@ -40,7 +41,7 @@ describe("Java multi-module build generation", () => {
     ).plan({ application, profile, modules });
     const corePlan = await new GenerationPlanner(
       new NunjucksTemplateEngine([resolvedPack.directory]),
-      new JavaSpringCleanMultimoduleCoreDomainArtifactProducer(),
+      new JavaSpringCleanMultimoduleCoreArtifactProducer(),
       resolvedPack.templatePack,
     ).plan({ application, profile, modules });
     const restPlan = await new GenerationPlanner(
@@ -48,16 +49,30 @@ describe("Java multi-module build generation", () => {
       new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer(),
       resolvedPack.templatePack,
     ).plan({ application, profile, modules });
-    const operations = [...buildPlan.operations, ...corePlan.operations, ...restPlan.operations];
+    const configurationPlan = await new GenerationPlanner(
+      new NunjucksTemplateEngine([resolvedPack.directory]),
+      new JavaSpringCleanMultimoduleConfigurationArtifactProducer(),
+      resolvedPack.templatePack,
+    ).plan({ application, profile, modules });
+    const operations = [
+      ...buildPlan.operations,
+      ...corePlan.operations,
+      ...restPlan.operations,
+      ...configurationPlan.operations,
+    ];
 
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "configuration/pom.xml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
+      "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
     ]);
     for (const operation of operations) {
-      const goldenModule = operation.targetPath.includes("entrypoints/rest/src") ? "entrypoints-rest" : operation.targetPath.endsWith("Wallet.java") ? "core" : "build";
+      const goldenModule = goldenModuleFor(operation.targetPath);
       const golden = await readFile(resolve(
         rootDirectory,
         "tests",
@@ -73,4 +88,11 @@ describe("Java multi-module build generation", () => {
 
 function normalize(value: string): string {
   return value.replaceAll("\r\n", "\n");
+}
+
+function goldenModuleFor(targetPath: string): string {
+  if (targetPath.startsWith("core/src/")) return "core";
+  if (targetPath.startsWith("entrypoints/rest/src/")) return "entrypoints-rest";
+  if (targetPath.startsWith("configuration/src/")) return "configuration";
+  return "build";
 }

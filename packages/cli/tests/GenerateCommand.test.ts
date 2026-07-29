@@ -87,6 +87,10 @@ describe("GenerateCommand", () => {
         expect(exitCode).toBe(0);
         if (dryRun) expect(writer).not.toHaveBeenCalled();
         else expect(writer).toHaveBeenCalledOnce();
+
+        if (!dryRun) {
+          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(11);
+        }
       } finally {
         error.mockRestore();
       }
@@ -116,7 +120,7 @@ describe("GenerateCommand", () => {
     ]);
   });
 
-  it("generates only core domain artifacts when the multi-module core capability is requested", async () => {
+  it("generates the four core artifacts when the multi-module core capability is requested", async () => {
     let targetPaths: readonly string[] = [];
     const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
       targetPaths = plan.operations.map((operation) => operation.targetPath);
@@ -128,6 +132,9 @@ describe("GenerateCommand", () => {
     expect(exitCode).toBe(0);
     expect(targetPaths).toEqual([
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
     ]);
   });
 
@@ -141,19 +148,22 @@ describe("GenerateCommand", () => {
       moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
-    expect(targetPaths).toHaveLength(5);
+    expect(targetPaths).toHaveLength(8);
     expect(targetPaths.at(-1)).toBe(
-      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
     );
   });
 
   it.each([
-    { moduleIds: ["configuration"] },
-    { moduleIds: ["build", "configuration"] },
+    { moduleIds: ["entrypoints-rest"], operationCount: 6 },
+    { moduleIds: ["configuration"], operationCount: 7 },
   ])(
-    "accepts complete multi-module selection $moduleIds",
-    async ({ moduleIds }) => {
-      const writer = vi.fn(async () => undefined);
+    "resolves multi-module selection $moduleIds to $operationCount operations",
+    async ({ moduleIds, operationCount }) => {
+      let targetPaths: readonly string[] = [];
+      const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
+        targetPaths = plan.operations.map((operation) => operation.targetPath);
+      });
       const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
       try {
@@ -166,7 +176,7 @@ describe("GenerateCommand", () => {
         });
 
         expect(exitCode).toBe(0);
-        expect(writer).toHaveBeenCalledOnce();
+        expect(targetPaths).toHaveLength(operationCount);
       } finally {
         error.mockRestore();
       }

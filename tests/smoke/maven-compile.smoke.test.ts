@@ -86,7 +86,7 @@ describe("Maven compile smoke test", () => {
     } finally {
       await rm(outputRoot, { recursive: true, force: true });
     }
-  });
+  }, 300_000);
 });
 
 async function detectMaven(): Promise<{ readonly available: boolean }> {

@@ -21,7 +21,7 @@ import {
   JavaSpringCleanBuildArtifactProducer,
   JavaSpringCleanDomainArtifactProducer,
   JavaSpringCleanMultimoduleBuildArtifactProducer,
-  JavaSpringCleanMultimoduleCoreDomainArtifactProducer,
+  JavaSpringCleanMultimoduleCoreArtifactProducer,
   JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer,
   JavaSpringCleanMultimoduleConfigurationArtifactProducer,
 } from "@corporate-code-generator/adapter-java";
@@ -92,7 +92,7 @@ export class GenerateCommand {
       const producers: GenerationArtifactProducer[] = [];
       for (const module of modules) {
         if (module.id === "build") producers.push(new JavaSpringCleanMultimoduleBuildArtifactProducer());
-        else if (module.id === "core") producers.push(new JavaSpringCleanMultimoduleCoreDomainArtifactProducer());
+        else if (module.id === "core") producers.push(new JavaSpringCleanMultimoduleCoreArtifactProducer());
         else if (module.id === "entrypoints-rest") producers.push(new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer());
         else if (module.id === "configuration") producers.push(new JavaSpringCleanMultimoduleConfigurationArtifactProducer());
         else throw new CliCapabilityError(
