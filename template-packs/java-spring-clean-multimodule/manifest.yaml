@@ -30,3 +30,7 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/domain/response.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: configuration-application
+    module: configuration
+    template: configuration/application.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/{{ className }}.java

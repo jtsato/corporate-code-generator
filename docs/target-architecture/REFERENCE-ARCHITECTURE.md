@@ -143,7 +143,9 @@ template-specific; it does not require the Core to know Maven module layout.
 > `core` generates domain models, and `entrypoints-rest` generates provisional
 > controllers and responses under
 > `<base>.core.domains.<domain>.model`. Complete multi-module generation is not
-> available until configuration has a concrete producer. REST controllers return
+> Configuration now contributes the root Spring Boot application class, so the
+> complete multi-module profile is generable. The structural smoke compares all
+> eight artifacts; Maven compile validation remains a separate milestone. REST controllers return
 > `List.of()` and do not yet use use cases, ports, persistence, or mappers.
 
 ## Recommended first multi-module MVP

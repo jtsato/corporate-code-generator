@@ -70,7 +70,7 @@ describe("GenerateCommand", () => {
     { dryRun: true, outputDirectory: undefined },
     { dryRun: false, outputDirectory: "generated" },
   ])(
-    "recognizes the multi-module profile but rejects generation (dryRun=$dryRun)",
+    "generates the complete multi-module profile (dryRun=$dryRun)",
     async ({ dryRun, outputDirectory }) => {
       const writer = vi.fn(async () => undefined);
       const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -84,12 +84,9 @@ describe("GenerateCommand", () => {
           dryRun,
         });
 
-        expect(exitCode).toBe(1);
-        expect(writer).not.toHaveBeenCalled();
-        expect(error.mock.calls.flat().join("\n")).toContain("CLI002");
-        expect(error.mock.calls.flat().join("\n")).toContain(
-          "Profile 'java-spring-clean-multimodule' currently supports only the 'build', 'core' and 'entrypoints-rest' modules; complete multi-module generation is not implemented yet.",
-        );
+        expect(exitCode).toBe(0);
+        if (dryRun) expect(writer).not.toHaveBeenCalled();
+        else expect(writer).toHaveBeenCalledOnce();
       } finally {
         error.mockRestore();
       }
@@ -154,7 +151,7 @@ describe("GenerateCommand", () => {
     { moduleIds: ["configuration"] },
     { moduleIds: ["build", "configuration"] },
   ])(
-    "rejects unsupported multi-module selection $moduleIds",
+    "accepts complete multi-module selection $moduleIds",
     async ({ moduleIds }) => {
       const writer = vi.fn(async () => undefined);
       const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -168,9 +165,8 @@ describe("GenerateCommand", () => {
           dryRun: false,
         });
 
-        expect(exitCode).toBe(1);
-        expect(writer).not.toHaveBeenCalled();
-        expect(error.mock.calls.flat().join("\n")).toContain("CLI002");
+        expect(exitCode).toBe(0);
+        expect(writer).toHaveBeenCalledOnce();
       } finally {
         error.mockRestore();
       }
