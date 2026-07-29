@@ -24,7 +24,7 @@
     "smoke:maven:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-maven-compile.smoke.test.ts",
     "smoke:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule.smoke.test.ts",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --exclude tests/smoke/maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-maven-compile.smoke.test.ts",
     "mutation": "stryker run"
   },
   "engines": {

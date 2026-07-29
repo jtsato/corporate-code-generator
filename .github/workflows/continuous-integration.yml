@@ -71,6 +71,12 @@ jobs:
       - name: Smoke Java multi-module
         run: npm run smoke:java-multimodule
 
+      - name: Verify coverage report
+        run: |
+          test -f coverage/lcov.info
+          ls -lah coverage
+          head -20 coverage/lcov.info        
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
         env:
