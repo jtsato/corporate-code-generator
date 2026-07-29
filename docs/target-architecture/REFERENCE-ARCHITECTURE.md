@@ -163,7 +163,10 @@ template-specific; it does not require the Core to know Maven module layout.
 > use case and map domain entities through the local `Response.from(entity)`
 > factory. Mapping remains manual and local to the DTO: MapStruct and a
 > dedicated mapper layer are not introduced. The infrastructure provider still
-> returns `List.of()` and persistence does not yet exist.
+> returns `List.of()`. Infrastructure now generates structural JPA persistence
+> entities backed only by `jakarta.persistence-api`; they are not yet used by
+> the provider. There is no Spring Data, repository, EntityManager, DataSource,
+> H2, or persistence runtime configuration.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
 > `smoke:maven:java-multimodule` generates the complete profile and runs

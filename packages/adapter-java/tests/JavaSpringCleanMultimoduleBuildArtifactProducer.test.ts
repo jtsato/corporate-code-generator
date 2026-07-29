@@ -61,6 +61,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
           packaging: "jar", hasSpringBootPlugin: false,
           dependencies: [
             { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
+            { groupId: "jakarta.persistence", artifactId: "jakarta.persistence-api" },
           ],
         }, outputVariables: {},
       },

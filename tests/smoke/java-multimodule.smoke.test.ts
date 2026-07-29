@@ -38,6 +38,7 @@ describe("Java multi-module CLI smoke test", () => {
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
         "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
         "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
+        "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/entity/WalletEntity.java",
         "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",

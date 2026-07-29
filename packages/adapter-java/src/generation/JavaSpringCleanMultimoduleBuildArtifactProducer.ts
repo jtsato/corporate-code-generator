@@ -33,6 +33,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
     ]);
     const infraDatabase = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-infra-database`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
+      { groupId: "jakarta.persistence", artifactId: "jakarta.persistence-api" },
     ]);
     const configuration = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-configuration`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },

@@ -1,0 +1,22 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@Entity
+@Table(name = "{{ tableName }}")
+public class {{ className }} {
+{% for field in fields %}{% if field.identifier %}    @Id
+{% endif %}    @Column(name = "{{ field.columnName }}", nullable = {{ field.nullable }})
+    private {{ field.type }} {{ field.name }};
+
+{% endfor %}    protected {{ className }}() {
+    }
+
+    public {{ className }}({% for parameter in constructorParameters %}{{ parameter.type }} {{ parameter.name }}{% if not loop.last %}, {% endif %}{% endfor %}) {
+{% for parameter in constructorParameters %}        this.{{ parameter.name }} = {{ parameter.name }};
+{% endfor %}    }
+{% for getter in getters %}
+    public {{ getter.returnType }} {{ getter.name }}() {
+        return {{ getter.fieldName }};
+    }
+{% endfor %}}

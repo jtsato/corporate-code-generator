@@ -74,6 +74,7 @@ describe("Java multi-module profile foundation", () => {
       "entrypoints-rest-controller",
       "entrypoints-rest-response",
       "infra-database-gateway-provider",
+      "infra-database-persistence-entity",
       "configuration-application",
       "configuration-domain-wiring",
       "configuration-application-test",

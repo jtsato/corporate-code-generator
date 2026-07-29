@@ -5,7 +5,12 @@ import type {
 } from "@corporate-code-generator/core";
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaGatewayProviderTemplateModel } from "../model/JavaGatewayProviderTemplateModel.js";
+import type { JavaPersistenceEntityTemplateModel } from "../model/JavaPersistenceEntityTemplateModel.js";
+import { toJavaDatabaseColumnName } from "../naming/JavaDatabaseColumnName.js";
+import { toJavaDatabaseTableName } from "../naming/JavaDatabaseTableName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
+import { toJavaTypeName } from "../naming/JavaTypeName.js";
+import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
   implements GenerationArtifactProducer {
@@ -18,9 +23,35 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       throw new Error("Infrastructure generation requires an application namespace.");
     }
 
-    return request.application.entities.map((entity) => {
+    const typeResolver = new JavaTypeResolver();
+    return request.application.entities.flatMap((entity) => {
       const domainName = toJavaPackageSegment(entity.name);
-      const entityType = entity.name;
+      const entityType = toJavaTypeName(entity.name);
+      const persistenceImports = new JavaImportCollector();
+      persistenceImports.add("jakarta.persistence.Column");
+      persistenceImports.add("jakarta.persistence.Entity");
+      persistenceImports.add("jakarta.persistence.Id");
+      persistenceImports.add("jakarta.persistence.Table");
+      const fields = entity.attributes.map((attribute) => {
+        const javaType = typeResolver.resolve(attribute.type);
+        persistenceImports.add(javaType.import);
+        return {
+          name: attribute.name,
+          type: javaType.name,
+          columnName: toJavaDatabaseColumnName(attribute.name),
+          nullable: !attribute.required,
+          identifier: attribute.identifier,
+        };
+      });
+      const persistenceModel: JavaPersistenceEntityTemplateModel = {
+        packageName: `${namespace}.infra.domains.${domainName}.entity`,
+        imports: persistenceImports.values(),
+        className: `${entityType}Entity`,
+        tableName: toJavaDatabaseTableName(entityType),
+        fields,
+        constructorParameters: fields.map(({ name, type }) => ({ name, type })),
+        getters: fields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })),
+      };
       const gatewayType = `${entityType}Gateway`;
       const imports = new JavaImportCollector();
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
@@ -35,15 +66,18 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         findAllMethodName: "findAll",
       };
 
-      return {
-        templateId: "infra-database-gateway-provider",
-        model,
-        outputVariables: {
-          packagePath: namespace.replaceAll(".", "/"),
-          domainName,
-          className: model.className,
+      return [
+        {
+          templateId: "infra-database-persistence-entity",
+          model: persistenceModel,
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: persistenceModel.className },
         },
-      };
+        {
+          templateId: "infra-database-gateway-provider",
+          model,
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: model.className },
+        },
+      ];
     });
   }
 }

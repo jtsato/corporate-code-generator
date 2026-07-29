@@ -66,6 +66,7 @@ export type {
 } from "./model/JavaFactoryRestResponseTemplateModel.js";
 
 export type { MavenDependencyTemplateModel } from "./model/MavenPomTemplateModel.js";
+export type { JavaPersistenceEntityTemplateModel, JavaPersistenceFieldTemplateModel } from "./model/JavaPersistenceEntityTemplateModel.js";
 
 export type {
   MavenMultimoduleParentPomTemplateModel,
@@ -77,6 +78,8 @@ export type {
 
 export { toJavaTypeName } from "./naming/JavaTypeName.js";
 export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
+export { toJavaDatabaseTableName } from "./naming/JavaDatabaseTableName.js";
+export { toJavaDatabaseColumnName } from "./naming/JavaDatabaseColumnName.js";
 export { toJavaFieldName } from "./naming/JavaFieldName.js";
 export { toJavaPluralTypeName } from "./naming/JavaPluralTypeName.js";
 export { JavaSpringCleanMultimoduleCoreArtifactProducer } from "./generation/JavaSpringCleanMultimoduleCoreArtifactProducer.js";

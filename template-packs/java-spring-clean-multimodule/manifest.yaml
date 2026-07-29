@@ -50,6 +50,10 @@ templates:
     module: infra-database
     template: infra-database/gateway-provider.java.njk
     output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/{{ className }}.java
+  - id: infra-database-persistence-entity
+    module: infra-database
+    template: infra-database/persistence-entity.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/entity/{{ className }}.java
   - id: configuration-application
     module: configuration
     template: configuration/application.java.njk

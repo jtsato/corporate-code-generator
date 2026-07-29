@@ -9,7 +9,10 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         schemaVersion: "1.0",
         name: "wallet-service",
         namespace: "io.github.jtsato.walletservice",
-        entities: [{ name: "Wallet", attributes: [] }],
+        entities: [{ name: "Wallet", attributes: [
+          { name: "id", type: "uuid", identifier: true, required: true },
+          { name: "balance", type: "decimal", identifier: false, required: true },
+        ] }],
       },
       profile: {
         id: "java-spring-clean-multimodule",
@@ -25,6 +28,20 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     expect(producer.profileId).toBe("java-spring-clean-multimodule");
     expect(producer.moduleId).toBe("infra-database");
     expect(artifacts).toEqual([{
+      templateId: "infra-database-persistence-entity",
+      model: {
+        packageName: "io.github.jtsato.walletservice.infra.domains.wallet.entity",
+        imports: ["jakarta.persistence.Column", "jakarta.persistence.Entity", "jakarta.persistence.Id", "jakarta.persistence.Table", "java.math.BigDecimal", "java.util.UUID"],
+        className: "WalletEntity", tableName: "wallet",
+        fields: [
+          { name: "id", type: "UUID", columnName: "id", nullable: false, identifier: true },
+          { name: "balance", type: "BigDecimal", columnName: "balance", nullable: false, identifier: false },
+        ],
+        constructorParameters: [{ name: "id", type: "UUID" }, { name: "balance", type: "BigDecimal" }],
+        getters: [{ name: "getId", returnType: "UUID", fieldName: "id" }, { name: "getBalance", returnType: "BigDecimal", fieldName: "balance" }],
+      },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletEntity" },
+    }, {
       templateId: "infra-database-gateway-provider",
       model: {
         packageName: "io.github.jtsato.walletservice.infra.domains.wallet",
