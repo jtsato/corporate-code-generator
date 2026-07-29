@@ -24,6 +24,8 @@ describe("Java multi-module CLI smoke test", () => {
         "java-spring-clean-multimodule",
         "--module",
         "build",
+        "--module",
+        "core",
         "--output",
         outputRoot,
       ], { cwd: repoRoot });
@@ -33,10 +35,18 @@ describe("Java multi-module CLI smoke test", () => {
         "core/pom.xml",
         "entrypoints/rest/pom.xml",
         "configuration/pom.xml",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
       ]) {
         const [generated, golden] = await Promise.all([
           readFile(join(outputRoot, ...targetPath.split("/")), "utf8"),
-          readFile(join(repoRoot, "tests", "golden", "java-spring-clean-multimodule", "build", ...targetPath.split("/")), "utf8"),
+          readFile(join(
+            repoRoot,
+            "tests",
+            "golden",
+            "java-spring-clean-multimodule",
+            targetPath.endsWith("Wallet.java") ? "core" : "build",
+            ...targetPath.split("/"),
+          ), "utf8"),
         ]);
         expect(normalizeLineEndings(generated)).toBe(normalizeLineEndings(golden));
       }

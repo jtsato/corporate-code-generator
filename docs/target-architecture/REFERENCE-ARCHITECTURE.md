@@ -139,9 +139,10 @@ template-specific; it does not require the Core to know Maven module layout.
 > **GENERATOR DECISION** The first multi-module MVP contains `build`, `core`,
 > `entrypoints-rest`, and `configuration`. Persistence is deferred.
 
-> **GENERATOR DECISION** The `build` capability currently generates only the
-> Maven Reactor POMs. Complete multi-module generation is not available until
-> the remaining capabilities have concrete producers.
+> **GENERATOR DECISION** The `build` capability generates Maven Reactor POMs
+> and `core` generates domain models under
+> `<base>.core.domains.<domain>.model`. Complete multi-module generation is not
+> available until the remaining capabilities have concrete producers.
 
 ## Recommended first multi-module MVP
 

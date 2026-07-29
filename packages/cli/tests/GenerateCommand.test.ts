@@ -88,7 +88,7 @@ describe("GenerateCommand", () => {
         expect(writer).not.toHaveBeenCalled();
         expect(error.mock.calls.flat().join("\n")).toContain("CLI002");
         expect(error.mock.calls.flat().join("\n")).toContain(
-          "Profile 'java-spring-clean-multimodule' currently supports only the 'build' module; complete multi-module generation is not implemented yet.",
+          "Profile 'java-spring-clean-multimodule' currently supports only the 'build' and 'core' modules; complete multi-module generation is not implemented yet.",
         );
       } finally {
         error.mockRestore();
@@ -119,11 +119,41 @@ describe("GenerateCommand", () => {
     ]);
   });
 
+  it("generates only core domain artifacts when the multi-module core capability is requested", async () => {
+    let targetPaths: readonly string[] = [];
+    const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
+      targetPaths = plan.operations.map((operation) => operation.targetPath);
+    });
+    const exitCode = await new GenerateCommand(writer).execute({
+      modelPath: "examples/wallet-service/model.yaml", profileId: "java-spring-clean-multimodule",
+      moduleIds: ["core"], outputDirectory: "generated", dryRun: false,
+    });
+    expect(exitCode).toBe(0);
+    expect(targetPaths).toEqual([
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+    ]);
+  });
+
+  it("combines supported multi-module build and core capabilities in module order", async () => {
+    let targetPaths: readonly string[] = [];
+    const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
+      targetPaths = plan.operations.map((operation) => operation.targetPath);
+    });
+    const exitCode = await new GenerateCommand(writer).execute({
+      modelPath: "examples/wallet-service/model.yaml", profileId: "java-spring-clean-multimodule",
+      moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
+    });
+    expect(exitCode).toBe(0);
+    expect(targetPaths).toHaveLength(5);
+    expect(targetPaths.at(-1)).toBe(
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+    );
+  });
+
   it.each([
-    { moduleIds: ["core"] },
     { moduleIds: ["entrypoints-rest"] },
     { moduleIds: ["configuration"] },
-    { moduleIds: ["build", "core"] },
+    { moduleIds: ["build", "entrypoints-rest"] },
   ])(
     "rejects unsupported multi-module selection $moduleIds",
     async ({ moduleIds }) => {

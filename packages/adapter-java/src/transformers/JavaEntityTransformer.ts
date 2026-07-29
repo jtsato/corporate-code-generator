@@ -3,19 +3,9 @@ import type {
   Entity,
 } from "@corporate-code-generator/core";
 
-import {
-  JavaImportCollector,
-} from "../model/JavaImportCollector.js";
-
 import type { JavaEntityTemplateModel } from "../model/JavaEntityTemplateModel.js";
-
-import type {
-  JavaFieldModel,
-} from "../model/JavaFieldModel.js";
-
-import {
-  JavaTypeResolver,
-} from "../types/JavaTypeResolver.js";
+import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
+import { createJavaEntityTemplateModel } from "./createJavaEntityTemplateModel.js";
 
 export class JavaEntityTransformer {
   public constructor(
@@ -27,47 +17,11 @@ export class JavaEntityTransformer {
     application: ApplicationModel,
     entity: Entity,
   ): JavaEntityTemplateModel {
-    const imports =
-      new JavaImportCollector();
-
-    const fields: JavaFieldModel[] =
-      entity.attributes.map((attribute) => {
-        const javaType =
-          this.typeResolver.resolve(attribute.type);
-
-        imports.add(javaType.import);
-
-        return {
-          name: attribute.name,
-          type: javaType.name,
-          modifiers: ["private", "final"],
-        };
-      });
-
-    const constructorParameters = fields.map((field) => ({
-      name: field.name,
-      type: field.type,
-    }));
-
-    const getters = fields.map((field) => ({
-      name: `get${field.name[0]?.toUpperCase() ?? ""}${field.name.slice(1)}`,
-      returnType: field.type,
-      fieldName: field.name,
-    }));
-
-    return {
-      packageName: this.resolvePackageName(
-        application,
-      ),
-      imports: imports.values(),
-      className: entity.name,
-      modifiers: [
-        "public",
-      ],
-      fields,
-      constructorParameters,
-      getters,
-    };
+    return createJavaEntityTemplateModel(
+      entity,
+      this.resolvePackageName(application),
+      this.typeResolver,
+    );
   }
 
   private resolvePackageName(

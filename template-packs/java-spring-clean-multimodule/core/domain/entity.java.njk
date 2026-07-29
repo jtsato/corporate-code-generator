@@ -1,0 +1,15 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+{{ modifiers | join(" ") }} class {{ className }} {
+{% for field in fields %}    {{ field.modifiers | join(" ") }} {{ field.type }} {{ field.name }};
+{% endfor %}
+    public {{ className }}({% for parameter in constructorParameters %}{{ parameter.type }} {{ parameter.name }}{% if not loop.last %}, {% endif %}{% endfor %}) {
+{% for parameter in constructorParameters %}        this.{{ parameter.name }} = {{ parameter.name }};
+{% endfor %}    }
+{% for getter in getters %}
+    public {{ getter.returnType }} {{ getter.name }}() {
+        return {{ getter.fieldName }};
+    }
+{% endfor %}}

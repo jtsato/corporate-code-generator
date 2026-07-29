@@ -56,6 +56,7 @@ export type {
 } from "./model/MavenMultimoduleModulePomTemplateModel.js";
 
 export { toJavaTypeName } from "./naming/JavaTypeName.js";
+export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
 export { toRestCollectionPath } from "./naming/RestCollectionPath.js";
 export { deriveMavenGroupId } from "./maven/MavenCoordinates.js";
 export { springBootVersion } from "./spring/SpringBootVersion.js";
@@ -79,6 +80,10 @@ export {
 export {
   JavaSpringCleanMultimoduleBuildArtifactProducer,
 } from "./generation/JavaSpringCleanMultimoduleBuildArtifactProducer.js";
+
+export {
+  JavaSpringCleanMultimoduleCoreDomainArtifactProducer,
+} from "./generation/JavaSpringCleanMultimoduleCoreDomainArtifactProducer.js";
 
 export {
   JavaSpringCleanBootstrapArtifactProducer,

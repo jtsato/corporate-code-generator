@@ -15,12 +15,13 @@ import {
   TemplatePackResolver,
 } from "@corporate-code-generator/core";
 import { JavaSpringCleanMultimoduleBuildArtifactProducer } from "@corporate-code-generator/adapter-java";
+import { JavaSpringCleanMultimoduleCoreDomainArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module build generation", () => {
-  it("renders the Maven reactor POMs from the build capability", async () => {
+  it("renders the Maven reactor and core domain artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -29,24 +30,32 @@ describe("Java multi-module build generation", () => {
     const application = new ModelParser().parse(document);
     new SemanticValidator().validate(application);
     const profile = await new ProfileResolver(resolve(rootDirectory, "profiles")).resolve("java-spring-clean-multimodule");
-    const modules = new ModuleResolver().resolveSelected(profile.modules, ["build"]);
+    const modules = new ModuleResolver().resolveSelected(profile.modules, ["build", "core"]);
     const resolvedPack = await new TemplatePackResolver(resolve(rootDirectory, "template-packs")).resolve(profile.templatePack);
-    const plan = await new GenerationPlanner(
+    const buildPlan = await new GenerationPlanner(
       new NunjucksTemplateEngine([resolvedPack.directory]),
       new JavaSpringCleanMultimoduleBuildArtifactProducer(),
       resolvedPack.templatePack,
     ).plan({ application, profile, modules });
+    const corePlan = await new GenerationPlanner(
+      new NunjucksTemplateEngine([resolvedPack.directory]),
+      new JavaSpringCleanMultimoduleCoreDomainArtifactProducer(),
+      resolvedPack.templatePack,
+    ).plan({ application, profile, modules });
+    const operations = [...buildPlan.operations, ...corePlan.operations];
 
-    expect(plan.operations.map((operation) => operation.targetPath)).toEqual([
+    expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "configuration/pom.xml",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
     ]);
-    for (const operation of plan.operations) {
+    for (const operation of operations) {
+      const goldenModule = operation.targetPath.endsWith("Wallet.java") ? "core" : "build";
       const golden = await readFile(resolve(
         rootDirectory,
         "tests",
         "golden",
         "java-spring-clean-multimodule",
-        "build",
+        goldenModule,
         operation.targetPath,
       ), "utf8");
       expect(normalize(operation.content)).toBe(normalize(golden));

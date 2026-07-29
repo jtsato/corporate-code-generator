@@ -66,6 +66,7 @@ describe("Java multi-module profile foundation", () => {
       "core-pom",
       "entrypoints-rest-pom",
       "configuration-pom",
+      "core-domain-entity",
     ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([
       "build",

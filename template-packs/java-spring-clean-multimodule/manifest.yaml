@@ -18,3 +18,7 @@ templates:
     module: build
     template: build/configuration-pom.xml.njk
     output: configuration/pom.xml
+  - id: core-domain-entity
+    module: core
+    template: core/domain/entity.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/model/{{ className }}.java
