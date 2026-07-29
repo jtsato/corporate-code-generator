@@ -148,6 +148,11 @@ template-specific; it does not require the Core to know Maven module layout.
 > eight artifacts; Maven compile validation remains a separate milestone. REST controllers return
 > `List.of()` and do not yet use use cases, ports, persistence, or mappers.
 
+> **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
+> `smoke:maven:java-multimodule` generates the complete profile and runs
+> `mvn compile`. Maven absence skips by default and fails only when
+> `CODEGEN_REQUIRE_MAVEN_SMOKE=true`.
+
 ## Recommended first multi-module MVP
 
 ```text

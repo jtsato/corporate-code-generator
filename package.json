@@ -18,9 +18,10 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "typecheck": "tsc --build --pretty",
-    "test": "vitest run --exclude tests/smoke/maven-compile.smoke.test.ts",
+    "test": "vitest run --exclude tests/smoke/maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-maven-compile.smoke.test.ts",
     "smoke": "npm run build && vitest run tests/smoke/cli.smoke.test.ts",
     "smoke:maven": "npm run build && vitest run tests/smoke/maven-compile.smoke.test.ts",
+    "smoke:maven:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-maven-compile.smoke.test.ts",
     "smoke:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule.smoke.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
+    "@vitest/coverage-v8": "^4.1.10",
     "typescript": "^5.9.0",
     "vitest": "^4.1.10"
   }
