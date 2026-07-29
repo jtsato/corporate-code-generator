@@ -26,6 +26,8 @@ describe("Java multi-module CLI smoke test", () => {
         "build",
         "--module",
         "core",
+        "--module",
+        "entrypoints-rest",
         "--output",
         outputRoot,
       ], { cwd: repoRoot });
@@ -36,6 +38,8 @@ describe("Java multi-module CLI smoke test", () => {
         "entrypoints/rest/pom.xml",
         "configuration/pom.xml",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+        "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
+        "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
       ]) {
         const [generated, golden] = await Promise.all([
           readFile(join(outputRoot, ...targetPath.split("/")), "utf8"),
@@ -44,7 +48,7 @@ describe("Java multi-module CLI smoke test", () => {
             "tests",
             "golden",
             "java-spring-clean-multimodule",
-            targetPath.endsWith("Wallet.java") ? "core" : "build",
+            targetPath.includes("entrypoints/rest/src") ? "entrypoints-rest" : targetPath.endsWith("Wallet.java") ? "core" : "build",
             ...targetPath.split("/"),
           ), "utf8"),
         ]);

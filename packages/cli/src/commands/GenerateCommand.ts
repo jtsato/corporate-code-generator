@@ -22,6 +22,7 @@ import {
   JavaSpringCleanDomainArtifactProducer,
   JavaSpringCleanMultimoduleBuildArtifactProducer,
   JavaSpringCleanMultimoduleCoreDomainArtifactProducer,
+  JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer,
 } from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 import { NodeFileWriter } from "@corporate-code-generator/file-writer-node";
@@ -91,8 +92,9 @@ export class GenerateCommand {
       for (const module of modules) {
         if (module.id === "build") producers.push(new JavaSpringCleanMultimoduleBuildArtifactProducer());
         else if (module.id === "core") producers.push(new JavaSpringCleanMultimoduleCoreDomainArtifactProducer());
+        else if (module.id === "entrypoints-rest") producers.push(new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer());
         else throw new CliCapabilityError(
-          "Profile 'java-spring-clean-multimodule' currently supports only the 'build' and 'core' modules; complete multi-module generation is not implemented yet.",
+          "Profile 'java-spring-clean-multimodule' currently supports only the 'build', 'core' and 'entrypoints-rest' modules; complete multi-module generation is not implemented yet.",
         );
       }
       return producers;

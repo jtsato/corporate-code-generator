@@ -16,6 +16,7 @@ import {
 } from "@corporate-code-generator/core";
 import { JavaSpringCleanMultimoduleBuildArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { JavaSpringCleanMultimoduleCoreDomainArtifactProducer } from "@corporate-code-generator/adapter-java";
+import { JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -30,7 +31,7 @@ describe("Java multi-module build generation", () => {
     const application = new ModelParser().parse(document);
     new SemanticValidator().validate(application);
     const profile = await new ProfileResolver(resolve(rootDirectory, "profiles")).resolve("java-spring-clean-multimodule");
-    const modules = new ModuleResolver().resolveSelected(profile.modules, ["build", "core"]);
+    const modules = new ModuleResolver().resolveSelected(profile.modules, ["build", "core", "entrypoints-rest"]);
     const resolvedPack = await new TemplatePackResolver(resolve(rootDirectory, "template-packs")).resolve(profile.templatePack);
     const buildPlan = await new GenerationPlanner(
       new NunjucksTemplateEngine([resolvedPack.directory]),
@@ -42,14 +43,21 @@ describe("Java multi-module build generation", () => {
       new JavaSpringCleanMultimoduleCoreDomainArtifactProducer(),
       resolvedPack.templatePack,
     ).plan({ application, profile, modules });
-    const operations = [...buildPlan.operations, ...corePlan.operations];
+    const restPlan = await new GenerationPlanner(
+      new NunjucksTemplateEngine([resolvedPack.directory]),
+      new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer(),
+      resolvedPack.templatePack,
+    ).plan({ application, profile, modules });
+    const operations = [...buildPlan.operations, ...corePlan.operations, ...restPlan.operations];
 
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "configuration/pom.xml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
     ]);
     for (const operation of operations) {
-      const goldenModule = operation.targetPath.endsWith("Wallet.java") ? "core" : "build";
+      const goldenModule = operation.targetPath.includes("entrypoints/rest/src") ? "entrypoints-rest" : operation.targetPath.endsWith("Wallet.java") ? "core" : "build";
       const golden = await readFile(resolve(
         rootDirectory,
         "tests",

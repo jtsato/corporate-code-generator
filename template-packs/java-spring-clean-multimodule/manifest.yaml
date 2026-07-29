@@ -22,3 +22,11 @@ templates:
     module: core
     template: core/domain/entity.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/model/{{ className }}.java
+  - id: entrypoints-rest-controller
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/controller.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: entrypoints-rest-response
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/response.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java

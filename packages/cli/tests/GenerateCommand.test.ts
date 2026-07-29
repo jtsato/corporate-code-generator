@@ -88,7 +88,7 @@ describe("GenerateCommand", () => {
         expect(writer).not.toHaveBeenCalled();
         expect(error.mock.calls.flat().join("\n")).toContain("CLI002");
         expect(error.mock.calls.flat().join("\n")).toContain(
-          "Profile 'java-spring-clean-multimodule' currently supports only the 'build' and 'core' modules; complete multi-module generation is not implemented yet.",
+          "Profile 'java-spring-clean-multimodule' currently supports only the 'build', 'core' and 'entrypoints-rest' modules; complete multi-module generation is not implemented yet.",
         );
       } finally {
         error.mockRestore();
@@ -151,9 +151,8 @@ describe("GenerateCommand", () => {
   });
 
   it.each([
-    { moduleIds: ["entrypoints-rest"] },
     { moduleIds: ["configuration"] },
-    { moduleIds: ["build", "entrypoints-rest"] },
+    { moduleIds: ["build", "configuration"] },
   ])(
     "rejects unsupported multi-module selection $moduleIds",
     async ({ moduleIds }) => {

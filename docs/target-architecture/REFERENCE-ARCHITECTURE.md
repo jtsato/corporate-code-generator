@@ -139,10 +139,12 @@ template-specific; it does not require the Core to know Maven module layout.
 > **GENERATOR DECISION** The first multi-module MVP contains `build`, `core`,
 > `entrypoints-rest`, and `configuration`. Persistence is deferred.
 
-> **GENERATOR DECISION** The `build` capability generates Maven Reactor POMs
-> and `core` generates domain models under
+> **GENERATOR DECISION** The `build` capability generates Maven Reactor POMs,
+> `core` generates domain models, and `entrypoints-rest` generates provisional
+> controllers and responses under
 > `<base>.core.domains.<domain>.model`. Complete multi-module generation is not
-> available until the remaining capabilities have concrete producers.
+> available until configuration has a concrete producer. REST controllers return
+> `List.of()` and do not yet use use cases, ports, persistence, or mappers.
 
 ## Recommended first multi-module MVP
 

@@ -1,0 +1,13 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+
+@RestController
+@RequestMapping("{{ requestMapping }}")
+public class {{ className }} {
+    @GetMapping
+    public List<{{ responseClassName }}> {{ findAllMethodName }}() {
+        return List.of();
+    }
+}

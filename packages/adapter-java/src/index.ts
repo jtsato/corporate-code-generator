@@ -86,6 +86,10 @@ export {
 } from "./generation/JavaSpringCleanMultimoduleCoreDomainArtifactProducer.js";
 
 export {
+  JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer,
+} from "./generation/JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer.js";
+
+export {
   JavaSpringCleanBootstrapArtifactProducer,
 } from "./generation/JavaSpringCleanBootstrapArtifactProducer.js";
 
