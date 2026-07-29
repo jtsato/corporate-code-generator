@@ -21,6 +21,7 @@
     "test": "vitest run --exclude tests/smoke/maven-compile.smoke.test.ts",
     "smoke": "npm run build && vitest run tests/smoke/cli.smoke.test.ts",
     "smoke:maven": "npm run build && vitest run tests/smoke/maven-compile.smoke.test.ts",
+    "smoke:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule.smoke.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "mutation": "stryker run"

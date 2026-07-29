@@ -1,4 +1,20 @@
 id: java-spring-clean-multimodule
 version: 0.1.0
 
-templates: []
+templates:
+  - id: parent-pom
+    module: build
+    template: build/parent-pom.xml.njk
+    output: pom.xml
+  - id: core-pom
+    module: build
+    template: build/core-pom.xml.njk
+    output: core/pom.xml
+  - id: entrypoints-rest-pom
+    module: build
+    template: build/entrypoints-rest-pom.xml.njk
+    output: entrypoints/rest/pom.xml
+  - id: configuration-pom
+    module: build
+    template: build/configuration-pom.xml.njk
+    output: configuration/pom.xml

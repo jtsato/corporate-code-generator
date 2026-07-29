@@ -139,6 +139,10 @@ template-specific; it does not require the Core to know Maven module layout.
 > **GENERATOR DECISION** The first multi-module MVP contains `build`, `core`,
 > `entrypoints-rest`, and `configuration`. Persistence is deferred.
 
+> **GENERATOR DECISION** The `build` capability currently generates only the
+> Maven Reactor POMs. Complete multi-module generation is not available until
+> the remaining capabilities have concrete producers.
+
 ## Recommended first multi-module MVP
 
 ```text
@@ -154,7 +158,7 @@ repositories, providers, or database configuration.
 ## Roadmap 5.x
 
 1. 5.1 — Multi-module Profile and Template Pack Skeleton.
-2. 5.2 — Maven Reactor Foundation.
+2. 5.2 — Maven Reactor Foundation (build capability; structural smoke only).
 3. 5.3 — Core Module Migration.
 4. 5.4 — Configuration Module Foundation.
 5. 5.5 — REST Entrypoint Module Foundation.

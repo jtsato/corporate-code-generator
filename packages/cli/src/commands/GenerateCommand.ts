@@ -20,6 +20,7 @@ import {
   JavaSpringCleanApiRestArtifactProducer,
   JavaSpringCleanBuildArtifactProducer,
   JavaSpringCleanDomainArtifactProducer,
+  JavaSpringCleanMultimoduleBuildArtifactProducer,
 } from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 import { NodeFileWriter } from "@corporate-code-generator/file-writer-node";
@@ -85,8 +86,12 @@ export class GenerateCommand {
 
   private createProducers(profileId: string, modules: readonly { readonly id: string }[]): readonly GenerationArtifactProducer[] {
     if (profileId === "java-spring-clean-multimodule") {
+      if (modules.length === 1 && modules[0]?.id === "build") {
+        return [new JavaSpringCleanMultimoduleBuildArtifactProducer()];
+      }
+
       throw new CliCapabilityError(
-        "Profile 'java-spring-clean-multimodule' is recognized, but generation is not implemented yet.",
+        "Profile 'java-spring-clean-multimodule' currently supports only the 'build' module; complete multi-module generation is not implemented yet.",
       );
     }
 

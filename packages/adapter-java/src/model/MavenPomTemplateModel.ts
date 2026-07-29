@@ -1,6 +1,7 @@
 export interface MavenDependencyTemplateModel {
   readonly groupId: string;
   readonly artifactId: string;
+  readonly version?: string;
 }
 
 export interface MavenPomTemplateModel {

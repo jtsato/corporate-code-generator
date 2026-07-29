@@ -1,0 +1,38 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>{{ modelVersion }}</modelVersion>
+
+  <parent>
+    <groupId>{{ parentGroupId }}</groupId>
+    <artifactId>{{ parentArtifactId }}</artifactId>
+    <version>{{ parentVersion }}</version>
+    <relativePath>{{ parentRelativePath }}</relativePath>
+  </parent>
+
+  <artifactId>{{ artifactId }}</artifactId>
+  <packaging>{{ packaging }}</packaging>
+
+  <dependencies>
+{% for dependency in dependencies %}
+    <dependency>
+      <groupId>{{ dependency.groupId }}</groupId>
+      <artifactId>{{ dependency.artifactId }}</artifactId>
+{% if dependency.version %}
+      <version>{{ dependency.version }}</version>
+{% endif %}
+    </dependency>
+{% endfor %}
+  </dependencies>
+
+{% if hasSpringBootPlugin %}
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+{% endif %}
+</project>

@@ -50,7 +50,7 @@ describe("Java multi-module profile foundation", () => {
     expect(singleModule.templatePack.id).toBe("java-spring-clean");
   });
 
-  it("resolves the empty multi-module template pack and its modules deterministically", async () => {
+  it("resolves the multi-module template pack and its modules deterministically", async () => {
     const profile = await new ProfileResolver(
       resolve(rootDirectory, "profiles"),
     ).resolve("java-spring-clean-multimodule");
@@ -59,11 +59,14 @@ describe("Java multi-module profile foundation", () => {
     ).resolve(profile.templatePack);
     const resolver = new ModuleResolver();
 
-    expect(templatePack.templatePack).toEqual({
-      id: profile.templatePack.id,
-      version: profile.templatePack.version,
-      templates: [],
-    });
+    expect(templatePack.templatePack.id).toBe(profile.templatePack.id);
+    expect(templatePack.templatePack.version).toBe(profile.templatePack.version);
+    expect(templatePack.templatePack.templates.map((template) => template.id)).toEqual([
+      "parent-pom",
+      "core-pom",
+      "entrypoints-rest-pom",
+      "configuration-pom",
+    ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([
       "build",
       "core",
