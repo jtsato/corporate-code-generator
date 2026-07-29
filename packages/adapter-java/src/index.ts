@@ -33,6 +33,10 @@ export type {
 } from "./model/JavaBootstrapTemplateModel.js";
 
 export type {
+  JavaSpringBootApplicationTestTemplateModel,
+} from "./model/JavaSpringBootApplicationTestTemplateModel.js";
+
+export type {
   JavaApplicationServiceTemplateModel,
 } from "./model/JavaApplicationServiceTemplateModel.js";
 

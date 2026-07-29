@@ -39,6 +39,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "${project.groupId}", artifactId: `${artifactId}-entrypoints-rest`, version: "${project.version}" },
       { groupId: "${project.groupId}", artifactId: `${artifactId}-infra-database`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
+      { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
     ], true);
 
     return [

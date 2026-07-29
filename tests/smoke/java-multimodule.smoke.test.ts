@@ -41,6 +41,7 @@ describe("Java multi-module CLI smoke test", () => {
         "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/WalletServiceApplicationTests.java",
       ]) {
         const [generated, golden] = await Promise.all([
           readFile(join(outputRoot, ...targetPath.split("/")), "utf8"),

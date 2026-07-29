@@ -153,18 +153,26 @@ template-specific; it does not require the Core to know Maven module layout.
 > `@Configuration` classes. Those classes explicitly register gateway and use
 > case beans, while core and infrastructure remain unannotated plain Java.
 > Configuration depends on the infrastructure module, so the complete
-> multi-module profile is generable. The structural smoke compares all fourteen
-> artifacts; Maven compile validation remains active. There is no Spring
-> runtime/context smoke yet. REST controllers delegate to the generated find
+> multi-module profile is generable. The structural smoke compares all fifteen
+> artifacts; Maven compile validation remains active. Configuration also
+> generates a minimal `@SpringBootTest` context test in the application root
+> package. The dedicated Spring context smoke generates the complete profile
+> and runs `mvn test`, validating basic Spring wiring only; it does not test an
+> HTTP endpoint, start a server manually, use Actuator, or provide a health
+> check. REST controllers delegate to the generated find
 > use case and map domain entities through the local `Response.from(entity)`
 > factory. Mapping remains manual and local to the DTO: MapStruct and a
 > dedicated mapper layer are not introduced. The infrastructure provider still
-> returns `List.of()`.
+> returns `List.of()` and persistence does not yet exist.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
 > `smoke:maven:java-multimodule` generates the complete profile and runs
 > `mvn compile`. Maven absence skips by default and fails only when
 > `CODEGEN_REQUIRE_MAVEN_SMOKE=true`.
+
+> **GENERATOR DECISION** `smoke:spring-context:java-multimodule` generates the
+> complete profile and runs `mvn test` to load the generated Spring context.
+> It follows the same Maven availability policy as the compile smoke.
 
 ## Recommended first multi-module MVP
 
@@ -192,6 +200,7 @@ structural implementation only.
 8. 5.8 — Database Infrastructure Foundation.
 9. 5.9 — Spring Wiring Foundation.
 10. 5.10 — REST Delegation and Runtime Validation.
+11. 5.11 — Spring Context Smoke Foundation.
 
 ## Open questions and non-adopted reference details
 

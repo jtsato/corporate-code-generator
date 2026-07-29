@@ -75,6 +75,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
             { groupId: "${project.groupId}", artifactId: "wallet-service-entrypoints-rest", version: "${project.version}" },
             { groupId: "${project.groupId}", artifactId: "wallet-service-infra-database", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
+            { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
           ],
         }, outputVariables: {},
       },

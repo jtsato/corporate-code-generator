@@ -58,3 +58,7 @@ templates:
     module: configuration
     template: configuration/domain-configuration.java.njk
     output: configuration/src/main/java/{{ packagePath }}/configuration/domains/{{ domainName }}/{{ className }}.java
+  - id: configuration-application-test
+    module: configuration
+    template: configuration/application-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java

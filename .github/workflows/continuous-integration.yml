@@ -60,6 +60,12 @@ jobs:
       - name: Test with coverage
         run: npm run test:coverage
 
+      - name: Verify coverage report
+        run: |
+          test -f coverage/lcov.info
+          ls -lah coverage
+          head -20 coverage/lcov.info
+
       - name: Smoke single-module
         run: npm run smoke
 
@@ -71,11 +77,15 @@ jobs:
       - name: Smoke Java multi-module
         run: npm run smoke:java-multimodule
 
-      - name: Verify coverage report
-        run: |
-          test -f coverage/lcov.info
-          ls -lah coverage
-          head -20 coverage/lcov.info        
+      - name: Maven smoke Java multi-module
+        run: npm run smoke:maven:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
+      - name: Spring context smoke Java multi-module
+        run: npm run smoke:spring-context:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0

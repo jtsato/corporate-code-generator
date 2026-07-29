@@ -46,6 +46,21 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         domainName: "wallet",
         className: "WalletConfiguration",
       },
+    }, {
+      templateId: "configuration-application-test",
+      model: {
+        packageName: "io.github.jtsato.walletservice",
+        imports: [
+          "org.junit.jupiter.api.Test",
+          "org.springframework.boot.test.context.SpringBootTest",
+        ],
+        className: "WalletServiceApplicationTests",
+        testMethodName: "contextLoads",
+      },
+      outputVariables: {
+        packagePath: "io/github/jtsato/walletservice",
+        className: "WalletServiceApplicationTests",
+      },
     }]);
   });
 });

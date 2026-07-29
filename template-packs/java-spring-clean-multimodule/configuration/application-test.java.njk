@@ -1,0 +1,10 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+class {{ className }} {
+    @Test
+    void {{ testMethodName }}() {
+    }
+}

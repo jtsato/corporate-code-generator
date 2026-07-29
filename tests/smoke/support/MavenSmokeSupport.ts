@@ -24,12 +24,20 @@ export async function detectMaven(cwd: string): Promise<{ readonly available: bo
 }
 
 export async function compileWithMaven(cwd: string): Promise<void> {
-  const command = getMavenCommand(["compile"]);
+  await runMaven(cwd, ["compile"], "compilation");
+}
+
+export async function testWithMaven(cwd: string): Promise<void> {
+  await runMaven(cwd, ["test"], "test execution");
+}
+
+async function runMaven(cwd: string, args: readonly string[], operation: string): Promise<void> {
+  const command = getMavenCommand(args);
   try {
     await execFileAsync(command.command, command.args, { cwd, timeout: mavenCompileTimeoutMs, maxBuffer: 10 * 1024 * 1024 });
   } catch (error) {
     const failure = error as { readonly code?: string | number; readonly stdout?: string; readonly stderr?: string; readonly killed?: boolean };
-    if (failure.killed || failure.code === "ETIMEDOUT") throw new Error(`Maven compilation exceeded the ${mavenCompileTimeoutMs}ms timeout.\nstdout:\n${failure.stdout ?? ""}\nstderr:\n${failure.stderr ?? ""}`);
-    throw new Error(`Maven compilation failed (code ${String(failure.code ?? "unknown")}).\nstdout:\n${failure.stdout ?? ""}\nstderr:\n${failure.stderr ?? ""}`);
+    if (failure.killed || failure.code === "ETIMEDOUT") throw new Error(`Maven ${operation} exceeded the ${mavenCompileTimeoutMs}ms timeout.\nstdout:\n${failure.stdout ?? ""}\nstderr:\n${failure.stderr ?? ""}`);
+    throw new Error(`Maven ${operation} failed (code ${String(failure.code ?? "unknown")}).\nstdout:\n${failure.stdout ?? ""}\nstderr:\n${failure.stderr ?? ""}`);
   }
 }

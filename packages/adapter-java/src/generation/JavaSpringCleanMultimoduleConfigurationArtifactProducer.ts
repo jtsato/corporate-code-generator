@@ -6,6 +6,7 @@ import type {
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaBootstrapTemplateModel } from "../model/JavaBootstrapTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
+import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
@@ -20,6 +21,13 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
     const className = `${toJavaTypeName(request.application.name)}Application`;
     const model: JavaBootstrapTemplateModel = { packageName: namespace, className };
     const outputVariables = { packagePath: namespace.replaceAll(".", "/") };
+
+    const applicationTest: JavaSpringBootApplicationTestTemplateModel = {
+      packageName: namespace,
+      imports: ["org.junit.jupiter.api.Test", "org.springframework.boot.test.context.SpringBootTest"],
+      className: `${className}Tests`,
+      testMethodName: "contextLoads",
+    };
 
     return [
       {
@@ -62,6 +70,11 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           },
         };
       }),
+      {
+        templateId: "configuration-application-test",
+        model: applicationTest,
+        outputVariables: { ...outputVariables, className: applicationTest.className },
+      },
     ];
   }
 }

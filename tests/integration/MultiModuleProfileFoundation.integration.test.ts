@@ -76,6 +76,7 @@ describe("Java multi-module profile foundation", () => {
       "infra-database-gateway-provider",
       "configuration-application",
       "configuration-domain-wiring",
+      "configuration-application-test",
     ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([
       "build",
