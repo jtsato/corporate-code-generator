@@ -1466,6 +1466,10 @@ Entidades Java permanecem classes com fields finais, constructor completo e
 getters JavaBean. Setters, constructor sem argumentos, `equals`, `hashCode` e
 `toString` não são gerados neste estágio e a decisão não é otimizada para JPA.
 
+Application services são beans Spring com `@Service`. Seu `findAll()` retorna
+entidades de domínio com `List.of()` provisório, sem dependência de DTO REST,
+persistência, mapper ou delegação pelo controller.
+
 A CLI será a interface inicial.
 
 No Milestone 3.8, o primeiro comando implementado é:

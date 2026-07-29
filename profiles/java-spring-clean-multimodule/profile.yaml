@@ -1,0 +1,27 @@
+id: java-spring-clean-multimodule
+version: 0.1.0
+
+technology:
+  language: java
+  languageVersion: "25"
+  framework: spring-boot
+
+architecture:
+  style: clean-architecture
+
+templatePack:
+  id: java-spring-clean-multimodule
+  version: 0.1.0
+
+modules:
+  - id: build
+    requires: []
+  - id: core
+    requires: []
+  - id: entrypoints-rest
+    requires:
+      - core
+  - id: configuration
+    requires:
+      - core
+      - entrypoints-rest

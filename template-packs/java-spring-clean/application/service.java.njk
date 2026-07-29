@@ -1,4 +1,10 @@
 package {{ packageName }};
 
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@Service
 public class {{ className }} {
+    public List<{{ entityType }}> {{ findAllMethodName }}() {
+        return List.of();
+    }
 }

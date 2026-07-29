@@ -22,7 +22,8 @@
     "smoke": "npm run build && vitest run tests/smoke/cli.smoke.test.ts",
     "smoke:maven": "npm run build && vitest run tests/smoke/maven-compile.smoke.test.ts",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "mutation": "stryker run"
   },
   "engines": {
     "node": ">=22"

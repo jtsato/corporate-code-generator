@@ -65,4 +65,34 @@ describe("GenerateCommand", () => {
       expect(error.mock.calls.flat().join("\n")).toContain("CLI001");
     } finally { error.mockRestore(); }
   });
+
+  it.each([
+    { dryRun: true, outputDirectory: undefined },
+    { dryRun: false, outputDirectory: "generated" },
+  ])(
+    "recognizes the multi-module profile but rejects generation (dryRun=$dryRun)",
+    async ({ dryRun, outputDirectory }) => {
+      const writer = vi.fn(async () => undefined);
+      const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+      try {
+        const exitCode = await new GenerateCommand(writer).execute({
+          modelPath: "examples/wallet-service/model.yaml",
+          profileId: "java-spring-clean-multimodule",
+          moduleIds: [],
+          outputDirectory,
+          dryRun,
+        });
+
+        expect(exitCode).toBe(1);
+        expect(writer).not.toHaveBeenCalled();
+        expect(error.mock.calls.flat().join("\n")).toContain("CLI002");
+        expect(error.mock.calls.flat().join("\n")).toContain(
+          "Profile 'java-spring-clean-multimodule' is recognized, but generation is not implemented yet.",
+        );
+      } finally {
+        error.mockRestore();
+      }
+    },
+  );
 });

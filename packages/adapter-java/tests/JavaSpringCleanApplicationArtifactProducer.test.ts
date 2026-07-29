@@ -25,7 +25,13 @@ describe("JavaSpringCleanApplicationArtifactProducer", () => {
     expect(producer.moduleId).toBe("application");
     expect(artifacts).toEqual([{
       templateId: "application-service",
-      model: { packageName: "io.github.jtsato.walletservice.application", className: "WalletService" },
+      model: {
+        packageName: "io.github.jtsato.walletservice.application",
+        imports: ["io.github.jtsato.walletservice.domain.Wallet", "java.util.List", "org.springframework.stereotype.Service"],
+        className: "WalletService",
+        entityType: "Wallet",
+        findAllMethodName: "findAll",
+      },
       outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "WalletService" },
     }]);
   });

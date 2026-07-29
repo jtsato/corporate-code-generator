@@ -84,6 +84,12 @@ export class GenerateCommand {
   }
 
   private createProducers(profileId: string, modules: readonly { readonly id: string }[]): readonly GenerationArtifactProducer[] {
+    if (profileId === "java-spring-clean-multimodule") {
+      throw new CliCapabilityError(
+        "Profile 'java-spring-clean-multimodule' is recognized, but generation is not implemented yet.",
+      );
+    }
+
     if (profileId !== "java-spring-clean") {
       throw new CliCapabilityError(`Profile/module combination is not supported by this CLI: ${profileId}.`);
     }
