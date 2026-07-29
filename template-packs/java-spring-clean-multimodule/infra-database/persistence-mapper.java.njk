@@ -1,0 +1,20 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public final class {{ className }} {
+    private {{ constructorName }}() {
+    }
+
+    public static {{ entityType }} {{ toEntityMethodName }}({{ domainType }} {{ domainParameterName }}) {
+        return new {{ entityType }}(
+{% for argument in toEntityArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+    }
+
+    public static {{ domainType }} {{ toDomainMethodName }}({{ entityType }} {{ entityParameterName }}) {
+        return new {{ domainType }}(
+{% for argument in toDomainArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+    }
+}

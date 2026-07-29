@@ -6,10 +6,12 @@ import type {
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaGatewayProviderTemplateModel } from "../model/JavaGatewayProviderTemplateModel.js";
 import type { JavaPersistenceEntityTemplateModel } from "../model/JavaPersistenceEntityTemplateModel.js";
+import type { JavaPersistenceMapperTemplateModel } from "../model/JavaPersistenceMapperTemplateModel.js";
 import { toJavaDatabaseColumnName } from "../naming/JavaDatabaseColumnName.js";
 import { toJavaDatabaseTableName } from "../naming/JavaDatabaseTableName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
+import { toJavaFieldName } from "../naming/JavaFieldName.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
@@ -53,6 +55,17 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         getters: fields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })),
       };
       const gatewayType = `${entityType}Gateway`;
+      const mapperImports = new JavaImportCollector();
+      mapperImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+      mapperImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+      const domainParameterName = toJavaFieldName(entityType);
+      const entityParameterName = toJavaFieldName(`${entityType}Entity`);
+      const mapperModel: JavaPersistenceMapperTemplateModel = {
+        packageName: `${namespace}.infra.domains.${domainName}.mapper`, imports: mapperImports.values(), className: `${entityType}PersistenceMapper`, constructorName: `${entityType}PersistenceMapper`,
+        domainType: entityType, entityType: `${entityType}Entity`, domainParameterName, entityParameterName, toEntityMethodName: "toEntity", toDomainMethodName: "toDomain",
+        toEntityArguments: entity.attributes.map((attribute) => `${domainParameterName}.get${toJavaTypeName(attribute.name)}()`),
+        toDomainArguments: entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`),
+      };
       const imports = new JavaImportCollector();
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
       imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -73,6 +86,9 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: persistenceModel.className },
         },
         {
+          templateId: "infra-database-persistence-mapper", model: mapperModel,
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: mapperModel.className },
+        }, {
           templateId: "infra-database-gateway-provider",
           model,
           outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: model.className },

@@ -42,6 +42,16 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       },
       outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletEntity" },
     }, {
+      templateId: "infra-database-persistence-mapper",
+      model: {
+        packageName: "io.github.jtsato.walletservice.infra.domains.wallet.mapper",
+        imports: ["io.github.jtsato.walletservice.core.domains.wallet.model.Wallet", "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity"],
+        className: "WalletPersistenceMapper", constructorName: "WalletPersistenceMapper", domainType: "Wallet", entityType: "WalletEntity",
+        domainParameterName: "wallet", entityParameterName: "walletEntity", toEntityMethodName: "toEntity", toDomainMethodName: "toDomain",
+        toEntityArguments: ["wallet.getId()", "wallet.getBalance()"], toDomainArguments: ["walletEntity.getId()", "walletEntity.getBalance()"],
+      },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletPersistenceMapper" },
+    }, {
       templateId: "infra-database-gateway-provider",
       model: {
         packageName: "io.github.jtsato.walletservice.infra.domains.wallet",

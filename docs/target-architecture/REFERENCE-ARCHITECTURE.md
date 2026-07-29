@@ -167,6 +167,9 @@ template-specific; it does not require the Core to know Maven module layout.
 > entities backed only by `jakarta.persistence-api`; they are not yet used by
 > the provider. There is no Spring Data, repository, EntityManager, DataSource,
 > H2, or persistence runtime configuration.
+> A manual persistence mapper is also generated for each domain, converting the
+> persistence entity and domain model in both directions. It is not yet used by
+> the provider; MapStruct is not introduced.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
 > `smoke:maven:java-multimodule` generates the complete profile and runs

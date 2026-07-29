@@ -67,6 +67,7 @@ export type {
 
 export type { MavenDependencyTemplateModel } from "./model/MavenPomTemplateModel.js";
 export type { JavaPersistenceEntityTemplateModel, JavaPersistenceFieldTemplateModel } from "./model/JavaPersistenceEntityTemplateModel.js";
+export type { JavaPersistenceMapperTemplateModel } from "./model/JavaPersistenceMapperTemplateModel.js";
 
 export type {
   MavenMultimoduleParentPomTemplateModel,
