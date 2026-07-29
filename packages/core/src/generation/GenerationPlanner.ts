@@ -26,9 +26,6 @@ import {
   SimpleOutputPathResolver,
   type OutputPathResolver,
 } from "./OutputPathResolver.js";
-import type {
-  TemplateInvocation,
-} from "./TemplateInvocation.js";
 import {
   TemplateDefinitionModuleMismatchError,
 } from "./TemplateDefinitionModuleMismatchError.js";

@@ -44,35 +44,49 @@ export class NodeFileWriter {
   private async preflight(plan: FilePlan, root: string): Promise<readonly PlannedTarget[]> {
     const targets: PlannedTarget[] = [];
     for (const [operationIndex, operation] of plan.operations.entries()) {
-      if (operation.kind !== "CREATE") {
-        throw new FileWriteError("IO003", `Unsupported file operation '${operation.kind}'.`, operation.targetPath, operationIndex);
-      }
-      const pathIssue = validateFilePlanTargetPath(operation.targetPath);
-      if (pathIssue !== undefined) {
-        throw new FilePlanValidationError([{
-          code: operation.targetPath.trim().length === 0 ? "FILEPLAN001" : "FILEPLAN003",
-          message: pathIssue,
-          operationIndex,
-        }]);
-      }
-      const physicalPath = resolve(root, ...operation.targetPath.split("/"));
-      const relativePath = relative(root, physicalPath);
-      if (relativePath === "" || relativePath === ".." || relativePath.startsWith(`..${"/"}`) || relativePath.startsWith(`..${"\\"}`)) {
-        throw new FileWriteError("IO003", "Target path escapes output root.", operation.targetPath, operationIndex);
-      }
+      this.validateOperation(operation, operationIndex);
+      const physicalPath = this.resolveTargetPath(root, operation, operationIndex);
       await this.validateAncestors(root, dirname(physicalPath), operation, operationIndex);
-      try {
-        await lstat(physicalPath);
-        throw new FileWriteError("IO002", "CREATE target already exists.", operation.targetPath, operationIndex);
-      } catch (error) {
-        if (error instanceof FileWriteError) throw error;
-        if (!isNodeError(error) || error.code !== "ENOENT") {
-          throw new FileWriteError("IO004", "Unable to inspect CREATE target.", operation.targetPath, operationIndex);
-        }
-      }
+      await this.assertCreateTargetDoesNotExist(physicalPath, operation, operationIndex);
       targets.push({ operation, operationIndex, physicalPath });
     }
     return targets;
+  }
+
+  private validateOperation(operation: FileOperation, operationIndex: number): asserts operation is Extract<FileOperation, { kind: "CREATE" }> {
+    if (operation.kind !== "CREATE") {
+      throw new FileWriteError("IO003", `Unsupported file operation '${operation.kind}'.`, operation.targetPath, operationIndex);
+    }
+
+    const pathIssue = validateFilePlanTargetPath(operation.targetPath);
+    if (pathIssue !== undefined) {
+      throw new FilePlanValidationError([{
+        code: operation.targetPath.trim().length === 0 ? "FILEPLAN001" : "FILEPLAN003",
+        message: pathIssue,
+        operationIndex,
+      }]);
+    }
+  }
+
+  private resolveTargetPath(root: string, operation: FileOperation, operationIndex: number): string {
+    const physicalPath = resolve(root, ...operation.targetPath.split("/"));
+    const relativePath = relative(root, physicalPath);
+    if (relativePath === "" || relativePath === ".." || relativePath.startsWith(`..${"/"}`) || relativePath.startsWith(`..${"\\"}`)) {
+      throw new FileWriteError("IO003", "Target path escapes output root.", operation.targetPath, operationIndex);
+    }
+    return physicalPath;
+  }
+
+  private async assertCreateTargetDoesNotExist(physicalPath: string, operation: FileOperation, operationIndex: number): Promise<void> {
+    try {
+      await lstat(physicalPath);
+      throw new FileWriteError("IO002", "CREATE target already exists.", operation.targetPath, operationIndex);
+    } catch (error) {
+      if (error instanceof FileWriteError) throw error;
+      if (!isNodeError(error) || error.code !== "ENOENT") {
+        throw new FileWriteError("IO004", "Unable to inspect CREATE target.", operation.targetPath, operationIndex);
+      }
+    }
   }
 
   private async validateAncestors(root: string, parent: string, operation: FileOperation, operationIndex: number): Promise<void> {

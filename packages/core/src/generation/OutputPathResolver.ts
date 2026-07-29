@@ -13,7 +13,7 @@ export class SimpleOutputPathResolver implements OutputPathResolver {
     validateOutputPattern(pattern);
 
     const resolved = pattern.replace(
-      /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g,
+      /\{\{\s*([A-Za-z_]\w*)\s*\}\}/g,
       (_match, identifier: string) => {
         const value = variables[identifier];
 
@@ -46,7 +46,7 @@ export function validateOutputPattern(pattern: string): void {
   ensureSafeRelativePath(pattern);
 
   const withoutPlaceholders = pattern.replace(
-    /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g,
+    /\{\{\s*([A-Za-z_]\w*)\s*\}\}/g,
     "",
   );
 

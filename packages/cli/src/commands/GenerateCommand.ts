@@ -90,33 +90,38 @@ export class GenerateCommand {
 
   private createProducers(profileId: string, modules: readonly { readonly id: string }[]): readonly GenerationArtifactProducer[] {
     if (profileId === "java-spring-clean-multimodule") {
-      const producers: GenerationArtifactProducer[] = [];
-      for (const module of modules) {
-        if (module.id === "build") producers.push(new JavaSpringCleanMultimoduleBuildArtifactProducer());
-        else if (module.id === "core") producers.push(new JavaSpringCleanMultimoduleCoreArtifactProducer());
-        else if (module.id === "entrypoints-rest") producers.push(new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer());
-        else if (module.id === "infra-database") producers.push(new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer());
-        else if (module.id === "configuration") producers.push(new JavaSpringCleanMultimoduleConfigurationArtifactProducer());
-        else throw new CliCapabilityError(
-          "Profile/module combination is not supported by this CLI: java-spring-clean-multimodule.",
-        );
-      }
-      return producers;
+      return modules.map((module) => this.createMultimoduleProducer(module.id));
     }
 
     if (profileId !== "java-spring-clean") {
       throw new CliCapabilityError(`Profile/module combination is not supported by this CLI: ${profileId}.`);
     }
-    const producers: GenerationArtifactProducer[] = [];
-    for (const module of modules) {
-      if (module.id === "build") producers.push(new JavaSpringCleanBuildArtifactProducer());
-      else if (module.id === "domain") producers.push(new JavaSpringCleanDomainArtifactProducer());
-      else if (module.id === "application") producers.push(new JavaSpringCleanApplicationArtifactProducer());
-      else if (module.id === "bootstrap") producers.push(new JavaSpringCleanBootstrapArtifactProducer());
-      else if (module.id === "api-rest") producers.push(new JavaSpringCleanApiRestArtifactProducer());
-      else throw new CliCapabilityError(`Module '${module.id}' is not supported by this CLI.`);
+    return modules.map((module) => this.createSingleModuleProducer(module.id));
+  }
+
+  private createMultimoduleProducer(moduleId: string): GenerationArtifactProducer {
+    switch (moduleId) {
+      case "build": return new JavaSpringCleanMultimoduleBuildArtifactProducer();
+      case "core": return new JavaSpringCleanMultimoduleCoreArtifactProducer();
+      case "entrypoints-rest": return new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer();
+      case "infra-database": return new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+      case "configuration": return new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+      default:
+        throw new CliCapabilityError(
+          "Profile/module combination is not supported by this CLI: java-spring-clean-multimodule.",
+        );
     }
-    return producers;
+  }
+
+  private createSingleModuleProducer(moduleId: string): GenerationArtifactProducer {
+    switch (moduleId) {
+      case "build": return new JavaSpringCleanBuildArtifactProducer();
+      case "domain": return new JavaSpringCleanDomainArtifactProducer();
+      case "application": return new JavaSpringCleanApplicationArtifactProducer();
+      case "bootstrap": return new JavaSpringCleanBootstrapArtifactProducer();
+      case "api-rest": return new JavaSpringCleanApiRestArtifactProducer();
+      default: throw new CliCapabilityError(`Module '${moduleId}' is not supported by this CLI.`);
+    }
   }
 }
 
