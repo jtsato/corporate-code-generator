@@ -41,6 +41,10 @@ export type {
 } from "./model/JavaRestControllerTemplateModel.js";
 
 export type {
+  JavaDelegatingRestControllerTemplateModel,
+} from "./model/JavaDelegatingRestControllerTemplateModel.js";
+
+export type {
   JavaGatewayProviderTemplateModel,
 } from "./model/JavaGatewayProviderTemplateModel.js";
 
@@ -52,6 +56,10 @@ export type {
   JavaRecordComponentModel,
   JavaRestResponseTemplateModel,
 } from "./model/JavaRestResponseTemplateModel.js";
+
+export type {
+  JavaFactoryRestResponseTemplateModel,
+} from "./model/JavaFactoryRestResponseTemplateModel.js";
 
 export type { MavenDependencyTemplateModel } from "./model/MavenPomTemplateModel.js";
 
@@ -65,6 +73,7 @@ export type {
 
 export { toJavaTypeName } from "./naming/JavaTypeName.js";
 export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
+export { toJavaFieldName } from "./naming/JavaFieldName.js";
 export { toJavaPluralTypeName } from "./naming/JavaPluralTypeName.js";
 export { JavaSpringCleanMultimoduleCoreArtifactProducer } from "./generation/JavaSpringCleanMultimoduleCoreArtifactProducer.js";
 export { toRestCollectionPath } from "./naming/RestCollectionPath.js";

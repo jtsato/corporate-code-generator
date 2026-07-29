@@ -155,8 +155,11 @@ template-specific; it does not require the Core to know Maven module layout.
 > Configuration depends on the infrastructure module, so the complete
 > multi-module profile is generable. The structural smoke compares all fourteen
 > artifacts; Maven compile validation remains active. There is no Spring
-> runtime/context smoke yet. REST controllers return `List.of()` and do not yet
-> delegate to use cases, ports, persistence, or mappers.
+> runtime/context smoke yet. REST controllers delegate to the generated find
+> use case and map domain entities through the local `Response.from(entity)`
+> factory. Mapping remains manual and local to the DTO: MapStruct and a
+> dedicated mapper layer are not introduced. The infrastructure provider still
+> returns `List.of()`.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
 > `smoke:maven:java-multimodule` generates the complete profile and runs

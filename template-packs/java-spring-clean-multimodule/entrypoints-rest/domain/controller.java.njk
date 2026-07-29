@@ -6,8 +6,17 @@ package {{ packageName }};
 @RestController
 @RequestMapping("{{ requestMapping }}")
 public class {{ className }} {
+    private final {{ useCaseType }} {{ useCaseFieldName }};
+
+    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}) {
+        this.{{ useCaseFieldName }} = {{ useCaseFieldName }};
+    }
+
     @GetMapping
     public List<{{ responseClassName }}> {{ findAllMethodName }}() {
-        return List.of();
+        return {{ useCaseFieldName }}.{{ useCaseExecuteMethodName }}()
+            .stream()
+            .map({{ responseClassName }}::{{ responseFactoryMethodName }})
+            .toList();
     }
 }
