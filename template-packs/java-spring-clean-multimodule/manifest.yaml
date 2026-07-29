@@ -14,6 +14,10 @@ templates:
     module: build
     template: build/entrypoints-rest-pom.xml.njk
     output: entrypoints/rest/pom.xml
+  - id: infra-database-pom
+    module: build
+    template: build/infra-database-pom.xml.njk
+    output: infra/database/pom.xml
   - id: configuration-pom
     module: build
     template: build/configuration-pom.xml.njk
@@ -42,6 +46,10 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/domain/response.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: infra-database-gateway-provider
+    module: infra-database
+    template: infra-database/gateway-provider.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/{{ className }}.java
   - id: configuration-application
     module: configuration
     template: configuration/application.java.njk

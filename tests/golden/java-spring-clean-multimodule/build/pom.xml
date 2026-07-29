@@ -21,6 +21,8 @@
 
     <module>entrypoints/rest</module>
 
+    <module>infra/database</module>
+
     <module>configuration</module>
 
   </modules>

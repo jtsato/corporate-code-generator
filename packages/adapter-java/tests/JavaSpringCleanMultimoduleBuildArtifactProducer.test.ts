@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { JavaSpringCleanMultimoduleBuildArtifactProducer } from "../src/index.js";
 
 describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
-  it("produces the four deterministic Maven reactor invocations", () => {
+  it("produces the five deterministic Maven reactor invocations", () => {
     const producer = new JavaSpringCleanMultimoduleBuildArtifactProducer();
     const artifacts = producer.produce({
       application: {
@@ -30,7 +30,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
         model: {
           modelVersion: "4.0.0", springBootVersion: "4.1.0", groupId: "io.github.jtsato",
           artifactId: "wallet-service", version: "0.1.0-SNAPSHOT",
-          modules: ["core", "entrypoints/rest", "configuration"], javaVersion: "25",
+          modules: ["core", "entrypoints/rest", "infra/database", "configuration"], javaVersion: "25",
         }, outputVariables: {},
       },
       {
@@ -54,6 +54,17 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
         }, outputVariables: {},
       },
       {
+        templateId: "infra-database-pom",
+        model: {
+          modelVersion: "4.0.0", parentGroupId: "io.github.jtsato", parentArtifactId: "wallet-service",
+          parentVersion: "0.1.0-SNAPSHOT", parentRelativePath: "../../pom.xml", artifactId: "wallet-service-infra-database",
+          packaging: "jar", hasSpringBootPlugin: false,
+          dependencies: [
+            { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
+          ],
+        }, outputVariables: {},
+      },
+      {
         templateId: "configuration-pom",
         model: {
           modelVersion: "4.0.0", parentGroupId: "io.github.jtsato", parentArtifactId: "wallet-service",
@@ -62,6 +73,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
           dependencies: [
             { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
             { groupId: "${project.groupId}", artifactId: "wallet-service-entrypoints-rest", version: "${project.version}" },
+            { groupId: "${project.groupId}", artifactId: "wallet-service-infra-database", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
           ],
         }, outputVariables: {},

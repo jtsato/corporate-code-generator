@@ -23,7 +23,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       groupId,
       artifactId,
       version,
-      modules: ["core", "entrypoints/rest", "configuration"],
+      modules: ["core", "entrypoints/rest", "infra/database", "configuration"],
       javaVersion: request.profile.technology.languageVersion,
     };
     const core = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-core`, []);
@@ -31,9 +31,13 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-web" },
     ]);
+    const infraDatabase = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-infra-database`, [
+      { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
+    ]);
     const configuration = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-configuration`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
       { groupId: "${project.groupId}", artifactId: `${artifactId}-entrypoints-rest`, version: "${project.version}" },
+      { groupId: "${project.groupId}", artifactId: `${artifactId}-infra-database`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
     ], true);
 
@@ -41,6 +45,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { templateId: "parent-pom", model: parent, outputVariables: {} },
       { templateId: "core-pom", model: core, outputVariables: {} },
       { templateId: "entrypoints-rest-pom", model: entrypointsRest, outputVariables: {} },
+      { templateId: "infra-database-pom", model: infraDatabase, outputVariables: {} },
       { templateId: "configuration-pom", model: configuration, outputVariables: {} },
     ];
   }

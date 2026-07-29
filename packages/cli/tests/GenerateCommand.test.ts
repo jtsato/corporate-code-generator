@@ -89,7 +89,7 @@ describe("GenerateCommand", () => {
         else expect(writer).toHaveBeenCalledOnce();
 
         if (!dryRun) {
-          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(11);
+          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(13);
         }
       } finally {
         error.mockRestore();
@@ -116,6 +116,7 @@ describe("GenerateCommand", () => {
       "pom.xml",
       "core/pom.xml",
       "entrypoints/rest/pom.xml",
+      "infra/database/pom.xml",
       "configuration/pom.xml",
     ]);
   });
@@ -148,18 +149,30 @@ describe("GenerateCommand", () => {
       moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
-    expect(targetPaths).toHaveLength(8);
+    expect(targetPaths).toHaveLength(9);
     expect(targetPaths.at(-1)).toBe(
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
     );
   });
 
   it.each([
-    { moduleIds: ["entrypoints-rest"], operationCount: 6 },
-    { moduleIds: ["configuration"], operationCount: 7 },
+    {
+      moduleIds: ["entrypoints-rest"],
+      operationCount: 6,
+      expectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
+      unexpectedPath: "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
+    },
+    {
+      moduleIds: ["infra-database"],
+      operationCount: 5,
+      expectedPath: "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
+      unexpectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
+    },
+    { moduleIds: ["configuration"], operationCount: 8, expectedPath: "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java" },
+    { moduleIds: ["build", "configuration"], operationCount: 13, expectedPath: "infra/database/pom.xml" },
   ])(
     "resolves multi-module selection $moduleIds to $operationCount operations",
-    async ({ moduleIds, operationCount }) => {
+    async ({ moduleIds, operationCount, expectedPath, unexpectedPath }) => {
       let targetPaths: readonly string[] = [];
       const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
         targetPaths = plan.operations.map((operation) => operation.targetPath);
@@ -177,6 +190,8 @@ describe("GenerateCommand", () => {
 
         expect(exitCode).toBe(0);
         expect(targetPaths).toHaveLength(operationCount);
+        expect(targetPaths).toContain(expectedPath);
+        if (unexpectedPath !== undefined) expect(targetPaths).not.toContain(unexpectedPath);
       } finally {
         error.mockRestore();
       }

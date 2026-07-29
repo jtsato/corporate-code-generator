@@ -18,12 +18,13 @@ import { JavaSpringCleanMultimoduleBuildArtifactProducer } from "@corporate-code
 import { JavaSpringCleanMultimoduleConfigurationArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { JavaSpringCleanMultimoduleCoreArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer } from "@corporate-code-generator/adapter-java";
+import { JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer } from "@corporate-code-generator/adapter-java";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the eleven complete Maven reactor artifacts", async () => {
+  it("renders the thirteen complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -49,6 +50,11 @@ describe("Java multi-module generation", () => {
       new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer(),
       resolvedPack.templatePack,
     ).plan({ application, profile, modules });
+    const infraDatabasePlan = await new GenerationPlanner(
+      new NunjucksTemplateEngine([resolvedPack.directory]),
+      new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer(),
+      resolvedPack.templatePack,
+    ).plan({ application, profile, modules });
     const configurationPlan = await new GenerationPlanner(
       new NunjucksTemplateEngine([resolvedPack.directory]),
       new JavaSpringCleanMultimoduleConfigurationArtifactProducer(),
@@ -58,17 +64,19 @@ describe("Java multi-module generation", () => {
       ...buildPlan.operations,
       ...corePlan.operations,
       ...restPlan.operations,
+      ...infraDatabasePlan.operations,
       ...configurationPlan.operations,
     ];
 
     expect(operations.map((operation) => operation.targetPath)).toEqual([
-      "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "configuration/pom.xml",
+      "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
     ]);
     for (const operation of operations) {
@@ -93,6 +101,7 @@ function normalize(value: string): string {
 function goldenModuleFor(targetPath: string): string {
   if (targetPath.startsWith("core/src/")) return "core";
   if (targetPath.startsWith("entrypoints/rest/src/")) return "entrypoints-rest";
+  if (targetPath.startsWith("infra/database/src/")) return "infra-database";
   if (targetPath.startsWith("configuration/src/")) return "configuration";
   return "build";
 }

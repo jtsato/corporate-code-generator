@@ -65,6 +65,7 @@ describe("Java multi-module profile foundation", () => {
       "parent-pom",
       "core-pom",
       "entrypoints-rest-pom",
+      "infra-database-pom",
       "configuration-pom",
       "core-domain-entity",
       "core-gateway",
@@ -72,12 +73,14 @@ describe("Java multi-module profile foundation", () => {
       "core-find-usecase-interactor",
       "entrypoints-rest-controller",
       "entrypoints-rest-response",
+      "infra-database-gateway-provider",
       "configuration-application",
     ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([
       "build",
       "core",
       "entrypoints-rest",
+      "infra-database",
       "configuration",
     ]);
     expect(resolver.resolveSelected(profile.modules, ["core"]).map((module) => module.id)).toEqual([
@@ -87,9 +90,14 @@ describe("Java multi-module profile foundation", () => {
       "core",
       "entrypoints-rest",
     ]);
+    expect(resolver.resolveSelected(profile.modules, ["infra-database"]).map((module) => module.id)).toEqual([
+      "core",
+      "infra-database",
+    ]);
     expect(resolver.resolveSelected(profile.modules, ["configuration"]).map((module) => module.id)).toEqual([
       "core",
       "entrypoints-rest",
+      "infra-database",
       "configuration",
     ]);
   });

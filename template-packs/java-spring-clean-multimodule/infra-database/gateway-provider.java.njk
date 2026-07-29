@@ -1,0 +1,10 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public class {{ className }} implements {{ gatewayType }} {
+    @Override
+    public List<{{ entityType }}> {{ findAllMethodName }}() {
+        return List.of();
+    }
+}

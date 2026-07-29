@@ -1,5 +1,15 @@
 # Corporate Code Generator
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=coverage)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
+
 Corporate Code Generator é uma plataforma determinística para transformar
 modelos de aplicação, Profiles e Templates em scaffolds de código.
 

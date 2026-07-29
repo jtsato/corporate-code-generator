@@ -30,6 +30,7 @@ describe("Java multi-module CLI smoke test", () => {
         "pom.xml",
         "core/pom.xml",
         "entrypoints/rest/pom.xml",
+        "infra/database/pom.xml",
         "configuration/pom.xml",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
@@ -37,6 +38,7 @@ describe("Java multi-module CLI smoke test", () => {
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
         "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
         "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
+        "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
       ]) {
         const [generated, golden] = await Promise.all([
@@ -65,6 +67,7 @@ function normalizeLineEndings(content: string): string {
 function goldenModule(targetPath: string): string {
   if (targetPath.startsWith("core/src/")) return "core";
   if (targetPath.startsWith("entrypoints/rest/src/")) return "entrypoints-rest";
+  if (targetPath.startsWith("infra/database/src/")) return "infra-database";
   if (targetPath.startsWith("configuration/src/")) return "configuration";
   return "build";
 }

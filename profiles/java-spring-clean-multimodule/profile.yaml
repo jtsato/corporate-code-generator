@@ -21,7 +21,11 @@ modules:
   - id: entrypoints-rest
     requires:
       - core
+  - id: infra-database
+    requires:
+      - core
   - id: configuration
     requires:
       - core
       - entrypoints-rest
+      - infra-database

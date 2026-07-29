@@ -136,20 +136,24 @@ template-specific; it does not require the Core to know Maven module layout.
 > **GENERATOR DECISION** Do not implicitly copy reference Java/Spring versions
 > or libraries.
 
-> **GENERATOR DECISION** The first multi-module MVP contains `build`, `core`,
-> `entrypoints-rest`, and `configuration`. Persistence is deferred.
+> **GENERATOR DECISION** The multi-module Golden Path contains `build`, `core`,
+> `entrypoints-rest`, `infra-database`, and `configuration`. The infrastructure
+> module depends on core; configuration composes REST and infrastructure.
+> Persistence technology is deferred.
 
 > **GENERATOR DECISION** The `build` capability generates Maven Reactor POMs.
 > `core` generates domain models, gateway ports, and structural find use cases
 > with interactors. The interactor is deliberately unannotated: it depends only
 > on the core gateway interface and is not a Spring bean until infrastructure
 > and wiring exist. `entrypoints-rest` generates provisional controllers and
-> responses under `<base>.entrypoint.rest.domains.<domain>`. Configuration
-> contributes the root Spring Boot application class, so the complete
-> multi-module profile is generable. The structural smoke compares all eleven
-> artifacts; Maven compile validation remains a separate milestone. REST
-> controllers return `List.of()` and do not yet delegate to use cases, ports,
-> persistence, or mappers.
+> responses under `<base>.entrypoint.rest.domains.<domain>`. `infra-database`
+> generates an unannotated structural gateway provider that returns `List.of()`;
+> it has no JPA, repository, persistence entity, or mapper. Configuration
+> contributes the root Spring Boot application class and depends on the
+> infrastructure module, so the complete multi-module profile is generable.
+> The structural smoke compares all thirteen artifacts; Maven compile
+> validation remains active. REST controllers return `List.of()` and do not yet
+> delegate to use cases, ports, persistence, or mappers.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
 > `smoke:maven:java-multimodule` generates the complete profile and runs
@@ -162,11 +166,13 @@ template-specific; it does not require the Core to know Maven module layout.
 parent POM and module POMs
 core domain artifact(s)
 entrypoints/rest structural controller and response artifact(s)
+infra/database structural gateway provider(s)
 configuration Spring Boot application
 ```
 
-This MVP is intended to compile without `infra/database`, JPA entities,
-repositories, providers, or database configuration.
+This MVP is intended to compile without JPA entities, repositories, mappers,
+Spring wiring, or database configuration. Its infrastructure provider is a
+structural implementation only.
 
 ## Roadmap 5.x
 

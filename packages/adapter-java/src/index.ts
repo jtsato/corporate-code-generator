@@ -41,6 +41,10 @@ export type {
 } from "./model/JavaRestControllerTemplateModel.js";
 
 export type {
+  JavaGatewayProviderTemplateModel,
+} from "./model/JavaGatewayProviderTemplateModel.js";
+
+export type {
   JavaRecordComponentModel,
   JavaRestResponseTemplateModel,
 } from "./model/JavaRestResponseTemplateModel.js";
@@ -90,6 +94,10 @@ export {
 export {
   JavaSpringCleanMultimoduleConfigurationArtifactProducer,
 } from "./generation/JavaSpringCleanMultimoduleConfigurationArtifactProducer.js";
+
+export {
+  JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer,
+} from "./generation/JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer.js";
 
 export {
   JavaSpringCleanBootstrapArtifactProducer,
