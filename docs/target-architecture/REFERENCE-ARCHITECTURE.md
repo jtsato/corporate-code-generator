@@ -147,8 +147,9 @@ template-specific; it does not require the Core to know Maven module layout.
 > on the core gateway interface and is not a Spring bean until infrastructure
 > and wiring exist. `entrypoints-rest` generates provisional controllers and
 > responses under `<base>.entrypoint.rest.domains.<domain>`. `infra-database`
-> generates an unannotated structural gateway provider that returns `List.of()`,
-> a JPA persistence entity, a manual mapper, and a Spring Data repository. Configuration
+> generates an annotation-free gateway provider, a JPA persistence entity, a
+> manual mapper, and a Spring Data repository. The provider delegates `findAll`
+> to the repository and maps persistence entities back to domain models. Configuration
 > contributes the root Spring Boot application class and domain-specific
 > `@Configuration` classes. Those classes explicitly register gateway and use
 > case beans, while core and infrastructure remain unannotated plain Java.
@@ -163,16 +164,17 @@ template-specific; it does not require the Core to know Maven module layout.
 > check. REST controllers delegate to the generated find
 > use case and map domain entities through the local `Response.from(entity)`
 > factory. Mapping remains manual and local to the DTO: MapStruct and a
-> dedicated mapper layer are not introduced. The infrastructure provider still
-> returns `List.of()`. Infrastructure now generates structural JPA persistence
-> entities backed by `spring-boot-starter-data-jpa`; they are not yet used by
-> the provider. Each repository operates on its persistence entity. H2 exists
+> dedicated REST mapper layer are not introduced. Infrastructure generates JPA
+> persistence entities backed by `spring-boot-starter-data-jpa`; each repository
+> operates on its persistence entity. H2 exists
 > only on the `configuration` test runtime classpath; there is no production
 > DataSource, EntityManager usage, or persistence runtime configuration.
 > A manual persistence mapper is also generated for each domain, converting the
-> persistence entity and domain model in both directions. It is not yet used by
-> the provider; MapStruct is not introduced. The endpoint therefore still does
-> not use functional persistence.
+> persistence entity and domain model in both directions. The provider uses its
+> repository and mapper for the read path and remains annotation-free;
+> configuration injects the discovered repository explicitly. MapStruct is not
+> introduced. The endpoint can reach a configured database for reads, but there
+> is no production DataSource, migration strategy, write path, or complete CRUD.
 
 > **GENERATOR DECISION** `smoke:java-multimodule` remains structural, while
 > `smoke:maven:java-multimodule` generates the complete profile and runs

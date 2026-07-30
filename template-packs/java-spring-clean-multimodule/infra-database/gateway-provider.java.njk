@@ -3,8 +3,17 @@ package {{ packageName }};
 {% for import in imports %}import {{ import }};
 {% endfor %}
 public class {{ className }} implements {{ gatewayType }} {
+    private final {{ repositoryType }} {{ repositoryFieldName }};
+
+    public {{ constructorName }}({{ repositoryType }} {{ repositoryFieldName }}) {
+        this.{{ repositoryFieldName }} = {{ repositoryFieldName }};
+    }
+
     @Override
     public List<{{ entityType }}> {{ findAllMethodName }}() {
-        return List.of();
+        return {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}()
+            .stream()
+            .map({{ mapperType }}::{{ mapperToDomainMethodName }})
+            .toList();
     }
 }

@@ -90,7 +90,10 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       const imports = new JavaImportCollector();
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
       imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+      imports.add(`${namespace}.infra.domains.${domainName}.mapper.${mapperModel.className}`);
+      imports.add(`${namespace}.infra.domains.${domainName}.repository.${repositoryModel.interfaceName}`);
       imports.add("java.util.List");
+      const repositoryFieldName = toJavaFieldName(repositoryModel.interfaceName);
       const model: JavaGatewayProviderTemplateModel = {
         packageName: `${namespace}.infra.domains.${domainName}`,
         imports: imports.values(),
@@ -98,6 +101,12 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         gatewayType,
         entityType,
         findAllMethodName: "findAll",
+        repositoryType: repositoryModel.interfaceName,
+        repositoryFieldName,
+        constructorName: `${gatewayType}Provider`,
+        mapperType: mapperModel.className,
+        repositoryFindAllMethodName: "findAll",
+        mapperToDomainMethodName: "toDomain",
       };
 
       return [

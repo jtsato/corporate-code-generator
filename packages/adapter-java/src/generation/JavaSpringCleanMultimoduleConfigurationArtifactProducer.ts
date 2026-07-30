@@ -45,6 +45,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
         imports.add("org.springframework.context.annotation.Configuration");
         const domainModel: JavaDomainConfigurationTemplateModel = {
@@ -54,6 +55,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           gatewayBeanMethodName: `${domainName}Gateway`,
           gatewayType,
           gatewayImplementationType: `${gatewayType}Provider`,
+          repositoryType: `${entityType}Repository`,
+          repositoryParameterName: `${domainName}Repository`,
           useCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}UseCase`,
           useCaseType,
           useCaseImplementationType: `${useCaseType}Interactor`,

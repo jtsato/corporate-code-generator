@@ -5,6 +5,8 @@ export interface JavaDomainConfigurationTemplateModel {
   readonly gatewayBeanMethodName: string;
   readonly gatewayType: string;
   readonly gatewayImplementationType: string;
+  readonly repositoryType: string;
+  readonly repositoryParameterName: string;
   readonly useCaseBeanMethodName: string;
   readonly useCaseType: string;
   readonly useCaseImplementationType: string;

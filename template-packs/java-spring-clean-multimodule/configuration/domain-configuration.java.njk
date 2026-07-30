@@ -5,8 +5,8 @@ package {{ packageName }};
 @Configuration
 public class {{ className }} {
     @Bean
-    public {{ gatewayType }} {{ gatewayBeanMethodName }}() {
-        return new {{ gatewayImplementationType }}();
+    public {{ gatewayType }} {{ gatewayBeanMethodName }}({{ repositoryType }} {{ repositoryParameterName }}) {
+        return new {{ gatewayImplementationType }}({{ repositoryParameterName }});
     }
 
     @Bean
