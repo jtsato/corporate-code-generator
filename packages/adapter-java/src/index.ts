@@ -37,6 +37,10 @@ export type {
 } from "./model/JavaSpringBootApplicationTestTemplateModel.js";
 
 export type {
+  JavaHttpSmokeTestTemplateModel,
+} from "./model/JavaHttpSmokeTestTemplateModel.js";
+
+export type {
   JavaApplicationServiceTemplateModel,
 } from "./model/JavaApplicationServiceTemplateModel.js";
 

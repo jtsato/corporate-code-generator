@@ -6,10 +6,12 @@ import type {
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaBootstrapTemplateModel } from "../model/JavaBootstrapTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
+import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
+import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
 
 export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements GenerationArtifactProducer {
   public readonly profileId = "java-spring-clean-multimodule";
@@ -78,6 +80,42 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         model: applicationTest,
         outputVariables: { ...outputVariables, className: applicationTest.className },
       },
+      ...request.application.entities.map((entity) => {
+        const entityType = toJavaTypeName(entity.name);
+        const imports = new JavaImportCollector();
+        imports.add("java.net.http.HttpClient");
+        imports.add("java.net.http.HttpRequest");
+        imports.add("java.net.http.HttpResponse");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.boot.test.web.server.LocalServerPort");
+        const httpSmokeModel: JavaHttpSmokeTestTemplateModel = {
+          packageName: namespace,
+          imports: ["java.net.URI", ...imports.values()],
+          className: `${entityType}HttpSmokeTests`,
+          serverPortAnnotationType: "LocalServerPort",
+          serverPortFieldName: "port",
+          endpointUriExpression: `"http://localhost:" + port + "${toRestCollectionPath(entity.name)}"`,
+          testMethodName: "findAllReturnsEmptyList",
+          requestType: "HttpRequest",
+          responseType: "HttpResponse",
+          responseBodyType: "String",
+          httpClientType: "HttpClient",
+          expectedStatusCode: 200,
+          expectedBody: "[]",
+          contentTypeHeaderName: "Content-Type",
+          expectedContentTypePrefix: "application/json",
+        };
+
+        return {
+          templateId: "configuration-http-smoke-test",
+          model: httpSmokeModel,
+          outputVariables: {
+            ...outputVariables,
+            className: httpSmokeModel.className,
+          },
+        };
+      }),
     ];
   }
 }

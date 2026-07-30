@@ -27,8 +27,11 @@ export async function compileWithMaven(cwd: string): Promise<void> {
   await runMaven(cwd, ["compile"], "compilation");
 }
 
-export async function testWithMaven(cwd: string): Promise<void> {
-  await runMaven(cwd, ["test"], "test execution");
+export async function testWithMaven(cwd: string, testPattern?: string): Promise<void> {
+  const args = testPattern === undefined
+    ? ["test"]
+    : ["test", `-Dtest=${testPattern}`, "-Dsurefire.failIfNoSpecifiedTests=false"];
+  await runMaven(cwd, args, "test execution");
 }
 
 async function runMaven(cwd: string, args: readonly string[], operation: string): Promise<void> {

@@ -154,14 +154,17 @@ template-specific; it does not require the Core to know Maven module layout.
 > `@Configuration` classes. Those classes explicitly register gateway and use
 > case beans, while core and infrastructure remain unannotated plain Java.
 > Configuration depends on the infrastructure module, so the complete
-> multi-module profile is generable. The structural smoke compares all eighteen
+> multi-module profile is generable. The structural smoke compares all nineteen
 > artifacts; Maven compile validation remains active. Configuration also
 > generates a minimal `@SpringBootTest` context test in the application root
-> package. The dedicated Spring context smoke generates the complete profile
-> and runs `mvn test`, validating Spring wiring and Spring Data/JPA bootstrap;
-> it does not test an
-> HTTP endpoint, start a server manually, use Actuator, or provide a health
-> check. REST controllers delegate to the generated find
+> package and one HTTP runtime smoke test per entity. The HTTP test starts the
+> application with `RANDOM_PORT`, calls the generated collection endpoint with
+> the JDK `java.net.http.HttpClient`, and validates status `200`, body `[]`, and
+> a JSON content type. The context smoke covers Spring context, JPA bootstrap,
+> repository discovery, and explicit wiring. The HTTP runtime smoke extends
+> that proof through Spring MVC, the use case, gateway, Spring Data repository,
+> and the empty H2 test database. `TestRestTemplate` is not introduced. REST controllers
+> delegate to the generated find
 > use case and map domain entities through the local `Response.from(entity)`
 > factory. Mapping remains manual and local to the DTO: MapStruct and a
 > dedicated REST mapper layer are not introduced. Infrastructure generates JPA
@@ -182,8 +185,12 @@ template-specific; it does not require the Core to know Maven module layout.
 > `CODEGEN_REQUIRE_MAVEN_SMOKE=true`.
 
 > **GENERATOR DECISION** `smoke:spring-context:java-multimodule` generates the
-> complete profile and runs `mvn test` to load the generated Spring context.
-> It follows the same Maven availability policy as the compile smoke.
+> complete profile and runs only `*ApplicationTests` to load the generated
+> Spring context. `smoke:http:java-multimodule` separately runs only
+> `*HttpSmokeTests`, exercising the generated empty-list endpoint over a real
+> HTTP server on a random port. Both follow the same Maven availability policy
+> as the compile smoke. The HTTP smoke does not add Actuator, a healthcheck,
+> seed data, write behavior, or full CRUD.
 
 ## Recommended first multi-module MVP
 

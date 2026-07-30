@@ -11,19 +11,19 @@ const execFileAsync = promisify(execFile);
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const cliEntryPoint = join(repoRoot, "packages", "cli", "dist", "index.js");
 
-describe("Java multi-module Spring context smoke test", () => {
-  it("loads the Spring context of the complete generated multi-module project when Maven is available", async ({ skip }) => {
+describe("Java multi-module HTTP runtime smoke test", () => {
+  it("serves the generated empty collection endpoint when Maven is available", async ({ skip }) => {
     await expect(access(cliEntryPoint)).resolves.toBeUndefined();
     const maven = await detectMaven(repoRoot);
     if (!maven.available) {
-      const message = "Maven Spring context smoke skipped: Maven executable was not found. Set CODEGEN_REQUIRE_MAVEN_SMOKE=true to require Maven.";
+      const message = "Maven HTTP runtime smoke skipped: Maven executable was not found. Set CODEGEN_REQUIRE_MAVEN_SMOKE=true to require Maven.";
       if (process.env.CODEGEN_REQUIRE_MAVEN_SMOKE === "true") throw new Error(message);
       console.warn(message); skip(message); return;
     }
-    const outputRoot = await mkdtemp(join(tmpdir(), "ccg-multimodule-spring-context-smoke-"));
+    const outputRoot = await mkdtemp(join(tmpdir(), "ccg-multimodule-http-runtime-smoke-"));
     try {
       await execFileAsync(process.execPath, [cliEntryPoint, "generate", "examples/wallet-service/model.yaml", "--profile", "java-spring-clean-multimodule", "--output", outputRoot], { cwd: repoRoot, maxBuffer: 10 * 1024 * 1024 });
-      await testWithMaven(outputRoot, "*ApplicationTests");
+      await testWithMaven(outputRoot, "*HttpSmokeTests");
     } finally { await rm(outputRoot, { recursive: true, force: true }); }
   }, 300_000);
 });

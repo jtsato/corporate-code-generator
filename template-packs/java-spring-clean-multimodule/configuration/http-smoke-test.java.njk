@@ -1,0 +1,30 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class {{ className }} {
+    @{{ serverPortAnnotationType }}
+    private int {{ serverPortFieldName }};
+
+    @Test
+    void {{ testMethodName }}() throws Exception {
+        {{ requestType }} request = {{ requestType }}.newBuilder(
+            URI.create({{ endpointUriExpression }})
+        ).GET().build();
+
+        {{ responseType }}<{{ responseBodyType }}> response = {{ httpClientType }}.newHttpClient().send(
+            request,
+            {{ responseType }}.BodyHandlers.ofString()
+        );
+
+        assertThat(response.statusCode()).isEqualTo({{ expectedStatusCode }});
+        assertThat(response.body()).isEqualTo("{{ expectedBody }}");
+        assertThat(response.headers().firstValue("{{ contentTypeHeaderName }}"))
+            .hasValueSatisfying(contentType ->
+                assertThat(contentType).startsWith("{{ expectedContentTypePrefix }}")
+            );
+    }
+}

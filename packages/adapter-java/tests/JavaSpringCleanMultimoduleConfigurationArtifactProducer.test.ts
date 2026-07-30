@@ -64,6 +64,37 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         packagePath: "io/github/jtsato/walletservice",
         className: "WalletServiceApplicationTests",
       },
+    }, {
+      templateId: "configuration-http-smoke-test",
+      model: {
+        packageName: "io.github.jtsato.walletservice",
+        imports: [
+          "java.net.URI",
+          "java.net.http.HttpClient",
+          "java.net.http.HttpRequest",
+          "java.net.http.HttpResponse",
+          "org.junit.jupiter.api.Test",
+          "org.springframework.boot.test.context.SpringBootTest",
+          "org.springframework.boot.test.web.server.LocalServerPort",
+        ],
+        className: "WalletHttpSmokeTests",
+        serverPortAnnotationType: "LocalServerPort",
+        serverPortFieldName: "port",
+        endpointUriExpression: "\"http://localhost:\" + port + \"/wallets\"",
+        testMethodName: "findAllReturnsEmptyList",
+        requestType: "HttpRequest",
+        responseType: "HttpResponse",
+        responseBodyType: "String",
+        httpClientType: "HttpClient",
+        expectedStatusCode: 200,
+        expectedBody: "[]",
+        contentTypeHeaderName: "Content-Type",
+        expectedContentTypePrefix: "application/json",
+      },
+      outputVariables: {
+        packagePath: "io/github/jtsato/walletservice",
+        className: "WalletHttpSmokeTests",
+      },
     }]);
   });
 });
