@@ -163,7 +163,17 @@ template-specific; it does not require the Core to know Maven module layout.
 > a JSON content type. The context smoke covers Spring context, JPA bootstrap,
 > repository discovery, and explicit wiring. The HTTP runtime smoke extends
 > that proof through Spring MVC, the use case, gateway, Spring Data repository,
-> and the empty H2 test database. `TestRestTemplate` is not introduced. REST controllers
+> and the empty H2 test database. Configuration also generates one HTTP
+> persistence read test per entity. That test uses the Spring Data repository
+> only to arrange a known persistence entity, flushes it to H2, and verifies
+> exclusively through real HTTP that the values traverse the provider,
+> persistence mapper, domain model, response DTO, and JSON serialization.
+> Deterministic test fixtures are prepared by a Java adapter resolver from
+> semantic primitive types and occurrence indexes; Java types and imports
+> remain the responsibility of `JavaTypeResolver` and `JavaImportCollector`.
+> Optional attributes receive non-null fixtures, and attribute order is
+> preserved in constants, entity construction, and exact expected JSON.
+> `TestRestTemplate` is not introduced. REST controllers
 > delegate to the generated find
 > use case and map domain entities through the local `Response.from(entity)`
 > factory. Mapping remains manual and local to the DTO: MapStruct and a
@@ -188,9 +198,13 @@ template-specific; it does not require the Core to know Maven module layout.
 > complete profile and runs only `*ApplicationTests` to load the generated
 > Spring context. `smoke:http:java-multimodule` separately runs only
 > `*HttpSmokeTests`, exercising the generated empty-list endpoint over a real
-> HTTP server on a random port. Both follow the same Maven availability policy
-> as the compile smoke. The HTTP smoke does not add Actuator, a healthcheck,
-> seed data, write behavior, or full CRUD.
+> HTTP server on a random port.
+> `smoke:http-persistence-read:java-multimodule` runs only
+> `*HttpPersistenceReadTests`, persists a known entity in the test-only H2
+> database, and validates its exact representation through the full HTTP read
+> path. The three smokes follow the same Maven availability policy as the
+> compile smoke. They do not add Actuator, a healthcheck, a production write
+> path, global seed data, or full CRUD.
 
 ## Recommended first multi-module MVP
 

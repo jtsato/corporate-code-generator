@@ -18,15 +18,16 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "typecheck": "tsc --build --pretty",
-    "test": "vitest run --exclude tests/smoke/maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-spring-context.smoke.test.ts --exclude tests/smoke/java-multimodule-http-runtime.smoke.test.ts",
+    "test": "vitest run --exclude tests/smoke/maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-spring-context.smoke.test.ts --exclude tests/smoke/java-multimodule-http-runtime.smoke.test.ts --exclude tests/smoke/java-multimodule-http-persistence-read.smoke.test.ts",
     "smoke": "npm run build && vitest run tests/smoke/cli.smoke.test.ts",
     "smoke:maven": "npm run build && vitest run tests/smoke/maven-compile.smoke.test.ts",
     "smoke:maven:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-maven-compile.smoke.test.ts",
     "smoke:spring-context:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-spring-context.smoke.test.ts",
     "smoke:http:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-http-runtime.smoke.test.ts",
+    "smoke:http-persistence-read:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-http-persistence-read.smoke.test.ts",
     "smoke:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule.smoke.test.ts",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage --exclude tests/smoke/maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-spring-context.smoke.test.ts --exclude tests/smoke/java-multimodule-http-runtime.smoke.test.ts",
+    "test:coverage": "vitest run --coverage --exclude tests/smoke/maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-maven-compile.smoke.test.ts --exclude tests/smoke/java-multimodule-spring-context.smoke.test.ts --exclude tests/smoke/java-multimodule-http-runtime.smoke.test.ts --exclude tests/smoke/java-multimodule-http-persistence-read.smoke.test.ts",
     "mutation": "stryker run"
   },
   "engines": {

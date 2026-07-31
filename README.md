@@ -135,6 +135,22 @@ Ele segue a mesma política de disponibilidade do Maven. Este smoke comprova o
 caminho HTTP de leitura vazio; não introduz cliente de teste Spring adicional,
 Actuator, healthcheck, seed de dados, escrita ou CRUD completo.
 
+### Smoke HTTP persistence read multi-módulo
+
+O smoke de leitura persistida mantém o Arrange restrito ao código de teste:
+limpa o H2, persiste uma `WalletEntity` conhecida com o Spring Data repository
+e faz a verificação exclusivamente por `GET /wallets`. Assim, os valores
+precisam atravessar repository, provider, persistence mapper, domínio,
+response DTO e serialização JSON:
+
+```bash
+npm run smoke:http-persistence-read:java-multimodule
+```
+
+O teste valida status `200`, `Content-Type` JSON e o body exato com o UUID e o
+balance persistidos. Ele não cria endpoint de escrita, seed global, migration
+ou configuração de datasource de produção.
+
 Para limpar a saída local:
 
 ```bash

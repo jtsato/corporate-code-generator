@@ -41,6 +41,19 @@ export type {
 } from "./model/JavaHttpSmokeTestTemplateModel.js";
 
 export type {
+  JavaHttpPersistenceReadTestTemplateModel,
+  JavaTestFixtureConstantModel,
+} from "./model/JavaHttpPersistenceReadTestTemplateModel.js";
+
+export {
+  JavaTestFixtureValueResolver,
+} from "./fixtures/JavaTestFixtureValueResolver.js";
+
+export type {
+  JavaTestFixtureValue,
+} from "./fixtures/JavaTestFixtureValueResolver.js";
+
+export type {
   JavaApplicationServiceTemplateModel,
 } from "./model/JavaApplicationServiceTemplateModel.js";
 
@@ -87,6 +100,7 @@ export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
 export { toJavaDatabaseTableName } from "./naming/JavaDatabaseTableName.js";
 export { toJavaDatabaseColumnName } from "./naming/JavaDatabaseColumnName.js";
 export { toJavaFieldName } from "./naming/JavaFieldName.js";
+export { toJavaConstantName } from "./naming/JavaConstantName.js";
 export { toJavaPluralTypeName } from "./naming/JavaPluralTypeName.js";
 export { JavaSpringCleanMultimoduleCoreArtifactProducer } from "./generation/JavaSpringCleanMultimoduleCoreArtifactProducer.js";
 export { toRestCollectionPath } from "./naming/RestCollectionPath.js";

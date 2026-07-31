@@ -78,3 +78,7 @@ templates:
     module: configuration
     template: configuration/http-smoke-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-persistence-read-test
+    module: configuration
+    template: configuration/http-persistence-read-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java

@@ -3,19 +3,29 @@ import type {
   GenerationRequest,
   TemplateInvocation,
 } from "@corporate-code-generator/core";
+import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaBootstrapTemplateModel } from "../model/JavaBootstrapTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
+import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
+import { toJavaConstantName } from "../naming/JavaConstantName.js";
+import { toJavaFieldName } from "../naming/JavaFieldName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
+import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements GenerationArtifactProducer {
   public readonly profileId = "java-spring-clean-multimodule";
   public readonly moduleId = "configuration";
+
+  public constructor(
+    private readonly typeResolver: JavaTypeResolver = new JavaTypeResolver(),
+    private readonly fixtureResolver: JavaTestFixtureValueResolver = new JavaTestFixtureValueResolver(),
+  ) {}
 
   public produce(request: GenerationRequest): readonly TemplateInvocation[] {
     const namespace = request.application.namespace;
@@ -116,6 +126,93 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           },
         };
       }),
+      ...request.application.entities.map((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const persistenceEntityType = `${entityType}Entity`;
+        const repositoryType = `${entityType}Repository`;
+        const repositoryFieldName = toJavaFieldName(repositoryType);
+        const imports = new JavaImportCollector();
+        imports.add(`${namespace}.infra.domains.${domainName}.entity.${persistenceEntityType}`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${repositoryType}`);
+        imports.add("java.net.http.HttpClient");
+        imports.add("java.net.http.HttpRequest");
+        imports.add("java.net.http.HttpResponse");
+        imports.add("org.junit.jupiter.api.AfterEach");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.beans.factory.annotation.Autowired");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.boot.test.web.server.LocalServerPort");
+
+        const occurrenceCounts = new Map<string, number>();
+        const fixtureValues = entity.attributes.map((attribute) => {
+          const occurrenceIndex = occurrenceCounts.get(attribute.type) ?? 0;
+          occurrenceCounts.set(attribute.type, occurrenceIndex + 1);
+          const javaType = this.typeResolver.resolve(attribute.type);
+          imports.add(javaType.import);
+          return {
+            attribute,
+            javaType,
+            value: this.fixtureResolver.resolve(attribute.type, occurrenceIndex),
+            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+          };
+        });
+        const expectedBody = `[{${
+          fixtureValues.map(({ attribute, value }) =>
+            `${JSON.stringify(attribute.name)}:${value.jsonLiteral}`,
+          ).join(",")
+        }}]`;
+        const persistenceReadModel: JavaHttpPersistenceReadTestTemplateModel = {
+          packageName: namespace,
+          imports: insertUriImport(imports.values()),
+          className: `${entityType}HttpPersistenceReadTests`,
+          fixtures: fixtureValues.map(({ javaType, value, constantName }) => ({
+            constantName,
+            type: javaType.name,
+            javaExpression: value.javaExpression,
+          })),
+          entityType: persistenceEntityType,
+          entityConstructorArguments: fixtureValues.map(({ constantName }) => constantName),
+          repositoryType,
+          repositoryFieldName,
+          repositoryCleanupMethodName: "deleteAll",
+          repositorySaveMethodName: "saveAndFlush",
+          autowiredAnnotationType: "Autowired",
+          cleanupAnnotationType: "AfterEach",
+          cleanupMethodName: "cleanUp",
+          serverPortAnnotationType: "LocalServerPort",
+          serverPortFieldName: "port",
+          testMethodName: `findAllReturnsPersisted${entityType}`,
+          endpointUriExpression: `"http://localhost:" + port + "${toRestCollectionPath(entity.name)}"`,
+          requestType: "HttpRequest",
+          responseType: "HttpResponse",
+          responseBodyType: "String",
+          httpClientType: "HttpClient",
+          expectedStatusCode: 200,
+          expectedBodyExpression: JSON.stringify(expectedBody),
+          contentTypeHeaderName: "Content-Type",
+          expectedContentTypePrefix: "application/json",
+        };
+
+        return {
+          templateId: "configuration-http-persistence-read-test",
+          model: persistenceReadModel,
+          outputVariables: {
+            ...outputVariables,
+            className: persistenceReadModel.className,
+          },
+        };
+      }),
     ];
   }
+}
+
+function insertUriImport(imports: readonly string[]): readonly string[] {
+  const httpImportIndex = imports.findIndex((value) => value.startsWith("java.net.http."));
+  if (httpImportIndex < 0) return [...imports, "java.net.URI"];
+  return [
+    ...imports.slice(0, httpImportIndex),
+    "java.net.URI",
+    ...imports.slice(httpImportIndex),
+  ];
 }

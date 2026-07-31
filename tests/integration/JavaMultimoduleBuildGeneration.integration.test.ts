@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the nineteen complete Maven reactor artifacts", async () => {
+  it("renders the twenty complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -84,6 +84,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletServiceApplicationTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
     ]);
     for (const operation of operations) {
       const goldenModule = goldenModuleFor(operation.targetPath);

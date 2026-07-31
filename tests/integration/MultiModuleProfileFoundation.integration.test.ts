@@ -81,6 +81,7 @@ describe("Java multi-module profile foundation", () => {
       "configuration-domain-wiring",
       "configuration-application-test",
       "configuration-http-smoke-test",
+      "configuration-http-persistence-read-test",
     ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([
       "build",
