@@ -92,6 +92,8 @@ describe("Java multi-module profile foundation", () => {
       "infra-database-spring-data-page-result-mapper",
       "infra-database-spring-data-page-request-mapper-test",
       "infra-database-spring-data-page-result-mapper-test",
+      "infra-database-querydsl-predicate-builder",
+      "infra-database-querydsl-predicate-builder-test",
       "configuration-application",
       "configuration-domain-wiring",
       "configuration-global-exception-handler",

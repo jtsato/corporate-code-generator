@@ -109,6 +109,36 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       templateId: "infra-database-spring-data-page-result-mapper-test",
       model: { packageName: "io.github.jtsato.walletservice.infra.database.common.paging", exceptionPackageName: "io.github.jtsato.walletservice.core.common.exception", pagingPackageName: "io.github.jtsato.walletservice.core.common.paging", className: "SpringDataPageResultMapperTests" },
       outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SpringDataPageResultMapperTests" },
+    }, {
+      templateId: "infra-database-querydsl-predicate-builder",
+      model: {
+        packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.query",
+        exceptionPackage: "io.github.jtsato.walletservice.core.common.exception",
+        entityPackage: "io.github.jtsato.walletservice.infra.domains.wallet.entity",
+        entityType: "Wallet",
+        entityName: "Wallet",
+        qVariableName: "walletEntity",
+        imports: ["java.util.UUID", "java.math.BigDecimal"],
+        methods: [
+          { name: "id", type: "UUID", import: "java.util.UUID", fixture: 'UUID.fromString("11111111-1111-1111-1111-111111111111")', methodName: "idEquals", testSuffix: "Id" },
+          { name: "balance", type: "BigDecimal", import: "java.math.BigDecimal", fixture: 'new BigDecimal("124.45")', methodName: "balanceEquals", testSuffix: "Balance" },
+        ],
+      },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletPredicateBuilder" },
+    }, {
+      templateId: "infra-database-querydsl-predicate-builder-test",
+      model: {
+        packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.query",
+        exceptionPackage: "io.github.jtsato.walletservice.core.common.exception",
+        entityType: "Wallet",
+        className: "WalletPredicateBuilderTests",
+        imports: ["java.util.UUID", "java.math.BigDecimal"],
+        methods: [
+          { name: "id", type: "UUID", import: "java.util.UUID", fixture: 'UUID.fromString("11111111-1111-1111-1111-111111111111")', methodName: "idEquals", testSuffix: "Id" },
+          { name: "balance", type: "BigDecimal", import: "java.math.BigDecimal", fixture: 'new BigDecimal("124.45")', methodName: "balanceEquals", testSuffix: "Balance" },
+        ],
+      },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletPredicateBuilderTests" },
     }]);
   });
 

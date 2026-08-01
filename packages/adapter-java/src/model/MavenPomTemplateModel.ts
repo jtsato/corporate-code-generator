@@ -3,6 +3,7 @@ export interface MavenDependencyTemplateModel {
   readonly artifactId: string;
   readonly version?: string;
   readonly scope?: string;
+  readonly classifier?: string;
 }
 
 export interface MavenPomTemplateModel {

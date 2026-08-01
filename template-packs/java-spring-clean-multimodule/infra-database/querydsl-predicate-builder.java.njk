@@ -1,0 +1,17 @@
+package {{ packageName }};
+
+import com.querydsl.core.types.dsl.BooleanExpression;
+import {{ exceptionPackage }}.FieldViolation;
+import {{ exceptionPackage }}.ValidationException;
+import {{ entityPackage }}.Q{{ entityType }}Entity;
+import java.util.List;
+{% for import in imports %}import {{ import }};
+{% endfor %}
+
+public final class {{ entityType }}PredicateBuilder {
+    private static final Q{{ entityType }}Entity ENTITY = Q{{ entityType }}Entity.{{ qVariableName }};
+    private {{ entityType }}PredicateBuilder() {
+    }
+{% for method in methods %}    public static BooleanExpression {{ method.methodName }}({{ method.type }} {{ method.name }}) { if ({{ method.name }} == null) throw new ValidationException(List.of(new FieldViolation("{{ method.name }}", "common.querydsl.{{ entityName | lower }}.{{ method.name }}.required", "{{ entityName }} {{ method.name }} is required."))); return ENTITY.{{ method.name }}.eq({{ method.name }}); }
+{% endfor %}
+}

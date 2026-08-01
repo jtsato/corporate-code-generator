@@ -51,6 +51,8 @@ describe("Java multi-module CLI smoke test", () => {
         "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapper.java",
         "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageRequestMapperTests.java",
         "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapperTests.java",
+        "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/query/WalletPredicateBuilder.java",
+        "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/query/WalletPredicateBuilderTests.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",

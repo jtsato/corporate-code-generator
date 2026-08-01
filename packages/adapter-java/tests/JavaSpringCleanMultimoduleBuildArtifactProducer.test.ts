@@ -68,7 +68,9 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
             { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa" },
             { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
+            { groupId: "com.querydsl", artifactId: "querydsl-jpa", version: "5.1.0", classifier: "jakarta" },
           ],
+          querydslAnnotationProcessing: true,
         }, outputVariables: {},
       },
       {

@@ -45,6 +45,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa" },
       { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
+      { groupId: "com.querydsl", artifactId: "querydsl-jpa", version: "5.1.0", classifier: "jakarta" },
     ]);
     const configuration = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-configuration`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
@@ -85,6 +86,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       packaging: "jar",
       dependencies,
       hasSpringBootPlugin,
+      ...(artifactId.endsWith("-infra-database") ? { querydslAnnotationProcessing: true } : {}),
     };
   }
 }

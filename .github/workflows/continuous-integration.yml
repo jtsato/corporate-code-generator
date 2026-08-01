@@ -102,6 +102,11 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: Querydsl smoke Java multi-module
+        run: npm run smoke:querydsl:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: Error handling smoke Java multi-module
         run: npm run smoke:error-handling:java-multimodule
         env:

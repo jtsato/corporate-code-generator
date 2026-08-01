@@ -22,11 +22,13 @@
       <version>${project.version}</version>
 
 
+
     </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
+
 
 
     </dependency>
@@ -38,7 +40,23 @@
 
       <scope>test</scope>
 
+
+    </dependency>
+
+    <dependency>
+      <groupId>com.querydsl</groupId>
+      <artifactId>querydsl-jpa</artifactId>
+
+      <version>5.1.0</version>
+
+
+
+      <classifier>jakarta</classifier>
+
     </dependency>
 
   </dependencies>
+
+  <build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><annotationProcessorPaths><path><groupId>com.querydsl</groupId><artifactId>querydsl-apt</artifactId><version>5.1.0</version><classifier>jakarta</classifier></path><path><groupId>jakarta.persistence</groupId><artifactId>jakarta.persistence-api</artifactId><version>3.2.0</version></path><path><groupId>jakarta.annotation</groupId><artifactId>jakarta.annotation-api</artifactId><version>3.0.0</version></path></annotationProcessorPaths></configuration></plugin></plugins></build>
+
 </project>

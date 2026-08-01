@@ -1,0 +1,16 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import {{ exceptionPackage }}.ValidationException;
+{% for import in imports %}import {{ import }};
+{% endfor %}
+import org.junit.jupiter.api.Test;
+
+class {{ className }} {
+{% for method in methods %}    @Test void shouldBuild{{ method.testSuffix }}EqualsPredicate() { assertNotNull({{ entityType }}PredicateBuilder.{{ method.methodName }}({{ method.fixture }})); }
+    @Test void shouldRejectNull{{ method.testSuffix }}() { assertViolation("{{ method.name }}", "common.querydsl.{{ entityType | lower }}.{{ method.name }}.required", () -> {{ entityType }}PredicateBuilder.{{ method.methodName }}(null)); }
+{% endfor %}
+    private static void assertViolation(String name, String key, org.junit.jupiter.api.function.Executable executable) { var violation = assertThrows(ValidationException.class, executable).getFields().getFirst(); assertEquals(name, violation.name()); assertEquals(key, violation.messageKey()); }
+}

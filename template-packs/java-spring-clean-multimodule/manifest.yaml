@@ -134,6 +134,14 @@ templates:
     module: infra-database
     template: infra-database/spring-data-page-result-mapper-test.java.njk
     output: infra/database/src/test/java/{{ packagePath }}/infra/database/common/paging/{{ className }}.java
+  - id: infra-database-querydsl-predicate-builder
+    module: infra-database
+    template: infra-database/querydsl-predicate-builder.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/query/{{ className }}.java
+  - id: infra-database-querydsl-predicate-builder-test
+    module: infra-database
+    template: infra-database/querydsl-predicate-builder-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/query/{{ className }}.java
   - id: configuration-application
     module: configuration
     template: configuration/application.java.njk

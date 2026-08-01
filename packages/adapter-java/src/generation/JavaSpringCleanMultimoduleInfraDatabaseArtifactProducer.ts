@@ -14,6 +14,7 @@ import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
+import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 
 export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
   implements GenerationArtifactProducer {
@@ -27,6 +28,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
     }
 
     const typeResolver = new JavaTypeResolver();
+    const fixtureResolver = new JavaTestFixtureValueResolver();
     const entityArtifacts = request.application.entities.flatMap((entity) => {
       const domainName = toJavaPackageSegment(entity.name);
       const entityType = toJavaTypeName(entity.name);
@@ -150,6 +152,19 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         model: { packageName: pagingPackageName, exceptionPackageName: `${namespace}.core.common.exception`, pagingPackageName: `${namespace}.core.common.paging`, className: `${className}Tests` },
         outputVariables: { ...pagingVariables, className: `${className}Tests` },
       })),
+      ...request.application.entities.flatMap((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const packageName = `${namespace}.infra.database.domains.${domainName}.query`;
+        const predicateMethods = entity.attributes.map((attribute, index) => {
+          const javaType = typeResolver.resolve(attribute.type);
+          return { name: attribute.name, type: javaType.name, import: javaType.import, fixture: fixtureResolver.resolve(attribute.type, index).javaExpression, methodName: `${attribute.name}Equals`, testSuffix: toJavaTypeName(attribute.name) };
+        });
+        return [
+          { templateId: "infra-database-querydsl-predicate-builder", model: { packageName, exceptionPackage: `${namespace}.core.common.exception`, entityPackage: `${namespace}.infra.domains.${domainName}.entity`, entityType, entityName: entity.name, qVariableName: toJavaFieldName(`${entityType}Entity`), methods: predicateMethods, imports: [...new Set(predicateMethods.flatMap((method) => method.import === undefined ? [] : [method.import]))] }, outputVariables: { ...pagingVariables, domainName, className: `${entityType}PredicateBuilder` } },
+          { templateId: "infra-database-querydsl-predicate-builder-test", model: { packageName, exceptionPackage: `${namespace}.core.common.exception`, entityType, className: `${entityType}PredicateBuilderTests`, methods: predicateMethods, imports: [...new Set(predicateMethods.flatMap((method) => method.import === undefined ? [] : [method.import]))] }, outputVariables: { ...pagingVariables, domainName, className: `${entityType}PredicateBuilderTests` } },
+        ];
+      }),
     ];
   }
 }
