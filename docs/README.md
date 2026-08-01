@@ -8,6 +8,8 @@
 - [Extended Reference Architecture](target-architecture/EXTENDED-REFERENCE-ARCHITECTURE.md) —
   Milestone 6.0 analysis of the advanced Bookstore reference and proposed
   capability roadmap.
+- [Capability Taxonomy and Profile Options](target-architecture/CAPABILITY-TAXONOMY.md) —
+  Milestone 6.1 composition model and initial option decisions.
 - [Architecture Decision Records](adr/)
 - [C4 diagrams](architecture/c4/)
 

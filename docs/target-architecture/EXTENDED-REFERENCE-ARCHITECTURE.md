@@ -266,6 +266,25 @@ not a mandatory wrapper.
 HTTP constants, mutable `WebRequest`, JSON conversion and an AOP execution-time
 logger. Configuration populates request path through a request-scoped bean.
 
+**GENERATOR DECISION** The Java Golden Path will standardize REST error
+responses using `ResponseStatus` in `entrypoints-rest/common`. The canonical
+body has three required contract fields:
+
+```json
+{
+  "code": 400,
+  "message": "Invalid request.",
+  "fields": [{"name": "balance", "message": "Balance is required."}]
+}
+```
+
+`code` is the numeric HTTP status; `message` is the general error message; and
+`fields` is always present, using an empty list for errors without a specific
+field. Every invalid request field must be represented in deterministic order.
+The initial contract deliberately excludes `version`, `timestamp`, `path`,
+`traceId`, `details`, `exception` and `stackTrace`. `ResponseStatus` is an HTTP
+contract and must not be placed in core.
+
 **QUESTIONABLE / LEGACY** Logging complete request DTOs as JSON may expose
 sensitive values. A custom timing annotation duplicates capabilities available
 through Micrometer/observability. A mutable request-path holder adds indirection
@@ -298,11 +317,21 @@ errors are concatenated into one string rather than structured field errors.
 
 **GENERATOR DECISION** A minimal corporate foundation should define semantic
 exceptions (`ApplicationException`, `NotFoundException`,
-`ValidationException`, `ConflictException`), stable error codes, `ErrorResponse`
-and `FieldErrorResponse`, and one translation boundary. It should map malformed
-input/validation to 400, authentication to 401, authorization to 403, missing
-resources to 404, conflicts to 409 and unexpected failures to 500; internal
-exception details and stack traces must not be returned.
+`ValidationException`, `ConflictException`) and one translation boundary into
+`ResponseStatus`. It should map malformed input/validation to 400,
+authentication to 401, authorization to 403, missing resources to 404,
+conflicts to 409 and unexpected failures to 500; internal exception details
+and stack traces must not be returned.
+
+The future handler flow is:
+
+```text
+Core/Application exception -> GlobalExceptionHandler -> ResponseStatus -> HTTP JSON
+```
+
+Field-level validation must aggregate all invalid fields into `fields`. The
+final status mapping, message resolution and deterministic ordering policy are
+implementation decisions for Milestone 6.3.
 
 **GENERATOR DECISION** Unexpected exceptions should be logged with the
 exception object and correlation context, while the client receives a stable
@@ -378,6 +407,12 @@ generation, metadata, controller/DTO annotations and optional Swagger UI.
 Swagger is not a second independent capability. Security schemes are emitted
 only when security is enabled. UI exposure is enabled in local/test by default
 and requires an explicit production decision.
+
+When implemented, `ResponseStatus` should be an immutable Java record in the
+REST common package. OpenAPI annotations document it when the OpenAPI
+capability is enabled; the contract itself does not depend on Swagger UI.
+`message` and each field message may later be resolved through the i18n policy
+defined for Milestone 6.3.
 
 **REQUIRES VALIDATION** The manual resource handlers may be unnecessary with
 the Springdoc starter and should be checked against the selected Springdoc
@@ -748,7 +783,7 @@ artifact or Golden Path is changed by Milestone 6.0.
 
 | Capability | Reference project | Generator current | Gap | Priority | Proposed milestone |
 | --- | --- | --- | --- | --- | --- |
-| exception handling | two advice classes, message bundles | absent | stable semantic errors and safe REST contract | high | 6.3 |
+| exception handling | two advice classes, message bundles | absent | `ResponseStatus` contract, semantic mapping and safe REST translation | high | 6.3 |
 | i18n | English/pt-BR, custom header/cookie | absent | standard negotiation/fallback policy | high | 6.3 |
 | CORS | hardcoded servlet filter | absent | property-driven MVC/Security integration | high | 6.4 |
 | profiles | dev/prod with embedded defaults | H2 test-only in generated test runtime | local/test/prod convention and secrets policy | high | 6.4 |
@@ -769,6 +804,15 @@ artifact or Golden Path is changed by Milestone 6.0.
 | P6Spy | dev/prod/test diagnostics | absent | optional local/test diagnostics | low | after profiles/JPA |
 
 ## Taxonomy proposal
+
+Milestone 6.1 fixes the initial taxonomy and profile-option decisions in
+[Capability Taxonomy and Profile Options](CAPABILITY-TAXONOMY.md). The decisions
+include the default/opt-in split, Jakarta-only Core boundary, standard locale
+negotiation, zero-based paging with bounded size and sort allowlists, Querydsl
+JPA before MongoDB validation, PostgreSQL as the provisional Testcontainers
+target, aggregated plus per-module JaCoCo, scheduled PIT, OpenAPI spec by
+default with environment-gated UI, provider-neutral security and the
+generator/platform Keycloak boundary.
 
 **GENERATOR DECISION** Milestone 6.1 should distinguish without immediately
 changing the schema:
@@ -804,7 +848,7 @@ folded into the JPA milestone.
 | 6.0 | analyse advanced reference | this document and index links | none | no ADR; no Golden change | factual/path review |
 | 6.1 | define capability taxonomy/profile options | capability composition contract and option vocabulary | Profile schema likely; Application Model no | ADR required; preserve existing defaults | backward compatibility and capability dependencies |
 | 6.2 | ArchUnit foundation | architecture-test POM contribution and Golden Path rules | none | ADR recommended; adds tests only when enabled/defaulted | scan scope, package conventions, false positives |
-| 6.3 | global errors and i18n | semantic exceptions, error DTOs, advice, bundles | possibly error-code conventions; no entity schema | ADR required; optional/default decision | 400/409 policy, safe logging, locale fallback |
+| 6.3 | global errors and i18n | `ResponseStatus`, field-error model, advice, bundles | possibly error-code conventions; no entity schema | ADR required; optional/default decision | 400/409 policy, safe logging, locale fallback, field ordering |
 | 6.4 | profiles and CORS | shared/local/test/prod YAML, typed CORS properties | Profile schema likely | ADR required; changes generated configuration | secret defaults, Security integration |
 | 6.5 | OpenAPI foundation | Springdoc dependency, metadata, annotations, optional UI | Profile schema option; operation metadata may later affect model | ADR recommended | production exposure and security schemes |
 | 6.6 | core validation/self-validation | Jakarta validation contracts, validator strategy | validation metadata eventually needed for field constraints | ADR required; opt-in until decided | core dependencies, factory lifecycle, error translation |
@@ -831,7 +875,8 @@ Recommended follow-ups after 6.8:
 2. Should stable Jakarta APIs be allowed in core by policy, and may provider
    implementations such as Hibernate Validator also live there?
 3. Is self-validation constructor-driven, service-driven or port-driven?
-4. What stable error-code namespace and error body version should be exposed?
+4. What final status mapping and message-code namespace should accompany the
+   `ResponseStatus` contract?
 5. What are the supported/default locales and fallback behavior?
 6. Is pagination zero-based externally, and what maximum page size/sort
    allowlist is enforced?
