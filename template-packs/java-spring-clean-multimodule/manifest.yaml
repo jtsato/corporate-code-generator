@@ -58,10 +58,38 @@ templates:
     module: core
     template: core/common/self-validating.java.njk
     output: core/src/main/java/{{ packagePath }}/core/common/validation/{{ className }}.java
+  - id: core-sort-direction
+    module: core
+    template: core/paging/sort-direction.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/paging/{{ className }}.java
+  - id: core-sort-order
+    module: core
+    template: core/paging/sort-order.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/paging/{{ className }}.java
+  - id: core-page-request
+    module: core
+    template: core/paging/page-request.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/paging/{{ className }}.java
+  - id: core-page-result
+    module: core
+    template: core/paging/page-result.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/paging/{{ className }}.java
   - id: core-domain-validation-test
     module: core
     template: core/domain/validation-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/model/{{ className }}.java
+  - id: core-sort-order-test
+    module: core
+    template: core/paging/sort-order-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/common/paging/{{ className }}.java
+  - id: core-page-request-test
+    module: core
+    template: core/paging/page-request-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/common/paging/{{ className }}.java
+  - id: core-page-result-test
+    module: core
+    template: core/paging/page-result-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/common/paging/{{ className }}.java
   - id: entrypoints-rest-controller
     module: entrypoints-rest
     template: entrypoints-rest/domain/controller.java.njk

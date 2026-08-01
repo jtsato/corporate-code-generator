@@ -6,7 +6,11 @@ The multi-module Java configuration capability generates base, local, test, and 
 
 ## Core validation
 
-The multi-module Golden Path has 41 artifacts. Required Core attributes are represented with Jakarta Validation `@NotNull`; entities use `SelfValidating<T>` and produce `ValidationException`/`FieldViolation` without Core imports of Spring or Hibernate Validator. Provider wiring belongs to runtime or test infrastructure. REST DTO validation remains future scope.
+The multi-module Golden Path has 48 artifacts. Required Core attributes are represented with Jakarta Validation `@NotNull`; entities use `SelfValidating<T>` and produce `ValidationException`/`FieldViolation` without Core imports of Spring or Hibernate Validator. Provider wiring belongs to runtime or test infrastructure. REST DTO validation remains future scope.
+
+## Core paging
+
+`core.common.paging` provides Spring-free `PageRequest`, `PageResult`, `SortDirection`, and `SortOrder`. Paging validation uses `ValidationException`; REST and Spring Data adapters remain future work.
 
 This document describes the minimal Wallet reference and the decisions derived
 from it. The broader Bookstore analysis is documented in

@@ -1,0 +1,18 @@
+package {{ packageName }};
+
+import {{ exceptionPackage }}.FieldViolation;
+import {{ exceptionPackage }}.ValidationException;
+import java.util.List;
+
+public record {{ className }}(String property, SortDirection direction) {
+    public {{ className }} {
+        var fields = new java.util.ArrayList<FieldViolation>();
+        if (property == null || property.isBlank()) fields.add(new FieldViolation("property", "common.paging.sort.property.required", "Sort property is required."));
+        if (direction == null) fields.add(new FieldViolation("direction", "common.paging.sort.direction.required", "Sort direction is required."));
+        fields.sort(java.util.Comparator.comparing(FieldViolation::name));
+        if (!fields.isEmpty()) throw new ValidationException(fields);
+    }
+    public static {{ className }} asc(String property) { return new {{ className }}(property, SortDirection.ASC); }
+    public static {{ className }} desc(String property) { return new {{ className }}(property, SortDirection.DESC); }
+    public static {{ className }} of(String property, SortDirection direction) { return new {{ className }}(property, direction); }
+}

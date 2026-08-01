@@ -1,0 +1,10 @@
+package {{ packageName }};
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import {{ exceptionPackage }}.ValidationException;
+import org.junit.jupiter.api.Test;
+class {{ className }} {
+    @Test void shouldCreateSortOrdersUsingFactories() { assertEquals(SortDirection.ASC, SortOrder.asc("name").direction()); assertEquals(SortDirection.DESC, SortOrder.desc("name").direction()); assertEquals("name", SortOrder.of("name", SortDirection.ASC).property()); }
+    @Test void shouldRejectBlankProperty() { assertEquals("common.paging.sort.property.required", assertThrows(ValidationException.class, () -> SortOrder.asc(" ")).getFields().getFirst().messageKey()); }
+    @Test void shouldRejectNullDirection() { assertEquals("common.paging.sort.direction.required", assertThrows(ValidationException.class, () -> SortOrder.of("name", null)).getFields().getFirst().messageKey()); }
+}
