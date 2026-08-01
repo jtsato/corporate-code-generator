@@ -89,7 +89,7 @@ describe("GenerateCommand", () => {
         else expect(writer).toHaveBeenCalledOnce();
 
         if (!dryRun) {
-          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(54);
+          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(55);
         }
       } finally {
         error.mockRestore();
@@ -118,6 +118,7 @@ describe("GenerateCommand", () => {
       "entrypoints/rest/pom.xml",
       "infra/database/pom.xml",
       "configuration/pom.xml",
+      ".github/workflows/java-ci.yml",
     ]);
   });
 
@@ -162,7 +163,7 @@ describe("GenerateCommand", () => {
       moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
-    expect(targetPaths).toHaveLength(22);
+    expect(targetPaths).toHaveLength(23);
     expect(targetPaths.at(-1)).toBe(
       "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/PageResultTests.java",
     );
@@ -181,8 +182,8 @@ describe("GenerateCommand", () => {
       expectedPath: "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapperTests.java",
       unexpectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
     },
-    { moduleIds: ["configuration"], operationCount: 54, expectedPath: "configuration/src/test/java/io/github/jtsato/walletservice/WalletOpenApiSmokeTests.java" },
-    { moduleIds: ["build", "configuration"], operationCount: 54, expectedPath: "infra/database/pom.xml" },
+    { moduleIds: ["configuration"], operationCount: 55, expectedPath: ".github/workflows/java-ci.yml" },
+    { moduleIds: ["build", "configuration"], operationCount: 55, expectedPath: ".github/workflows/java-ci.yml" },
   ])(
     "resolves multi-module selection $moduleIds to $operationCount operations",
     async ({ moduleIds, operationCount, expectedPath, unexpectedPath }) => {

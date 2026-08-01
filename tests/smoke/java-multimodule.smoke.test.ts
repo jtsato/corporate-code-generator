@@ -32,6 +32,7 @@ describe("Java multi-module CLI smoke test", () => {
         "entrypoints/rest/pom.xml",
         "infra/database/pom.xml",
         "configuration/pom.xml",
+        ".github/workflows/java-ci.yml",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",

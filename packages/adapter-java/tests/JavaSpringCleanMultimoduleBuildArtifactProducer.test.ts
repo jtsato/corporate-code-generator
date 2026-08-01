@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { JavaSpringCleanMultimoduleBuildArtifactProducer } from "../src/index.js";
 
 describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
-  it("produces the five deterministic Maven reactor invocations", () => {
+  it("produces the deterministic Maven reactor and generated Java CI workflow", () => {
     const producer = new JavaSpringCleanMultimoduleBuildArtifactProducer();
     const artifacts = producer.produce({
       application: {
@@ -90,6 +90,10 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
             { groupId: "com.tngtech.archunit", artifactId: "archunit-junit5", version: "${archunit.version}", scope: "test" },
           ],
         }, outputVariables: {},
+      },
+      {
+        templateId: "build-github-actions-java-ci",
+        model: { javaVersion: "25" }, outputVariables: {},
       },
     ]);
   });

@@ -22,6 +22,10 @@ templates:
     module: build
     template: build/configuration-pom.xml.njk
     output: configuration/pom.xml
+  - id: build-github-actions-java-ci
+    module: build
+    template: build/github-actions-java-ci.yml.njk
+    output: .github/workflows/java-ci.yml
   - id: core-domain-entity
     module: core
     template: core/domain/entity.java.njk

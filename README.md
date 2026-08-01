@@ -1,6 +1,6 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 54 artifacts, including a Querydsl predicate foundation in Infra. Validate it with `npm run smoke:querydsl:java-multimodule`.
+`java-spring-clean-multimodule` now generates 55 artifacts, including a Querydsl predicate foundation in Infra and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`; Sonar, JaCoCo, PIT, and Testcontainers are not included yet. Validate Querydsl with `npm run smoke:querydsl:java-multimodule`.
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 

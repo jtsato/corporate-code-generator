@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the fifty-four complete Maven reactor artifacts", async () => {
+  it("renders the fifty-five complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,8 +68,9 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
+    expect(operations).toHaveLength(55);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
-      "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml",
+      "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",

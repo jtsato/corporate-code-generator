@@ -64,6 +64,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { templateId: "entrypoints-rest-pom", model: entrypointsRest, outputVariables: {} },
       { templateId: "infra-database-pom", model: infraDatabase, outputVariables: {} },
       { templateId: "configuration-pom", model: configuration, outputVariables: {} },
+      { templateId: "build-github-actions-java-ci", model: { javaVersion: request.profile.technology.languageVersion }, outputVariables: {} },
     ];
   }
 

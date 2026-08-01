@@ -67,6 +67,7 @@ describe("Java multi-module profile foundation", () => {
       "entrypoints-rest-pom",
       "infra-database-pom",
       "configuration-pom",
+      "build-github-actions-java-ci",
       "core-domain-entity",
       "core-gateway",
       "core-find-usecase",
