@@ -82,6 +82,11 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: ArchUnit smoke Java multi-module
+        run: npm run smoke:archunit:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: Spring context smoke Java multi-module
         run: npm run smoke:spring-context:java-multimodule
         env:

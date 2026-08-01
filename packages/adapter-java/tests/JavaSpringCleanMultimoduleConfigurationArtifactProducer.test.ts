@@ -71,6 +71,17 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         className: "WalletServiceApplicationTests",
       },
     }, {
+      templateId: "configuration-architecture-test",
+      model: {
+        packageName: "io.github.jtsato.walletservice.architecture",
+        className: "ArchitectureTests",
+        basePackage: "io.github.jtsato.walletservice",
+      },
+      outputVariables: {
+        packagePath: "io/github/jtsato/walletservice",
+        className: "ArchitectureTests",
+      },
+    }, {
       templateId: "configuration-http-smoke-test",
       model: {
         packageName: "io.github.jtsato.walletservice",

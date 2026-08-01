@@ -8,6 +8,8 @@ import type { MavenMultimoduleModulePomTemplateModel } from "../model/MavenMulti
 import type { MavenMultimoduleParentPomTemplateModel } from "../model/MavenMultimoduleParentPomTemplateModel.js";
 import { springBootVersion } from "../spring/SpringBootVersion.js";
 
+const archUnitVersion = "1.4.1";
+
 export class JavaSpringCleanMultimoduleBuildArtifactProducer
   implements GenerationArtifactProducer {
   public readonly profileId = "java-spring-clean-multimodule";
@@ -25,6 +27,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       version,
       modules: ["core", "entrypoints/rest", "infra/database", "configuration"],
       javaVersion: request.profile.technology.languageVersion,
+      archUnitVersion,
     };
     const core = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-core`, []);
     const entrypointsRest = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-entrypoints-rest`, [
@@ -42,6 +45,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
       { groupId: "com.h2database", artifactId: "h2", scope: "test" },
+      { groupId: "com.tngtech.archunit", artifactId: "archunit-junit5", version: "${archunit.version}", scope: "test" },
     ], true);
 
     return [

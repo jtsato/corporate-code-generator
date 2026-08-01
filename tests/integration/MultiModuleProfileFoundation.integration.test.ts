@@ -80,6 +80,7 @@ describe("Java multi-module profile foundation", () => {
       "configuration-application",
       "configuration-domain-wiring",
       "configuration-application-test",
+      "configuration-architecture-test",
       "configuration-http-smoke-test",
       "configuration-http-persistence-read-test",
     ]);

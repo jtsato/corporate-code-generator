@@ -104,6 +104,19 @@ compilação do projeto gerado pode ser executada opcionalmente com:
 mvn compile
 ```
 
+### Smoke ArchUnit multi-módulo
+
+O Golden Path `java-spring-clean-multimodule` gera `ArchitectureTests` no
+módulo `configuration`. O smoke dedicado executa somente essas regras sobre o
+código Java de produção, incluindo os limites core/entrypoint/infra e a
+localização de entidades JPA e repositories:
+
+```bash
+npm run smoke:archunit:java-multimodule
+```
+
+Ele segue a mesma política de disponibilidade do Maven dos demais smokes.
+
 ### Smoke de contexto Spring multi-módulo
 
 O Golden Path `java-spring-clean-multimodule` também possui um smoke dedicado

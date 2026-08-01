@@ -30,7 +30,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
         model: {
           modelVersion: "4.0.0", springBootVersion: "4.1.0", groupId: "io.github.jtsato",
           artifactId: "wallet-service", version: "0.1.0-SNAPSHOT",
-          modules: ["core", "entrypoints/rest", "infra/database", "configuration"], javaVersion: "25",
+          modules: ["core", "entrypoints/rest", "infra/database", "configuration"], javaVersion: "25", archUnitVersion: "1.4.1",
         }, outputVariables: {},
       },
       {
@@ -78,6 +78,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
             { groupId: "com.h2database", artifactId: "h2", scope: "test" },
+            { groupId: "com.tngtech.archunit", artifactId: "archunit-junit5", version: "${archunit.version}", scope: "test" },
           ],
         }, outputVariables: {},
       },

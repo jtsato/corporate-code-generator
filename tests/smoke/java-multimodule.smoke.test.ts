@@ -45,6 +45,7 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletServiceApplicationTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/architecture/ArchitectureTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
       ]) {

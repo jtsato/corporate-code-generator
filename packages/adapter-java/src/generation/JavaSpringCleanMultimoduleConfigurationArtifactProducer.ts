@@ -6,6 +6,7 @@ import type {
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaBootstrapTemplateModel } from "../model/JavaBootstrapTemplateModel.js";
+import type { JavaArchUnitTestTemplateModel } from "../model/JavaArchUnitTestTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
@@ -39,6 +40,11 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       imports: ["org.junit.jupiter.api.Test", "org.springframework.boot.test.context.SpringBootTest"],
       className: `${className}Tests`,
       testMethodName: "contextLoads",
+    };
+    const architectureTest: JavaArchUnitTestTemplateModel = {
+      packageName: `${namespace}.architecture`,
+      className: "ArchitectureTests",
+      basePackage: namespace,
     };
 
     return [
@@ -89,6 +95,11 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         templateId: "configuration-application-test",
         model: applicationTest,
         outputVariables: { ...outputVariables, className: applicationTest.className },
+      },
+      {
+        templateId: "configuration-architecture-test",
+        model: architectureTest,
+        outputVariables: { ...outputVariables, className: architectureTest.className },
       },
       ...request.application.entities.map((entity) => {
         const entityType = toJavaTypeName(entity.name);

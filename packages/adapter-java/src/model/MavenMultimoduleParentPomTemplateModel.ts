@@ -6,4 +6,5 @@ export interface MavenMultimoduleParentPomTemplateModel {
   readonly version: string;
   readonly modules: readonly string[];
   readonly javaVersion: string;
+  readonly archUnitVersion: string;
 }

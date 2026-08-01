@@ -215,6 +215,16 @@ template-specific; it does not require the Core to know Maven module layout.
 > compile smoke. They do not add Actuator, a healthcheck, a production write
 > path, global seed data, or full CRUD.
 
+> **GENERATOR DECISION** The multi-module Golden Path generates
+> `configuration/src/test/java/<base>/architecture/ArchitectureTests.java` and
+> adds ArchUnit as a test dependency of `configuration`. The test imports only
+> production classes, excluding tests, and validates that core has no outward
+> dependencies or Spring dependency, entrypoint has no infra dependency,
+> controllers have no repository dependency, JPA entities reside in infra
+> entity packages, and repositories reside in infra repository packages.
+> `smoke:archunit:java-multimodule` executes only this test separately after
+> compilation and before runtime smokes.
+
 ## Recommended first multi-module MVP
 
 ```text

@@ -74,6 +74,10 @@ templates:
     module: configuration
     template: configuration/application-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-architecture-test
+    module: configuration
+    template: configuration/architecture-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/architecture/{{ className }}.java
   - id: configuration-http-smoke-test
     module: configuration
     template: configuration/http-smoke-test.java.njk

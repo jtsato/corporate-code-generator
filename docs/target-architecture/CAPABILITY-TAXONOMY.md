@@ -2,10 +2,9 @@
 
 ## Status and scope
 
-This document records the initial Milestone 6.1 decisions. It defines the
-mental model and option vocabulary for future capabilities; it does not add
-capabilities to the generator and does not change the Application Model,
-Profile schema, producers, templates, POMs or Golden Paths.
+This document records the initial Milestone 6.1 taxonomy and the implemented
+Milestone 6.2 ArchUnit foundation. It does not change the Application Model or
+Profile schema.
 
 The normative taxonomy decision is recorded in [ADR-017](../adr/ADR-017-capability-taxonomy-and-profile-options.md).
 The evidence base is [Extended Reference Architecture](EXTENDED-REFERENCE-ARCHITECTURE.md).
@@ -54,6 +53,10 @@ The future `java-spring-clean-multimodule` profile baseline is:
 - OpenAPI specification (not necessarily UI);
 - configuration profiles;
 - `core-paging` common artifacts.
+
+`archunit` is implemented as the default architecture guardrail of
+`java-spring-clean-multimodule`: it generates production-only architecture
+tests in `configuration`. The remaining entries are future baseline decisions.
 
 `self-validation` is **pending validation** for Milestone 6.6. Jakarta API
 policy is decided below, but the constructor-driven domain style and generated
