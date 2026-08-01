@@ -158,4 +158,53 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       },
     }]);
   });
+
+  it("prepares ordered non-null fixtures and the complete expected JSON expression", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+    const artifacts = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "schedule-service",
+        namespace: "io.github.jtsato.scheduleservice",
+        entities: [{
+          name: "Schedule",
+          attributes: [
+            { name: "id", type: "uuid", required: true, identifier: true },
+            { name: "label", type: "string", required: false, identifier: false },
+            { name: "alternateLabel", type: "string", required: false, identifier: false },
+            { name: "scheduledOn", type: "date", required: false, identifier: false },
+            { name: "processedAt", type: "datetime", required: false, identifier: false },
+          ],
+        }],
+      },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "configuration", requires: [] }],
+    });
+
+    expect(artifacts.at(-1)).toMatchObject({
+      templateId: "configuration-http-persistence-read-test",
+      model: {
+        imports: expect.arrayContaining([
+          "java.time.LocalDate",
+          "java.time.OffsetDateTime",
+          "java.util.UUID",
+        ]),
+        fixtures: [
+          { constantName: "SCHEDULE_ID", type: "UUID", javaExpression: "UUID.fromString(\"11111111-1111-1111-1111-111111111111\")" },
+          { constantName: "SCHEDULE_LABEL", type: "String", javaExpression: "\"sample\"" },
+          { constantName: "SCHEDULE_ALTERNATE_LABEL", type: "String", javaExpression: "\"sample-2\"" },
+          { constantName: "SCHEDULE_SCHEDULED_ON", type: "LocalDate", javaExpression: "LocalDate.parse(\"2026-01-15\")" },
+          { constantName: "SCHEDULE_PROCESSED_AT", type: "OffsetDateTime", javaExpression: "OffsetDateTime.parse(\"2026-01-15T10:30:00Z\")" },
+        ],
+        entityConstructorArguments: [
+          "SCHEDULE_ID",
+          "SCHEDULE_LABEL",
+          "SCHEDULE_ALTERNATE_LABEL",
+          "SCHEDULE_SCHEDULED_ON",
+          "SCHEDULE_PROCESSED_AT",
+        ],
+        expectedBodyExpression: "\"[{\\\"id\\\":\\\"11111111-1111-1111-1111-111111111111\\\",\\\"label\\\":\\\"sample\\\",\\\"alternateLabel\\\":\\\"sample-2\\\",\\\"scheduledOn\\\":\\\"2026-01-15\\\",\\\"processedAt\\\":\\\"2026-01-15T10:30:00Z\\\"}]\"",
+      },
+    });
+  });
 });

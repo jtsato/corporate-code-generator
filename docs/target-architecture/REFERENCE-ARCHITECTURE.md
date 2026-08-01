@@ -1,5 +1,14 @@
 # Reference Architecture
 
+This document describes the minimal Wallet reference and the decisions derived
+from it. The broader Bookstore analysis is documented in
+[Extended Reference Architecture](EXTENDED-REFERENCE-ARCHITECTURE.md).
+
+Wallet remains the minimal generation and deterministic-validation reference.
+`java-clean-architecture-example` is an advanced architectural reference used
+to identify optional and technology-specific capabilities. Neither project is
+to be copied literally.
+
 ## Scope and terminology
 
 This document records the architecture observed in
