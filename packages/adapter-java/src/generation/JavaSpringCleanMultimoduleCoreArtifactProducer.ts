@@ -18,7 +18,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       throw new Error("Java generation requires an application namespace.");
     }
 
-    return request.application.entities.flatMap((entity) => {
+    const entityArtifacts = request.application.entities.flatMap((entity) => {
       const domainName = toJavaPackageSegment(entity.name);
       const entityType = entity.name;
       const gatewayType = `${entityType}Gateway`;
@@ -85,5 +85,12 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         },
       ];
     });
+    const packageName = `${namespace}.core.common.exception`;
+    return [...entityArtifacts,
+      { templateId: "core-application-exception", model: { packageName, className: "ApplicationException" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ApplicationException" } },
+      { templateId: "core-field-violation", model: { packageName, className: "FieldViolation" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "FieldViolation" } },
+      { templateId: "core-validation-exception", model: { packageName, className: "ValidationException", parentClassName: "ApplicationException", fieldViolationClassName: "FieldViolation" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ValidationException" } },
+      { templateId: "core-not-found-exception", model: { packageName, className: "NotFoundException", parentClassName: "ApplicationException" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "NotFoundException" } },
+    ];
   }
 }

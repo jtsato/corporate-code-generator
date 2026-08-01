@@ -38,6 +38,22 @@ templates:
     module: core
     template: core/usecase/find/interactor.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-application-exception
+    module: core
+    template: core/common/application-exception.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/exception/{{ className }}.java
+  - id: core-field-violation
+    module: core
+    template: core/common/field-violation.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/exception/{{ className }}.java
+  - id: core-validation-exception
+    module: core
+    template: core/common/validation-exception.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/exception/{{ className }}.java
+  - id: core-not-found-exception
+    module: core
+    template: core/common/simple-exception.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/exception/{{ className }}.java
   - id: entrypoints-rest-controller
     module: entrypoints-rest
     template: entrypoints-rest/domain/controller.java.njk
@@ -46,6 +62,10 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/domain/response.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: entrypoints-rest-response-status
+    module: entrypoints-rest
+    template: entrypoints-rest/common/response-status.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/{{ className }}.java
   - id: infra-database-gateway-provider
     module: infra-database
     template: infra-database/gateway-provider.java.njk
@@ -70,6 +90,18 @@ templates:
     module: configuration
     template: configuration/domain-configuration.java.njk
     output: configuration/src/main/java/{{ packagePath }}/configuration/domains/{{ domainName }}/{{ className }}.java
+  - id: configuration-global-exception-handler
+    module: configuration
+    template: configuration/global-exception-handler.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/exception/{{ className }}.java
+  - id: configuration-messages
+    module: configuration
+    template: configuration/messages.properties.njk
+    output: configuration/src/main/resources/messages.properties
+  - id: configuration-messages-pt-br
+    module: configuration
+    template: configuration/messages.properties.njk
+    output: configuration/src/main/resources/messages_pt_BR.properties
   - id: configuration-application-test
     module: configuration
     template: configuration/application-test.java.njk
@@ -78,6 +110,10 @@ templates:
     module: configuration
     template: configuration/architecture-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/architecture/{{ className }}.java
+  - id: configuration-global-exception-handler-test
+    module: configuration
+    template: configuration/global-exception-handler-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/configuration/exception/{{ className }}.java
   - id: configuration-http-smoke-test
     module: configuration
     template: configuration/http-smoke-test.java.njk

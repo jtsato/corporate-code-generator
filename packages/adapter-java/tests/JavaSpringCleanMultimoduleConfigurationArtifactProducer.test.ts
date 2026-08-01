@@ -56,6 +56,16 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         className: "WalletConfiguration",
       },
     }, {
+      templateId: "configuration-global-exception-handler",
+      model: { packageName: "io.github.jtsato.walletservice.configuration.exception", responseStatusPackageName: "io.github.jtsato.walletservice.entrypoint.rest.common", coreExceptionPackageName: "io.github.jtsato.walletservice.core.common.exception" },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "GlobalExceptionHandler" },
+    }, {
+      templateId: "configuration-messages",
+      model: { messages: [{ key: "common.error.invalid-request", value: "Invalid request." }, { key: "common.error.not-found", value: "Resource not found." }, { key: "common.error.internal-server-error", value: "Internal server error." }] }, outputVariables: {},
+    }, {
+      templateId: "configuration-messages-pt-br",
+      model: { messages: [{ key: "common.error.invalid-request", value: "Requisição inválida." }, { key: "common.error.not-found", value: "Recurso não encontrado." }, { key: "common.error.internal-server-error", value: "Erro interno do servidor." }] }, outputVariables: {},
+    }, {
       templateId: "configuration-application-test",
       model: {
         packageName: "io.github.jtsato.walletservice",
@@ -81,6 +91,10 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         packagePath: "io/github/jtsato/walletservice",
         className: "ArchitectureTests",
       },
+    }, {
+      templateId: "configuration-global-exception-handler-test",
+      model: { packageName: "io.github.jtsato.walletservice.configuration.exception", className: "GlobalExceptionHandlerTests", basePackage: "io.github.jtsato.walletservice" },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "GlobalExceptionHandlerTests" },
     }, {
       templateId: "configuration-http-smoke-test",
       model: {

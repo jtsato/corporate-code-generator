@@ -225,6 +225,13 @@ template-specific; it does not require the Core to know Maven module layout.
 > `smoke:archunit:java-multimodule` executes only this test separately after
 > compilation and before runtime smokes.
 
+> **GENERATOR DECISION** The multi-module Golden Path exposes `ResponseStatus`
+> as its REST error contract. Core exceptions remain HTTP-free and are
+> translated in `configuration` by `GlobalExceptionHandler`, using message
+> bundles and Accept-Language. Validation, not-found and unexpected errors map
+> to 400, 404 and 500; fields are deterministic and no sensitive error details
+> are included. `smoke:error-handling:java-multimodule` validates the foundation.
+
 ## Recommended first multi-module MVP
 
 ```text

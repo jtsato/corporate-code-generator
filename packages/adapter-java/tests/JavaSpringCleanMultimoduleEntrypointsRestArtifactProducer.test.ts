@@ -13,7 +13,7 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
     });
     expect(producer.profileId).toBe("java-spring-clean-multimodule");
     expect(producer.moduleId).toBe("entrypoints-rest");
-    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response"]);
+    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-response-status"]);
     expect(artifacts).toMatchObject([
       {
         outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletController" },
@@ -48,6 +48,7 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           ],
         },
       },
+      { outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "ResponseStatus" }, model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.common", className: "ResponseStatus" } },
     ]);
   });
 });

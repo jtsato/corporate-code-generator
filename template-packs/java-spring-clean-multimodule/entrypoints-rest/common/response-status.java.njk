@@ -1,0 +1,9 @@
+package {{ packageName }};
+
+import java.util.List;
+
+public record {{ className }}(int code, String message, List<Field> fields) {
+    public {{ className }} { fields = List.copyOf(fields); }
+    public {{ className }}(int code, String message) { this(code, message, List.of()); }
+    public record Field(String name, String message) {}
+}

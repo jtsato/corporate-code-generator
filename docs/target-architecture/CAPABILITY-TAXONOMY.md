@@ -58,6 +58,10 @@ The future `java-spring-clean-multimodule` profile baseline is:
 `java-spring-clean-multimodule`: it generates production-only architecture
 tests in `configuration`. The remaining entries are future baseline decisions.
 
+`global-error-handling` and basic `i18n` are implemented defaults of the
+multi-module Golden Path. They provide a REST error contract, core exceptions,
+message bundles and Accept-Language message resolution.
+
 `self-validation` is **pending validation** for Milestone 6.6. Jakarta API
 policy is decided below, but the constructor-driven domain style and generated
 validation artifacts require a separate ADR before becoming a default.

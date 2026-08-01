@@ -89,6 +89,10 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
           gatewayFindAllMethodName: "findAll",
         },
       },
+      { templateId: "core-application-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "ApplicationException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "ApplicationException" } },
+      { templateId: "core-field-violation", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "FieldViolation" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "FieldViolation" } },
+      { templateId: "core-validation-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "ValidationException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "ValidationException", parentClassName: "ApplicationException", fieldViolationClassName: "FieldViolation" } },
+      { templateId: "core-not-found-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "NotFoundException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "NotFoundException", parentClassName: "ApplicationException" } },
     ]);
   });
 });

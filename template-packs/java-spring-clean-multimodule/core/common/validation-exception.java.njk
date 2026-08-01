@@ -1,0 +1,14 @@
+package {{ packageName }};
+
+import java.util.List;
+
+public final class {{ className }} extends {{ parentClassName }} {
+    private final List<{{ fieldViolationClassName }}> fields;
+
+    public {{ className }}(String messageKey, String defaultMessage, List<{{ fieldViolationClassName }}> fields) {
+        super(messageKey, defaultMessage);
+        this.fields = List.copyOf(fields);
+    }
+
+    public List<{{ fieldViolationClassName }}> getFields() { return fields; }
+}

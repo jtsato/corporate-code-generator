@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the twenty-one complete Maven reactor artifacts", async () => {
+  it("renders the thirty complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -74,16 +74,25 @@ describe("Java multi-module generation", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ApplicationException.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/FieldViolation.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ValidationException.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/NotFoundException.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/ResponseStatus.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/entity/WalletEntity.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/mapper/WalletPersistenceMapper.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/repository/WalletRepository.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
+      "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
+      "configuration/src/main/resources/messages.properties",
+      "configuration/src/main/resources/messages_pt_BR.properties",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletServiceApplicationTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/architecture/ArchitectureTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandlerTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
     ]);

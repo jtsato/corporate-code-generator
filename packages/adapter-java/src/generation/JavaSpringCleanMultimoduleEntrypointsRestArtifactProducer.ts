@@ -22,7 +22,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
   public produce(request: GenerationRequest): readonly TemplateInvocation[] {
     const namespace = request.application.namespace;
     if (namespace === undefined) throw new Error("REST generation requires an application namespace.");
-    return request.application.entities.flatMap((entity) => {
+    const entityArtifacts = request.application.entities.flatMap((entity) => {
       const domainName = toJavaPackageSegment(entity.name);
       const packageName = `${namespace}.entrypoint.rest.domains.${domainName}`;
       const entityType = toJavaTypeName(entity.name);
@@ -72,5 +72,6 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         { templateId: "entrypoints-rest-response", model: response, outputVariables: { ...variables, className: responseName } },
       ];
     });
+    return [...entityArtifacts, { templateId: "entrypoints-rest-response-status", model: { packageName: `${namespace}.entrypoint.rest.common`, className: "ResponseStatus" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ResponseStatus" } }];
   }
 }

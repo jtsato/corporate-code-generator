@@ -46,6 +46,17 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       className: "ArchitectureTests",
       basePackage: namespace,
     };
+    const exceptionPackage = `${namespace}.configuration.exception`;
+    const messages = [
+      { key: "common.error.invalid-request", value: "Invalid request." },
+      { key: "common.error.not-found", value: "Resource not found." },
+      { key: "common.error.internal-server-error", value: "Internal server error." },
+    ];
+    const portugueseMessages = [
+      { key: "common.error.invalid-request", value: "Requisição inválida." },
+      { key: "common.error.not-found", value: "Recurso não encontrado." },
+      { key: "common.error.internal-server-error", value: "Erro interno do servidor." },
+    ];
 
     return [
       {
@@ -91,6 +102,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           },
         };
       }),
+      { templateId: "configuration-global-exception-handler", model: { packageName: exceptionPackage, responseStatusPackageName: `${namespace}.entrypoint.rest.common`, coreExceptionPackageName: `${namespace}.core.common.exception` }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandler" } },
+      { templateId: "configuration-messages", model: { messages }, outputVariables: {} },
+      { templateId: "configuration-messages-pt-br", model: { messages: portugueseMessages }, outputVariables: {} },
       {
         templateId: "configuration-application-test",
         model: applicationTest,
@@ -101,6 +115,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         model: architectureTest,
         outputVariables: { ...outputVariables, className: architectureTest.className },
       },
+      { templateId: "configuration-global-exception-handler-test", model: { packageName: exceptionPackage, className: "GlobalExceptionHandlerTests", basePackage: namespace }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandlerTests" } },
       ...request.application.entities.map((entity) => {
         const entityType = toJavaTypeName(entity.name);
         const imports = new JavaImportCollector();

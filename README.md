@@ -106,6 +106,15 @@ mvn compile
 
 ### Smoke ArchUnit multi-módulo
 
+### Smoke de error handling multi-módulo
+
+O projeto multi-módulo também gera o contrato REST `ResponseStatus`, bundles
+de mensagens e um handler global de exceções. Para validar essa foundation:
+
+```bash
+npm run smoke:error-handling:java-multimodule
+```
+
 O Golden Path `java-spring-clean-multimodule` gera `ArchitectureTests` no
 módulo `configuration`. O smoke dedicado executa somente essas regras sobre o
 código Java de produção, incluindo os limites core/entrypoint/infra e a

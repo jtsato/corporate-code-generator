@@ -1,0 +1,15 @@
+package {{ packageName }};
+
+public abstract class {{ className }} extends RuntimeException {
+    private final String messageKey;
+    private final String defaultMessage;
+
+    protected {{ className }}(String messageKey, String defaultMessage) {
+        super(defaultMessage);
+        this.messageKey = messageKey;
+        this.defaultMessage = defaultMessage;
+    }
+
+    public String getMessageKey() { return messageKey; }
+    public String getDefaultMessage() { return defaultMessage; }
+}
