@@ -97,6 +97,11 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: JPA paging smoke Java multi-module
+        run: npm run smoke:jpa-paging:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: Error handling smoke Java multi-module
         run: npm run smoke:error-handling:java-multimodule
         env:

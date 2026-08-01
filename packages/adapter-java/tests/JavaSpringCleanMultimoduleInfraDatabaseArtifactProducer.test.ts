@@ -93,6 +93,22 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         domainName: "wallet",
         className: "WalletGatewayProvider",
       },
+    }, {
+      templateId: "infra-database-spring-data-page-request-mapper",
+      model: { packageName: "io.github.jtsato.walletservice.infra.database.common.paging", exceptionPackageName: "io.github.jtsato.walletservice.core.common.exception", pagingPackageName: "io.github.jtsato.walletservice.core.common.paging", className: "SpringDataPageRequestMapper" },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SpringDataPageRequestMapper" },
+    }, {
+      templateId: "infra-database-spring-data-page-result-mapper",
+      model: { packageName: "io.github.jtsato.walletservice.infra.database.common.paging", exceptionPackageName: "io.github.jtsato.walletservice.core.common.exception", pagingPackageName: "io.github.jtsato.walletservice.core.common.paging", className: "SpringDataPageResultMapper" },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SpringDataPageResultMapper" },
+    }, {
+      templateId: "infra-database-spring-data-page-request-mapper-test",
+      model: { packageName: "io.github.jtsato.walletservice.infra.database.common.paging", exceptionPackageName: "io.github.jtsato.walletservice.core.common.exception", pagingPackageName: "io.github.jtsato.walletservice.core.common.paging", className: "SpringDataPageRequestMapperTests" },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SpringDataPageRequestMapperTests" },
+    }, {
+      templateId: "infra-database-spring-data-page-result-mapper-test",
+      model: { packageName: "io.github.jtsato.walletservice.infra.database.common.paging", exceptionPackageName: "io.github.jtsato.walletservice.core.common.exception", pagingPackageName: "io.github.jtsato.walletservice.core.common.paging", className: "SpringDataPageResultMapperTests" },
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SpringDataPageResultMapperTests" },
     }]);
   });
 

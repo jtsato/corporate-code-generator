@@ -1,6 +1,6 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 48 artifacts, including Jakarta API-based Core self-validation and technology-neutral Core paging. Core stays Spring-free; validate paging with `npm run smoke:paging:java-multimodule`.
+`java-spring-clean-multimodule` now generates 52 artifacts, including Spring Data paging adapters in Infra. Core stays Spring-free; validate the adapter with `npm run smoke:jpa-paging:java-multimodule`.
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 

@@ -44,6 +44,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
     const infraDatabase = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-infra-database`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa" },
+      { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
     ]);
     const configuration = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-configuration`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },

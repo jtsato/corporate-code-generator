@@ -27,7 +27,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
     }
 
     const typeResolver = new JavaTypeResolver();
-    return request.application.entities.flatMap((entity) => {
+    const entityArtifacts = request.application.entities.flatMap((entity) => {
       const domainName = toJavaPackageSegment(entity.name);
       const entityType = toJavaTypeName(entity.name);
       const persistenceImports = new JavaImportCollector();
@@ -131,5 +131,25 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         },
       ];
     });
+    const pagingPackageName = `${namespace}.infra.database.common.paging`;
+    const pagingVariables = { packagePath: namespace.replaceAll(".", "/") };
+    return [
+      ...entityArtifacts,
+      {
+        templateId: "infra-database-spring-data-page-request-mapper",
+        model: { packageName: pagingPackageName, exceptionPackageName: `${namespace}.core.common.exception`, pagingPackageName: `${namespace}.core.common.paging`, className: "SpringDataPageRequestMapper" },
+        outputVariables: { ...pagingVariables, className: "SpringDataPageRequestMapper" },
+      },
+      {
+        templateId: "infra-database-spring-data-page-result-mapper",
+        model: { packageName: pagingPackageName, exceptionPackageName: `${namespace}.core.common.exception`, pagingPackageName: `${namespace}.core.common.paging`, className: "SpringDataPageResultMapper" },
+        outputVariables: { ...pagingVariables, className: "SpringDataPageResultMapper" },
+      },
+      ...["SpringDataPageRequestMapper", "SpringDataPageResultMapper"].map((className) => ({
+        templateId: `infra-database-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`,
+        model: { packageName: pagingPackageName, exceptionPackageName: `${namespace}.core.common.exception`, pagingPackageName: `${namespace}.core.common.paging`, className: `${className}Tests` },
+        outputVariables: { ...pagingVariables, className: `${className}Tests` },
+      })),
+    ];
   }
 }

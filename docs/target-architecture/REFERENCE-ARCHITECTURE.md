@@ -6,7 +6,7 @@ The multi-module Java configuration capability generates base, local, test, and 
 
 ## Core validation
 
-The multi-module Golden Path has 48 artifacts. Required Core attributes are represented with Jakarta Validation `@NotNull`; entities use `SelfValidating<T>` and produce `ValidationException`/`FieldViolation` without Core imports of Spring or Hibernate Validator. Provider wiring belongs to runtime or test infrastructure. REST DTO validation remains future scope.
+The multi-module Golden Path has 52 artifacts. Required Core attributes are represented with Jakarta Validation `@NotNull`; entities use `SelfValidating<T>` and produce `ValidationException`/`FieldViolation` without Core imports of Spring or Hibernate Validator. `infra.database.common.paging` maps Core paging to Spring Data `Pageable`/`Page` with domain-to-persistence sort mappings. Querydsl and REST pagination remain future scope.
 
 ## Core paging
 

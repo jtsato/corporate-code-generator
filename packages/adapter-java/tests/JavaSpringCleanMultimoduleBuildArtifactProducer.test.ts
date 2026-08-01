@@ -67,6 +67,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
           dependencies: [
             { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa" },
+            { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
           ],
         }, outputVariables: {},
       },

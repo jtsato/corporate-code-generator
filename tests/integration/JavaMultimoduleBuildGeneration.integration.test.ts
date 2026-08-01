@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the forty-eight complete Maven reactor artifacts", async () => {
+  it("renders the fifty-two complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -94,6 +94,10 @@ describe("Java multi-module generation", () => {
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/mapper/WalletPersistenceMapper.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/repository/WalletRepository.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageRequestMapper.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapper.java",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageRequestMapperTests.java",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapperTests.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",

@@ -118,6 +118,22 @@ templates:
     module: infra-database
     template: infra-database/repository.java.njk
     output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/repository/{{ className }}.java
+  - id: infra-database-spring-data-page-request-mapper
+    module: infra-database
+    template: infra-database/spring-data-page-request-mapper.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/common/paging/{{ className }}.java
+  - id: infra-database-spring-data-page-result-mapper
+    module: infra-database
+    template: infra-database/spring-data-page-result-mapper.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/common/paging/{{ className }}.java
+  - id: infra-database-spring-data-page-request-mapper-test
+    module: infra-database
+    template: infra-database/spring-data-page-request-mapper-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/common/paging/{{ className }}.java
+  - id: infra-database-spring-data-page-result-mapper-test
+    module: infra-database
+    template: infra-database/spring-data-page-result-mapper-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/common/paging/{{ className }}.java
   - id: configuration-application
     module: configuration
     template: configuration/application.java.njk

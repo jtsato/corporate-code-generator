@@ -1,0 +1,28 @@
+package {{ packageName }};
+
+import {{ exceptionPackageName }}.FieldViolation;
+import {{ exceptionPackageName }}.ValidationException;
+import {{ pagingPackageName }}.PageResult;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import org.springframework.data.domain.Page;
+
+public final class {{ className }} {
+    private {{ className }}() {
+    }
+
+    public static <T, R> PageResult<R> toPageResult(Page<T> page, Function<? super T, ? extends R> mapper) {
+        var fields = new ArrayList<FieldViolation>();
+        if (page == null) fields.add(new FieldViolation("page", "common.paging.page.required", "Page is required."));
+        if (mapper == null) fields.add(new FieldViolation("mapper", "common.paging.mapper.required", "Page mapper is required."));
+        if (!fields.isEmpty()) throw validationException(fields);
+        List<R> items = page.getContent().stream().map(mapper).collect(java.util.stream.Collectors.toList());
+        return new PageResult<>(items, page.getNumber(), page.getSize(), page.getTotalElements());
+    }
+
+    private static ValidationException validationException(List<FieldViolation> fields) {
+        fields.sort(java.util.Comparator.comparing(FieldViolation::name));
+        return new ValidationException(fields);
+    }
+}

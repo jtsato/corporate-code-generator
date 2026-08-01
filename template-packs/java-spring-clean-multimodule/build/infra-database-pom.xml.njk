@@ -21,6 +21,9 @@
 {% if dependency.version %}
       <version>{{ dependency.version }}</version>
 {% endif %}
+{% if dependency.scope %}
+      <scope>{{ dependency.scope }}</scope>
+{% endif %}
     </dependency>
 {% endfor %}
   </dependencies>

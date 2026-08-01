@@ -4,7 +4,7 @@ Configuration profiles and properties-driven CORS are implemented default capabi
 
 Core self-validation is an implemented default capability: required attributes map to Jakarta Validation `@NotNull` and `SelfValidating<T>`. The Core is Jakarta-aware but Spring-free; provider dependencies remain runtime/test infrastructure. Its dedicated quality gate is `smoke:validation:java-multimodule`, while REST DTO validation remains future work.
 
-Core Paging Common is an implemented default foundation. REST pagination, JPA paging, Querydsl, and sort allowlists remain future capabilities.
+Core Paging Common and the Spring Data Paging Adapter are implemented foundations. The Infra adapter owns domain-to-persistence sort mappings; REST pagination and Querydsl remain future/deferred capabilities.
 
 ## Status and scope
 
