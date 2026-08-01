@@ -1,0 +1,10 @@
+import { access, mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { describe, expect, it } from "vitest";
+import { detectMaven, testWithMaven } from "./support/MavenSmokeSupport.js";
+const execFileAsync = promisify(execFile); const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../.."); const cliEntryPoint = join(repoRoot, "packages", "cli", "dist", "index.js");
+describe("Java multi-module filter smoke test", () => { it("runs generated filter tests when Maven is available", async ({ skip }) => { await expect(access(cliEntryPoint)).resolves.toBeUndefined(); const maven = await detectMaven(repoRoot); if (!maven.available) { const message = "Maven filter smoke skipped: Maven executable was not found. Set CODEGEN_REQUIRE_MAVEN_SMOKE=true to require Maven."; if (process.env.CODEGEN_REQUIRE_MAVEN_SMOKE === "true") throw new Error(message); skip(message); return; } const outputRoot = await mkdtemp(join(tmpdir(), "ccg-filter-smoke-")); try { await execFileAsync(process.execPath, [cliEntryPoint, "generate", "examples/wallet-service/model.yaml", "--profile", "java-spring-clean-multimodule", "--output", outputRoot], { cwd: repoRoot }); await testWithMaven(outputRoot, "*FilterConditionTests,*FilterGroupTests,*FilterExpressionTests"); } finally { await rm(outputRoot, { recursive: true, force: true }); } }, 300_000); });

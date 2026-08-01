@@ -94,6 +94,38 @@ templates:
     module: core
     template: core/paging/page-result-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/common/paging/{{ className }}.java
+  - id: core-filter-operator
+    module: core
+    template: core/filter/filter-operator.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: core-filter-condition
+    module: core
+    template: core/filter/filter-condition.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: core-filter-group-operator
+    module: core
+    template: core/filter/filter-group-operator.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: core-filter-group
+    module: core
+    template: core/filter/filter-group.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: core-filter-expression
+    module: core
+    template: core/filter/filter-expression.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: core-filter-condition-test
+    module: core
+    template: core/filter/filter-condition-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: core-filter-group-test
+    module: core
+    template: core/filter/filter-group-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: core-filter-expression-test
+    module: core
+    template: core/filter/filter-expression-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/common/filter/{{ className }}.java
   - id: entrypoints-rest-controller
     module: entrypoints-rest
     template: entrypoints-rest/domain/controller.java.njk
