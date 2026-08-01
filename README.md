@@ -1,8 +1,10 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
+`java-spring-clean-multimodule` now generates 41 artifacts, including Jakarta API-based Core self-validation for required fields. Core stays Spring-free; validate this behavior with `npm run smoke:validation:java-multimodule`.
 
-The multi-module Golden Path generates 39 artifacts, including OpenAPI at `/v3/api-docs`. Validate it with `npm run smoke:openapi:java-multimodule`.
+It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
+
+The multi-module Golden Path includes OpenAPI at `/v3/api-docs`. Validate it with `npm run smoke:openapi:java-multimodule`.
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=jtsato_corporate-code-generator&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=jtsato_corporate-code-generator)

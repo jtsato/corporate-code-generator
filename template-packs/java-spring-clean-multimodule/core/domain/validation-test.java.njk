@@ -1,0 +1,14 @@
+package {{ packageName }};
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import {{ exceptionPackage }}.ValidationException;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+class {{ className }} {
+    @Test void rejectsMissingRequiredFields() {
+        ValidationException exception = assertThrows(ValidationException.class, () -> new {{ entityType }}({% for argument in nullArguments %}null{% if not loop.last %}, {% endif %}{% endfor %}));
+        assertEquals(List.of({% for name in requiredFieldNames %}"{{ name }}"{% if not loop.last %}, {% endif %}{% endfor %}), exception.getFields().stream().map(field -> field.name()).toList());
+        exception.getFields().forEach(field -> { assertFalse(field.name().isBlank()); assertFalse(field.messageKey().isBlank()); assertFalse(field.defaultMessage().isBlank()); });
+    }
+}

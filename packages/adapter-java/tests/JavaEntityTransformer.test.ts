@@ -50,7 +50,7 @@ describe("JavaEntityTransformer", () => {
     }
 
     const transformer =
-      new JavaEntityTransformer();
+      new JavaEntityTransformer(undefined, true);
 
     const model = transformer.transform(
       application,
@@ -62,6 +62,8 @@ describe("JavaEntityTransformer", () => {
         "io.github.jtsato.walletservice.domain",
 
       imports: [
+        "io.github.jtsato.walletservice.common.validation.SelfValidating",
+        "jakarta.validation.constraints.NotNull",
         "java.math.BigDecimal",
         "java.util.UUID",
       ],
@@ -80,6 +82,7 @@ describe("JavaEntityTransformer", () => {
             "private",
             "final",
           ],
+          validationAnnotation: "@NotNull",
         },
         {
           name: "balance",
@@ -88,6 +91,7 @@ describe("JavaEntityTransformer", () => {
             "private",
             "final",
           ],
+          validationAnnotation: "@NotNull",
         },
       ],
 
@@ -100,6 +104,26 @@ describe("JavaEntityTransformer", () => {
         { name: "getId", returnType: "UUID", fieldName: "id" },
         { name: "getBalance", returnType: "BigDecimal", fieldName: "balance" },
       ],
+      extendsType: "SelfValidating<Wallet>",
+      validateSelf: true,
     });
+  });
+
+  it("does not add self-validation when an entity has no required attributes", () => {
+    const application: ApplicationModel = {
+      schemaVersion: "1.0",
+      name: "wallet-service",
+      namespace: "io.github.jtsato.walletservice",
+      entities: [{ name: "Audit", attributes: [{ name: "id", type: "uuid", identifier: true }] }],
+    };
+    const entity = application.entities[0];
+    if (entity === undefined) throw new Error("Expected Audit entity.");
+
+    const model = new JavaEntityTransformer(undefined, true).transform(application, entity);
+
+    expect(model.imports).toEqual(["java.util.UUID"]);
+    expect(model.fields[0]).not.toHaveProperty("validationAnnotation");
+    expect(model).not.toHaveProperty("extendsType");
+    expect(model).not.toHaveProperty("validateSelf");
   });
 });

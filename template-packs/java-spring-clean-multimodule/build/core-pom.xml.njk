@@ -12,4 +12,9 @@
 
   <artifactId>{{ artifactId }}</artifactId>
   <packaging>{{ packaging }}</packaging>
+  <dependencies>
+{% for dependency in dependencies %}
+    <dependency><groupId>{{ dependency.groupId }}</groupId><artifactId>{{ dependency.artifactId }}</artifactId>{% if dependency.scope %}<scope>{{ dependency.scope }}</scope>{% endif %}</dependency>
+{% endfor %}
+  </dependencies>
 </project>

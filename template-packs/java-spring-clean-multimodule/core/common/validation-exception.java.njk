@@ -10,5 +10,7 @@ public final class {{ className }} extends {{ parentClassName }} {
         this.fields = List.copyOf(fields);
     }
 
+    public {{ className }}(List<{{ fieldViolationClassName }}> fields) { this("common.error.invalid-request", "Invalid request.", fields); }
+
     public List<{{ fieldViolationClassName }}> getFields() { return fields; }
 }

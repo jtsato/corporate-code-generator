@@ -4,6 +4,10 @@
 
 The multi-module Java configuration capability generates base, local, test, and production YAML files without a global active profile. Spring tests explicitly select `test`. CORS is bound through `CorsProperties` and applied by `CorsWebConfiguration`; production requires `APPLICATION_CORS_ALLOWED_ORIGINS`, while Security integration remains out of scope.
 
+## Core validation
+
+The multi-module Golden Path has 41 artifacts. Required Core attributes are represented with Jakarta Validation `@NotNull`; entities use `SelfValidating<T>` and produce `ValidationException`/`FieldViolation` without Core imports of Spring or Hibernate Validator. Provider wiring belongs to runtime or test infrastructure. REST DTO validation remains future scope.
+
 This document describes the minimal Wallet reference and the decisions derived
 from it. The broader Bookstore analysis is documented in
 [Extended Reference Architecture](EXTENDED-REFERENCE-ARCHITECTURE.md).

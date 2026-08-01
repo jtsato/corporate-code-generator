@@ -10,5 +10,7 @@ public final class ValidationException extends ApplicationException {
         this.fields = List.copyOf(fields);
     }
 
+    public ValidationException(List<FieldViolation> fields) { this("common.error.invalid-request", "Invalid request.", fields); }
+
     public List<FieldViolation> getFields() { return fields; }
 }

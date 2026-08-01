@@ -19,4 +19,6 @@ export interface JavaEntityTemplateModel {
   readonly fields: readonly JavaFieldModel[];
   readonly constructorParameters: readonly JavaParameterModel[];
   readonly getters: readonly JavaGetterTemplateModel[];
+  readonly extendsType?: string;
+  readonly validateSelf?: boolean;
 }

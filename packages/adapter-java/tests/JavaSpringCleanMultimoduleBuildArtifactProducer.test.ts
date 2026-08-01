@@ -38,7 +38,11 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
         model: {
           modelVersion: "4.0.0", parentGroupId: "io.github.jtsato", parentArtifactId: "wallet-service",
           parentVersion: "0.1.0-SNAPSHOT", parentRelativePath: "../pom.xml", artifactId: "wallet-service-core",
-          packaging: "jar", dependencies: [], hasSpringBootPlugin: false,
+          packaging: "jar", dependencies: [
+            { groupId: "jakarta.validation", artifactId: "jakarta.validation-api" },
+            { groupId: "org.hibernate.validator", artifactId: "hibernate-validator", scope: "test" },
+            { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
+          ], hasSpringBootPlugin: false,
         }, outputVariables: {},
       },
       {
@@ -77,6 +81,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
             { groupId: "${project.groupId}", artifactId: "wallet-service-entrypoints-rest", version: "${project.version}" },
             { groupId: "${project.groupId}", artifactId: "wallet-service-infra-database", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
+            { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-validation" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
             { groupId: "com.h2database", artifactId: "h2", scope: "test" },
             { groupId: "com.tngtech.archunit", artifactId: "archunit-junit5", version: "${archunit.version}", scope: "test" },

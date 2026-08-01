@@ -72,6 +72,8 @@ describe("Java multi-module profile foundation", () => {
       "core-find-usecase",
       "core-find-usecase-interactor",
       "core-application-exception", "core-field-violation", "core-validation-exception", "core-not-found-exception",
+      "core-self-validating",
+      "core-domain-validation-test",
       "entrypoints-rest-controller",
       "entrypoints-rest-response",
       "entrypoints-rest-response-status",
@@ -113,6 +115,7 @@ describe("Java multi-module profile foundation", () => {
       "infra-database",
     ]);
     expect(resolver.resolveSelected(profile.modules, ["configuration"]).map((module) => module.id)).toEqual([
+      "build",
       "core",
       "entrypoints-rest",
       "infra-database",

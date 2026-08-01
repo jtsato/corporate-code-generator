@@ -11,6 +11,7 @@ export class JavaEntityTransformer {
   public constructor(
     private readonly typeResolver:
       JavaTypeResolver = new JavaTypeResolver(),
+    private readonly selfValidationEnabled = false,
   ) {}
 
   public transform(
@@ -21,6 +22,7 @@ export class JavaEntityTransformer {
       entity,
       this.resolvePackageName(application),
       this.typeResolver,
+      this.selfValidationEnabled,
     );
   }
 

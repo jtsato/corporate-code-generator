@@ -12,4 +12,13 @@
 
   <artifactId>wallet-service-core</artifactId>
   <packaging>jar</packaging>
+  <dependencies>
+
+    <dependency><groupId>jakarta.validation</groupId><artifactId>jakarta.validation-api</artifactId></dependency>
+
+    <dependency><groupId>org.hibernate.validator</groupId><artifactId>hibernate-validator</artifactId><scope>test</scope></dependency>
+
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+
+  </dependencies>
 </project>

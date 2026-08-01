@@ -31,7 +31,11 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       archUnitVersion,
       springdocOpenapiVersion,
     };
-    const core = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-core`, []);
+    const core = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-core`, [
+      { groupId: "jakarta.validation", artifactId: "jakarta.validation-api" },
+      { groupId: "org.hibernate.validator", artifactId: "hibernate-validator", scope: "test" },
+      { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
+    ]);
     const entrypointsRest = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-entrypoints-rest`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-web" },
@@ -46,6 +50,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "${project.groupId}", artifactId: `${artifactId}-entrypoints-rest`, version: "${project.version}" },
       { groupId: "${project.groupId}", artifactId: `${artifactId}-infra-database`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
+      { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-validation" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
       { groupId: "com.h2database", artifactId: "h2", scope: "test" },
       { groupId: "com.tngtech.archunit", artifactId: "archunit-junit5", version: "${archunit.version}", scope: "test" },

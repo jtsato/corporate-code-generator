@@ -1,0 +1,18 @@
+package {{ packageName }};
+import {{ exceptionPackage }}.FieldViolation;
+import {{ exceptionPackage }}.ValidationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.MessageInterpolator;
+public abstract class SelfValidating<T> {
+    private static final Validator VALIDATOR = Validation.byDefaultProvider().configure().messageInterpolator(new MessageInterpolator() {
+        @Override public String interpolate(String messageTemplate, Context context) { return messageTemplate; }
+        @Override public String interpolate(String messageTemplate, Context context, java.util.Locale locale) { return messageTemplate; }
+    }).buildValidatorFactory().getValidator();
+    protected final void validateSelf() {
+        var fields = VALIDATOR.validate(self()).stream().sorted(java.util.Comparator.comparing((ConstraintViolation<T> value) -> value.getPropertyPath().toString()).thenComparing(ConstraintViolation::getMessage)).map(value -> new FieldViolation(value.getPropertyPath().toString(), value.getMessageTemplate().replace("{", "").replace("}", ""), value.getMessage())).toList();
+        if (!fields.isEmpty()) throw new ValidationException(fields);
+    }
+    @SuppressWarnings("unchecked") private T self() { return (T) this; }
+}

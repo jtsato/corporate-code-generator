@@ -89,7 +89,7 @@ describe("GenerateCommand", () => {
         else expect(writer).toHaveBeenCalledOnce();
 
         if (!dryRun) {
-          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(39);
+          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(41);
         }
       } finally {
         error.mockRestore();
@@ -121,7 +121,7 @@ describe("GenerateCommand", () => {
     ]);
   });
 
-  it("generates the four core artifacts when the multi-module core capability is requested", async () => {
+  it("generates the ten core artifacts when the multi-module core capability is requested", async () => {
     let targetPaths: readonly string[] = [];
     const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
       targetPaths = plan.operations.map((operation) => operation.targetPath);
@@ -140,6 +140,8 @@ describe("GenerateCommand", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/FieldViolation.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ValidationException.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/NotFoundException.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/validation/SelfValidating.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/model/WalletValidationTests.java",
     ]);
   });
 
@@ -153,27 +155,27 @@ describe("GenerateCommand", () => {
       moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
-    expect(targetPaths).toHaveLength(13);
+    expect(targetPaths).toHaveLength(15);
     expect(targetPaths.at(-1)).toBe(
-      "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/NotFoundException.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/model/WalletValidationTests.java",
     );
   });
 
   it.each([
     {
       moduleIds: ["entrypoints-rest"],
-      operationCount: 11,
+      operationCount: 13,
       expectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       unexpectedPath: "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
     },
     {
       moduleIds: ["infra-database"],
-      operationCount: 12,
+      operationCount: 14,
       expectedPath: "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
       unexpectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
     },
-    { moduleIds: ["configuration"], operationCount: 34, expectedPath: "configuration/src/test/java/io/github/jtsato/walletservice/WalletOpenApiSmokeTests.java" },
-    { moduleIds: ["build", "configuration"], operationCount: 39, expectedPath: "infra/database/pom.xml" },
+    { moduleIds: ["configuration"], operationCount: 41, expectedPath: "configuration/src/test/java/io/github/jtsato/walletservice/WalletOpenApiSmokeTests.java" },
+    { moduleIds: ["build", "configuration"], operationCount: 41, expectedPath: "infra/database/pom.xml" },
   ])(
     "resolves multi-module selection $moduleIds to $operationCount operations",
     async ({ moduleIds, operationCount, expectedPath, unexpectedPath }) => {

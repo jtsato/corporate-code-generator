@@ -12,8 +12,8 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
         entities: [{
           name: "Wallet",
           attributes: [
-            { name: "id", type: "uuid", identifier: true },
-            { name: "balance", type: "decimal", identifier: false },
+            { name: "id", type: "uuid", required: true, identifier: true },
+            { name: "balance", type: "decimal", required: true, identifier: false },
           ],
         }],
       },
@@ -48,9 +48,17 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
         model: {
           packageName: "io.github.jtsato.walletservice.core.domains.wallet.model",
           fields: [
-            { name: "id", type: "UUID", modifiers: ["private", "final"] },
-            { name: "balance", type: "BigDecimal", modifiers: ["private", "final"] },
+            { name: "id", type: "UUID", modifiers: ["private", "final"], validationAnnotation: "@NotNull" },
+            { name: "balance", type: "BigDecimal", modifiers: ["private", "final"], validationAnnotation: "@NotNull" },
           ],
+          imports: [
+            "io.github.jtsato.walletservice.core.common.validation.SelfValidating",
+            "jakarta.validation.constraints.NotNull",
+            "java.math.BigDecimal",
+            "java.util.UUID",
+          ],
+          extendsType: "SelfValidating<Wallet>",
+          validateSelf: true,
         },
       },
       {
@@ -93,6 +101,8 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       { templateId: "core-field-violation", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "FieldViolation" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "FieldViolation" } },
       { templateId: "core-validation-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "ValidationException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "ValidationException", parentClassName: "ApplicationException", fieldViolationClassName: "FieldViolation" } },
       { templateId: "core-not-found-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "NotFoundException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "NotFoundException", parentClassName: "ApplicationException" } },
+      { templateId: "core-self-validating", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SelfValidating" }, model: { packageName: "io.github.jtsato.walletservice.core.common.validation", exceptionPackage: "io.github.jtsato.walletservice.core.common.exception" } },
+      { templateId: "core-domain-validation-test", outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletValidationTests" }, model: { packageName: "io.github.jtsato.walletservice.core.domains.wallet.model", exceptionPackage: "io.github.jtsato.walletservice.core.common.exception", className: "WalletValidationTests", entityType: "Wallet", requiredFieldNames: ["balance", "id"] } },
     ]);
   });
 });
