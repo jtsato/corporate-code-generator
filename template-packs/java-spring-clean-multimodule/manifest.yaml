@@ -94,6 +94,30 @@ templates:
     module: configuration
     template: configuration/global-exception-handler.java.njk
     output: configuration/src/main/java/{{ packagePath }}/configuration/exception/{{ className }}.java
+  - id: configuration-cors-properties
+    module: configuration
+    template: configuration/cors-properties.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/web/{{ className }}.java
+  - id: configuration-cors-web-configuration
+    module: configuration
+    template: configuration/cors-web-configuration.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/web/{{ className }}.java
+  - id: configuration-application-yaml
+    module: configuration
+    template: configuration/application.yaml.njk
+    output: configuration/src/main/resources/application.yaml
+  - id: configuration-application-local-yaml
+    module: configuration
+    template: configuration/application-local.yaml.njk
+    output: configuration/src/main/resources/application-local.yaml
+  - id: configuration-application-test-yaml
+    module: configuration
+    template: configuration/application-test.yaml.njk
+    output: configuration/src/main/resources/application-test.yaml
+  - id: configuration-application-prod-yaml
+    module: configuration
+    template: configuration/application-prod.yaml.njk
+    output: configuration/src/main/resources/application-prod.yaml
   - id: configuration-messages
     module: configuration
     template: configuration/messages.properties.njk
@@ -114,6 +138,10 @@ templates:
     module: configuration
     template: configuration/global-exception-handler-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/configuration/exception/{{ className }}.java
+  - id: configuration-cors-smoke-test
+    module: configuration
+    template: configuration/cors-smoke-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-smoke-test
     module: configuration
     template: configuration/http-smoke-test.java.njk

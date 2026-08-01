@@ -30,4 +30,5 @@ export interface JavaHttpPersistenceReadTestTemplateModel {
   readonly expectedBodyExpression: string;
   readonly contentTypeHeaderName: string;
   readonly expectedContentTypePrefix: string;
+  readonly activeProfile: string;
 }

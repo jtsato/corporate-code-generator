@@ -92,6 +92,11 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: CORS smoke Java multi-module
+        run: npm run smoke:cors:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: Spring context smoke Java multi-module
         run: npm run smoke:spring-context:java-multimodule
         env:

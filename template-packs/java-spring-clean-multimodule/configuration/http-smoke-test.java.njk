@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 {% for import in imports %}import {{ import }};
 {% endfor %}
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("{{ activeProfile }}")
 class {{ className }} {
     @{{ serverPortAnnotationType }}
     private int {{ serverPortFieldName }};

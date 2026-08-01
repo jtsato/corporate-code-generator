@@ -1,5 +1,9 @@
 # Reference Architecture
 
+## Configuration profiles and CORS
+
+The multi-module Java configuration capability generates base, local, test, and production YAML files without a global active profile. Spring tests explicitly select `test`. CORS is bound through `CorsProperties` and applied by `CorsWebConfiguration`; production requires `APPLICATION_CORS_ALLOWED_ORIGINS`, while Security integration remains out of scope.
+
 This document describes the minimal Wallet reference and the decisions derived
 from it. The broader Bookstore analysis is documented in
 [Extended Reference Architecture](EXTENDED-REFERENCE-ARCHITECTURE.md).

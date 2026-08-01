@@ -13,15 +13,18 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class WalletHttpSmokeTests {
+class WalletCorsSmokeTests {
     @LocalServerPort
     private int port;
 
     @Test
-    void findAllReturnsEmptyList() throws Exception {
+    void preflightAllowsConfiguredOrigin() throws Exception {
         HttpRequest request = HttpRequest.newBuilder(
             URI.create("http://localhost:" + port + "/wallets")
-        ).GET().build();
+        ).header("Origin", "http://localhost:3000")
+            .header("Access-Control-Request-Method", "GET")
+            .method("OPTIONS", HttpRequest.BodyPublishers.noBody())
+            .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(
             request,
@@ -29,10 +32,11 @@ class WalletHttpSmokeTests {
         );
 
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.body()).isEqualTo("[]");
-        assertThat(response.headers().firstValue("Content-Type"))
-            .hasValueSatisfying(contentType ->
-                assertThat(contentType).startsWith("application/json")
-            );
+        assertThat(response.headers().firstValue("Access-Control-Allow-Origin"))
+            .contains("http://localhost:3000");
+        assertThat(response.headers().firstValue("Access-Control-Allow-Methods"))
+            .hasValueSatisfying(methods -> assertThat(methods).contains("GET"));
+        assertThat(response.headers().firstValue("Access-Control-Allow-Credentials"))
+            .isEmpty();
     }
 }

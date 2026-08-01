@@ -89,7 +89,7 @@ describe("GenerateCommand", () => {
         else expect(writer).toHaveBeenCalledOnce();
 
         if (!dryRun) {
-          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(30);
+          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(37);
         }
       } finally {
         error.mockRestore();
@@ -172,8 +172,8 @@ describe("GenerateCommand", () => {
       expectedPath: "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
       unexpectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
     },
-    { moduleIds: ["configuration"], operationCount: 25, expectedPath: "configuration/src/test/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandlerTests.java" },
-    { moduleIds: ["build", "configuration"], operationCount: 30, expectedPath: "infra/database/pom.xml" },
+    { moduleIds: ["configuration"], operationCount: 32, expectedPath: "configuration/src/test/java/io/github/jtsato/walletservice/WalletCorsSmokeTests.java" },
+    { moduleIds: ["build", "configuration"], operationCount: 37, expectedPath: "infra/database/pom.xml" },
   ])(
     "resolves multi-module selection $moduleIds to $operationCount operations",
     async ({ moduleIds, operationCount, expectedPath, unexpectedPath }) => {

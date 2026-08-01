@@ -35,6 +35,10 @@ export type {
 export type {
   JavaSpringBootApplicationTestTemplateModel,
 } from "./model/JavaSpringBootApplicationTestTemplateModel.js";
+export type { JavaApplicationYamlTemplateModel } from "./model/JavaApplicationYamlTemplateModel.js";
+export type { JavaCorsPropertiesTemplateModel } from "./model/JavaCorsPropertiesTemplateModel.js";
+export type { JavaCorsWebConfigurationTemplateModel } from "./model/JavaCorsWebConfigurationTemplateModel.js";
+export type { JavaCorsSmokeTestTemplateModel } from "./model/JavaCorsSmokeTestTemplateModel.js";
 
 export type {
   JavaArchUnitTestTemplateModel,

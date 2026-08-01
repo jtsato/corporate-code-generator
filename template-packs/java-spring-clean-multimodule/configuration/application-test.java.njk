@@ -3,6 +3,7 @@ package {{ packageName }};
 {% for import in imports %}import {{ import }};
 {% endfor %}
 @SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
 class {{ className }} {
     @Test
     void {{ testMethodName }}() {

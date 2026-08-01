@@ -3,4 +3,5 @@ export interface JavaSpringBootApplicationTestTemplateModel {
   readonly imports: readonly string[];
   readonly className: string;
   readonly testMethodName: string;
+  readonly activeProfile: string;
 }

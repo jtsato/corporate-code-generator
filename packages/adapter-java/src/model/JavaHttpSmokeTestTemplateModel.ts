@@ -14,4 +14,5 @@ export interface JavaHttpSmokeTestTemplateModel {
   readonly expectedBody: string;
   readonly contentTypeHeaderName: string;
   readonly expectedContentTypePrefix: string;
+  readonly activeProfile: string;
 }

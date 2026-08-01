@@ -1,5 +1,7 @@
 # Capability Taxonomy and Profile Options
 
+Configuration profiles and properties-driven CORS are implemented default capabilities of `java-spring-clean-multimodule`.
+
 ## Status and scope
 
 This document records the initial Milestone 6.1 taxonomy and the implemented

@@ -6,6 +6,10 @@ import type {
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaBootstrapTemplateModel } from "../model/JavaBootstrapTemplateModel.js";
+import type { JavaApplicationYamlTemplateModel } from "../model/JavaApplicationYamlTemplateModel.js";
+import type { JavaCorsPropertiesTemplateModel } from "../model/JavaCorsPropertiesTemplateModel.js";
+import type { JavaCorsWebConfigurationTemplateModel } from "../model/JavaCorsWebConfigurationTemplateModel.js";
+import type { JavaCorsSmokeTestTemplateModel } from "../model/JavaCorsSmokeTestTemplateModel.js";
 import type { JavaArchUnitTestTemplateModel } from "../model/JavaArchUnitTestTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
@@ -37,9 +41,17 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
 
     const applicationTest: JavaSpringBootApplicationTestTemplateModel = {
       packageName: namespace,
-      imports: ["org.junit.jupiter.api.Test", "org.springframework.boot.test.context.SpringBootTest"],
+      imports: ["org.junit.jupiter.api.Test", "org.springframework.boot.test.context.SpringBootTest", "org.springframework.test.context.ActiveProfiles"],
       className: `${className}Tests`,
       testMethodName: "contextLoads",
+      activeProfile: "test",
+    };
+    const applicationYaml: JavaApplicationYamlTemplateModel = { applicationName: request.application.name };
+    const corsProperties: JavaCorsPropertiesTemplateModel = {
+      packageName: `${namespace}.configuration.web`, className: "CorsProperties",
+    };
+    const corsWebConfiguration: JavaCorsWebConfigurationTemplateModel = {
+      packageName: `${namespace}.configuration.web`, className: "CorsWebConfiguration", propertiesClassName: corsProperties.className,
     };
     const architectureTest: JavaArchUnitTestTemplateModel = {
       packageName: `${namespace}.architecture`,
@@ -103,6 +115,12 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         };
       }),
       { templateId: "configuration-global-exception-handler", model: { packageName: exceptionPackage, responseStatusPackageName: `${namespace}.entrypoint.rest.common`, coreExceptionPackageName: `${namespace}.core.common.exception` }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandler" } },
+      { templateId: "configuration-cors-properties", model: corsProperties, outputVariables: { ...outputVariables, className: corsProperties.className } },
+      { templateId: "configuration-cors-web-configuration", model: corsWebConfiguration, outputVariables: { ...outputVariables, className: corsWebConfiguration.className } },
+      { templateId: "configuration-application-yaml", model: applicationYaml, outputVariables: {} },
+      { templateId: "configuration-application-local-yaml", model: {}, outputVariables: {} },
+      { templateId: "configuration-application-test-yaml", model: {}, outputVariables: {} },
+      { templateId: "configuration-application-prod-yaml", model: {}, outputVariables: {} },
       { templateId: "configuration-messages", model: { messages }, outputVariables: {} },
       { templateId: "configuration-messages-pt-br", model: { messages: portugueseMessages }, outputVariables: {} },
       {
@@ -117,6 +135,16 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       },
       { templateId: "configuration-global-exception-handler-test", model: { packageName: exceptionPackage, className: "GlobalExceptionHandlerTests", basePackage: namespace }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandlerTests" } },
       ...request.application.entities.map((entity) => {
+        const corsSmokeModel: JavaCorsSmokeTestTemplateModel = {
+          packageName: namespace,
+          className: `${toJavaTypeName(entity.name)}CorsSmokeTests`,
+          endpointPath: toRestCollectionPath(entity.name),
+          allowedOrigin: "http://localhost:3000",
+          expectedStatusCode: 200,
+        };
+        return { templateId: "configuration-cors-smoke-test", model: corsSmokeModel, outputVariables: { ...outputVariables, className: corsSmokeModel.className } };
+      }),
+      ...request.application.entities.map((entity) => {
         const entityType = toJavaTypeName(entity.name);
         const imports = new JavaImportCollector();
         imports.add("java.net.http.HttpClient");
@@ -125,6 +153,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("org.junit.jupiter.api.Test");
         imports.add("org.springframework.boot.test.context.SpringBootTest");
         imports.add("org.springframework.boot.test.web.server.LocalServerPort");
+        imports.add("org.springframework.test.context.ActiveProfiles");
         const httpSmokeModel: JavaHttpSmokeTestTemplateModel = {
           packageName: namespace,
           imports: ["java.net.URI", ...imports.values()],
@@ -141,6 +170,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           expectedBody: "[]",
           contentTypeHeaderName: "Content-Type",
           expectedContentTypePrefix: "application/json",
+          activeProfile: "test",
         };
 
         return {
@@ -169,6 +199,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("org.springframework.beans.factory.annotation.Autowired");
         imports.add("org.springframework.boot.test.context.SpringBootTest");
         imports.add("org.springframework.boot.test.web.server.LocalServerPort");
+        imports.add("org.springframework.test.context.ActiveProfiles");
 
         const occurrenceCounts = new Map<string, number>();
         const fixtureValues = entity.attributes.map((attribute) => {
@@ -218,6 +249,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           expectedBodyExpression: JSON.stringify(expectedBody),
           contentTypeHeaderName: "Content-Type",
           expectedContentTypePrefix: "application/json",
+          activeProfile: "test",
         };
 
         return {
