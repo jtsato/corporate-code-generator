@@ -30,7 +30,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
         model: {
           modelVersion: "4.0.0", springBootVersion: "4.1.0", groupId: "io.github.jtsato",
           artifactId: "wallet-service", version: "0.1.0-SNAPSHOT",
-          modules: ["core", "entrypoints/rest", "infra/database", "configuration"], javaVersion: "25", archUnitVersion: "1.4.1",
+          modules: ["core", "entrypoints/rest", "infra/database", "configuration"], javaVersion: "25", archUnitVersion: "1.4.1", springdocOpenapiVersion: "3.0.3",
         }, outputVariables: {},
       },
       {
@@ -50,6 +50,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
           dependencies: [
             { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-web" },
+            { groupId: "org.springdoc", artifactId: "springdoc-openapi-starter-webmvc-ui", version: "${springdoc-openapi.version}" },
           ],
         }, outputVariables: {},
       },

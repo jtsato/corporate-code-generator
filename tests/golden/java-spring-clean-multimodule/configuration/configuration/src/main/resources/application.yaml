@@ -5,6 +5,12 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: false
+
 application:
   cors:
     allowed-origins: []

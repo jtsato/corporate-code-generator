@@ -25,9 +25,10 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     expect(artifacts.map((artifact) => artifact.templateId)).toEqual([
       "configuration-application", "configuration-domain-wiring", "configuration-global-exception-handler",
       "configuration-cors-properties", "configuration-cors-web-configuration",
+      "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
       "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-architecture-test",
-      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test",
+      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test",
     ]);
     /* Detailed legacy expectations retained below for fixture reference.
     expect(artifacts).toMatchObject([{
@@ -193,7 +194,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     expect(artifacts[3]).toMatchObject({
       model: { packageName: "io.github.jtsato.walletservice.configuration.web", className: "CorsProperties" },
     });
-    expect(artifacts[14]).toMatchObject({
+    expect(artifacts[15]).toMatchObject({
       model: { className: "WalletCorsSmokeTests", endpointPath: "/wallets", expectedStatusCode: 200 },
     });
   });

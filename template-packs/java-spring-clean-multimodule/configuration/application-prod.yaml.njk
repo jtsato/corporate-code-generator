@@ -5,3 +5,7 @@ application:
     allowed-headers: ${APPLICATION_CORS_ALLOWED_HEADERS:*}
     allow-credentials: ${APPLICATION_CORS_ALLOW_CREDENTIALS:false}
     max-age: ${APPLICATION_CORS_MAX_AGE:3600}
+
+springdoc:
+  swagger-ui:
+    enabled: ${OPENAPI_SWAGGER_UI_ENABLED:false}

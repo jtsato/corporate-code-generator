@@ -2,8 +2,10 @@ package {{ packageName }};
 
 {% for import in imports %}import {{ import }};
 {% endfor %}
+import io.swagger.v3.oas.annotations.media.Schema;
+@Schema(description = "{{ recordName | replace('Response', '') }} response")
 public record {{ recordName }}(
-{% for component in components %}    {{ component.type }} {{ component.name }}{% if not loop.last %},{% endif %}
+{% for component in components %}    @Schema(description = "{{ component.description }}") {{ component.type }} {{ component.name }}{% if not loop.last %},{% endif %}
 {% endfor %}) {
     public static {{ recordName }} {{ factoryMethodName }}({{ factoryParameterType }} {{ factoryParameterName }}) {
         return new {{ recordName }}(

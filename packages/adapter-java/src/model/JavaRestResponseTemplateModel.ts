@@ -1,6 +1,7 @@
 export interface JavaRecordComponentModel {
   readonly name: string;
   readonly type: string;
+  readonly description?: string;
 }
 
 export interface JavaRestResponseTemplateModel {

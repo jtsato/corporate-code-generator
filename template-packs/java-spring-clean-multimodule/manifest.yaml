@@ -102,6 +102,10 @@ templates:
     module: configuration
     template: configuration/cors-web-configuration.java.njk
     output: configuration/src/main/java/{{ packagePath }}/configuration/web/{{ className }}.java
+  - id: configuration-openapi-configuration
+    module: configuration
+    template: configuration/openapi-configuration.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/openapi/{{ className }}.java
   - id: configuration-application-yaml
     module: configuration
     template: configuration/application.yaml.njk
@@ -141,6 +145,10 @@ templates:
   - id: configuration-cors-smoke-test
     module: configuration
     template: configuration/cors-smoke-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-openapi-smoke-test
+    module: configuration
+    template: configuration/openapi-smoke-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-smoke-test
     module: configuration

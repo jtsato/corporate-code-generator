@@ -52,6 +52,7 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsProperties.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsWebConfiguration.java",
+        "configuration/src/main/java/io/github/jtsato/walletservice/configuration/openapi/OpenApiConfiguration.java",
         "configuration/src/main/resources/application.yaml",
         "configuration/src/main/resources/application-local.yaml",
         "configuration/src/main/resources/application-test.yaml",
@@ -62,6 +63,7 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/test/java/io/github/jtsato/walletservice/architecture/ArchitectureTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandlerTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletCorsSmokeTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/WalletOpenApiSmokeTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
       ]) {

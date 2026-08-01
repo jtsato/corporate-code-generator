@@ -5,6 +5,7 @@ package {{ packageName }};
 
 @RestController
 @RequestMapping("{{ requestMapping }}")
+@Tag(name = "{{ tagName }}", description = "{{ tagDescription }}")
 public class {{ className }} {
     private final {{ useCaseType }} {{ useCaseFieldName }};
 
@@ -13,6 +14,11 @@ public class {{ className }} {
     }
 
     @GetMapping
+    @Operation(summary = "{{ operationSummary }}", description = "{{ operationDescription }}")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "{{ tagName }} found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
     public List<{{ responseClassName }}> {{ findAllMethodName }}() {
         return {{ useCaseFieldName }}.{{ useCaseExecuteMethodName }}()
             .stream()

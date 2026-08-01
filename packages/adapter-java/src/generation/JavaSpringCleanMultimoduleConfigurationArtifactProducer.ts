@@ -10,6 +10,8 @@ import type { JavaApplicationYamlTemplateModel } from "../model/JavaApplicationY
 import type { JavaCorsPropertiesTemplateModel } from "../model/JavaCorsPropertiesTemplateModel.js";
 import type { JavaCorsWebConfigurationTemplateModel } from "../model/JavaCorsWebConfigurationTemplateModel.js";
 import type { JavaCorsSmokeTestTemplateModel } from "../model/JavaCorsSmokeTestTemplateModel.js";
+import type { JavaOpenApiConfigurationTemplateModel } from "../model/JavaOpenApiConfigurationTemplateModel.js";
+import type { JavaOpenApiSmokeTestTemplateModel } from "../model/JavaOpenApiSmokeTestTemplateModel.js";
 import type { JavaArchUnitTestTemplateModel } from "../model/JavaArchUnitTestTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
@@ -53,6 +55,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
     const corsWebConfiguration: JavaCorsWebConfigurationTemplateModel = {
       packageName: `${namespace}.configuration.web`, className: "CorsWebConfiguration", propertiesClassName: corsProperties.className,
     };
+    const openApiConfiguration: JavaOpenApiConfigurationTemplateModel = { packageName: `${namespace}.configuration.openapi`, className: "OpenApiConfiguration", title: `${request.application.name} API`, description: `${request.application.name} REST API`, version: request.profile.version };
     const architectureTest: JavaArchUnitTestTemplateModel = {
       packageName: `${namespace}.architecture`,
       className: "ArchitectureTests",
@@ -117,6 +120,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       { templateId: "configuration-global-exception-handler", model: { packageName: exceptionPackage, responseStatusPackageName: `${namespace}.entrypoint.rest.common`, coreExceptionPackageName: `${namespace}.core.common.exception` }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandler" } },
       { templateId: "configuration-cors-properties", model: corsProperties, outputVariables: { ...outputVariables, className: corsProperties.className } },
       { templateId: "configuration-cors-web-configuration", model: corsWebConfiguration, outputVariables: { ...outputVariables, className: corsWebConfiguration.className } },
+      { templateId: "configuration-openapi-configuration", model: openApiConfiguration, outputVariables: { ...outputVariables, className: openApiConfiguration.className } },
       { templateId: "configuration-application-yaml", model: applicationYaml, outputVariables: {} },
       { templateId: "configuration-application-local-yaml", model: {}, outputVariables: {} },
       { templateId: "configuration-application-test-yaml", model: {}, outputVariables: {} },
@@ -143,6 +147,10 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           expectedStatusCode: 200,
         };
         return { templateId: "configuration-cors-smoke-test", model: corsSmokeModel, outputVariables: { ...outputVariables, className: corsSmokeModel.className } };
+      }),
+      ...request.application.entities.map((entity) => {
+        const model: JavaOpenApiSmokeTestTemplateModel = { packageName: namespace, className: `${toJavaTypeName(entity.name)}OpenApiSmokeTests`, title: openApiConfiguration.title };
+        return { templateId: "configuration-openapi-smoke-test", model, outputVariables: { ...outputVariables, className: model.className } };
       }),
       ...request.application.entities.map((entity) => {
         const entityType = toJavaTypeName(entity.name);

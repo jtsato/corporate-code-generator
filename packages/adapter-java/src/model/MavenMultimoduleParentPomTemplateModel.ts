@@ -7,4 +7,5 @@ export interface MavenMultimoduleParentPomTemplateModel {
   readonly modules: readonly string[];
   readonly javaVersion: string;
   readonly archUnitVersion: string;
+  readonly springdocOpenapiVersion: string;
 }

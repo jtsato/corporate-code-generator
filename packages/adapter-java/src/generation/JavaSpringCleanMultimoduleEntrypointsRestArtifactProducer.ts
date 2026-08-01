@@ -31,10 +31,17 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const useCaseType = `Find${toJavaPluralTypeName(entityType)}UseCase`;
       const controllerImports = new JavaImportCollector();
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
+      controllerImports.add(`${namespace}.entrypoint.rest.common.ResponseStatus`);
       controllerImports.add("java.util.List");
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
       controllerImports.add("org.springframework.web.bind.annotation.RestController");
+      controllerImports.add("io.swagger.v3.oas.annotations.Operation");
+      controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponse");
+      controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponses");
+      controllerImports.add("io.swagger.v3.oas.annotations.media.Content");
+      controllerImports.add("io.swagger.v3.oas.annotations.media.Schema");
+      controllerImports.add("io.swagger.v3.oas.annotations.tags.Tag");
       const controller: JavaDelegatingRestControllerTemplateModel = {
         packageName,
         imports: controllerImports.values(),
@@ -46,13 +53,14 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         useCaseFieldName: toJavaFieldName(useCaseType),
         useCaseExecuteMethodName: "execute",
         responseFactoryMethodName: "from",
+        tagName: toJavaPluralTypeName(entityType), tagDescription: `${entityType} operations`, operationSummary: `Find ${toJavaPluralTypeName(entityType).toLowerCase()}`, operationDescription: `Returns all ${toJavaPluralTypeName(entityType).toLowerCase()}.`,
       };
       const responseImports = new JavaImportCollector();
       responseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
       const components = entity.attributes.map((attribute) => {
         const type = this.typeResolver.resolve(attribute.type);
         responseImports.add(type.import);
-        return { name: attribute.name, type: type.name };
+        return { name: attribute.name, type: type.name, description: `${entityType} ${attribute.name}.` };
       });
       const response: JavaFactoryRestResponseTemplateModel = {
         packageName,

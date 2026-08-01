@@ -97,6 +97,11 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: OpenAPI smoke Java multi-module
+        run: npm run smoke:openapi:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: Spring context smoke Java multi-module
         run: npm run smoke:spring-context:java-multimodule
         env:

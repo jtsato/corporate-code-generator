@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the thirty-seven complete Maven reactor artifacts", async () => {
+  it("renders the thirty-nine complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -90,6 +90,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsProperties.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsWebConfiguration.java",
+      "configuration/src/main/java/io/github/jtsato/walletservice/configuration/openapi/OpenApiConfiguration.java",
       "configuration/src/main/resources/application.yaml",
       "configuration/src/main/resources/application-local.yaml",
       "configuration/src/main/resources/application-test.yaml",
@@ -100,6 +101,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/test/java/io/github/jtsato/walletservice/architecture/ArchitectureTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandlerTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletCorsSmokeTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletOpenApiSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
     ]);

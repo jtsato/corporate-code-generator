@@ -9,6 +9,7 @@ import type { MavenMultimoduleParentPomTemplateModel } from "../model/MavenMulti
 import { springBootVersion } from "../spring/SpringBootVersion.js";
 
 const archUnitVersion = "1.4.1";
+const springdocOpenapiVersion = "3.0.3";
 
 export class JavaSpringCleanMultimoduleBuildArtifactProducer
   implements GenerationArtifactProducer {
@@ -28,11 +29,13 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       modules: ["core", "entrypoints/rest", "infra/database", "configuration"],
       javaVersion: request.profile.technology.languageVersion,
       archUnitVersion,
+      springdocOpenapiVersion,
     };
     const core = this.modulePom(groupId, artifactId, version, "../pom.xml", `${artifactId}-core`, []);
     const entrypointsRest = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-entrypoints-rest`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-web" },
+      { groupId: "org.springdoc", artifactId: "springdoc-openapi-starter-webmvc-ui", version: "${springdoc-openapi.version}" },
     ]);
     const infraDatabase = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-infra-database`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },

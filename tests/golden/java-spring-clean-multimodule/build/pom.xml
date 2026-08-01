@@ -32,5 +32,6 @@
     <maven.compiler.release>25</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <archunit.version>1.4.1</archunit.version>
+    <springdoc-openapi.version>3.0.3</springdoc-openapi.version>
   </properties>
 </project>
