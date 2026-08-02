@@ -1,0 +1,13 @@
+package io.github.jtsato.walletservice.core.common.filter;
+
+import io.github.jtsato.walletservice.core.common.exception.FieldViolation;
+import io.github.jtsato.walletservice.core.common.exception.ValidationException;
+import java.util.ArrayList;
+import java.util.List;
+
+public record FilterGroup(FilterGroupOperator operator, List<FilterCondition> conditions, List<FilterGroup> groups) {
+    public FilterGroup { var fields = new ArrayList<FieldViolation>(); if (operator == null) fields.add(new FieldViolation("operator", "common.filter.group.operator.required", "Filter group operator is required.")); if (conditions == null) fields.add(new FieldViolation("conditions", "common.filter.group.conditions.required", "Filter group conditions are required.")); else if (conditions.stream().anyMatch(java.util.Objects::isNull)) fields.add(new FieldViolation("conditions", "common.filter.group.conditions.null-element", "Filter group conditions must not contain null elements.")); if (groups == null) fields.add(new FieldViolation("groups", "common.filter.group.groups.required", "Filter group nested groups are required.")); else if (groups.stream().anyMatch(java.util.Objects::isNull)) fields.add(new FieldViolation("groups", "common.filter.group.groups.null-element", "Filter group nested groups must not contain null elements.")); if (conditions != null && groups != null && conditions.isEmpty() && groups.isEmpty()) fields.add(new FieldViolation("conditions", "common.filter.group.empty", "Filter group must not be empty.")); if (!fields.isEmpty()) throw new ValidationException(fields); conditions = List.copyOf(conditions); groups = List.copyOf(groups); }
+    public static FilterGroup and(List<FilterCondition> conditions) { return new FilterGroup(FilterGroupOperator.AND, conditions, List.of()); }
+    public static FilterGroup or(List<FilterCondition> conditions) { return new FilterGroup(FilterGroupOperator.OR, conditions, List.of()); }
+    public static FilterGroup of(FilterGroupOperator operator, List<FilterCondition> conditions, List<FilterGroup> groups) { return new FilterGroup(operator, conditions, groups); }
+}

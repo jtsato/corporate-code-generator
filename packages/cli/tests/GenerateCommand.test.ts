@@ -89,7 +89,7 @@ describe("GenerateCommand", () => {
         else expect(writer).toHaveBeenCalledOnce();
 
         if (!dryRun) {
-          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(55);
+          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(63);
         }
       } finally {
         error.mockRestore();
@@ -122,7 +122,7 @@ describe("GenerateCommand", () => {
     ]);
   });
 
-  it("generates the seventeen core artifacts when the multi-module core capability is requested", async () => {
+  it("generates the twenty-five core artifacts when the multi-module core capability is requested", async () => {
     let targetPaths: readonly string[] = [];
     const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
       targetPaths = plan.operations.map((operation) => operation.targetPath);
@@ -150,6 +150,14 @@ describe("GenerateCommand", () => {
       "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/SortOrderTests.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/PageRequestTests.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/PageResultTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterOperator.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterCondition.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterGroupOperator.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterGroup.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterExpression.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterConditionTests.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterGroupTests.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterExpressionTests.java",
     ]);
   });
 
@@ -163,27 +171,27 @@ describe("GenerateCommand", () => {
       moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
-    expect(targetPaths).toHaveLength(23);
+    expect(targetPaths).toHaveLength(31);
     expect(targetPaths.at(-1)).toBe(
-      "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/PageResultTests.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterExpressionTests.java",
     );
   });
 
   it.each([
     {
       moduleIds: ["entrypoints-rest"],
-      operationCount: 20,
+      operationCount: 28,
       expectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       unexpectedPath: "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
     },
     {
       moduleIds: ["infra-database"],
-      operationCount: 27,
+      operationCount: 35,
       expectedPath: "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapperTests.java",
       unexpectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
     },
-    { moduleIds: ["configuration"], operationCount: 55, expectedPath: ".github/workflows/java-ci.yml" },
-    { moduleIds: ["build", "configuration"], operationCount: 55, expectedPath: ".github/workflows/java-ci.yml" },
+    { moduleIds: ["configuration"], operationCount: 63, expectedPath: ".github/workflows/java-ci.yml" },
+    { moduleIds: ["build", "configuration"], operationCount: 63, expectedPath: ".github/workflows/java-ci.yml" },
   ])(
     "resolves multi-module selection $moduleIds to $operationCount operations",
     async ({ moduleIds, operationCount, expectedPath, unexpectedPath }) => {

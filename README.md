@@ -1,6 +1,6 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 55 artifacts, including a Querydsl predicate foundation in Infra and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`; Sonar, JaCoCo, PIT, and Testcontainers are not included yet. Validate Querydsl with `npm run smoke:querydsl:java-multimodule`.
+`java-spring-clean-multimodule` now generates 63 artifacts, including the Core Filter Common foundation, a passive Querydsl predicate foundation in Infra and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`; Sonar, JaCoCo, PIT, and Testcontainers are not included yet. Validate Core Filter Common with `npm run smoke:filter:java-multimodule`.
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 
@@ -131,6 +131,20 @@ npm run smoke:archunit:java-multimodule
 ```
 
 Ele segue a mesma política de disponibilidade do Maven dos demais smokes.
+
+### Smoke Core Filter Common multi-módulo
+
+O Core gera uma foundation sem integração REST ou Querydsl runtime: operadores,
+condições, grupos e expressões de filtro com validação determinística. O smoke
+executa somente `*FilterConditionTests`, `*FilterGroupTests` e
+`*FilterExpressionTests` no projeto gerado:
+
+```bash
+npm run smoke:filter:java-multimodule
+```
+
+Ele exige Maven e JDK compatível com Java 25 e segue a mesma política dos
+demais smokes Maven.
 
 ### Smoke de contexto Spring multi-módulo
 

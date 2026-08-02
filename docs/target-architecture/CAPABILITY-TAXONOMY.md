@@ -4,7 +4,7 @@ Configuration profiles and properties-driven CORS are implemented default capabi
 
 Core self-validation is an implemented default capability: required attributes map to Jakarta Validation `@NotNull` and `SelfValidating<T>`. The Core is Jakarta-aware but Spring-free; provider dependencies remain runtime/test infrastructure. Its dedicated quality gate is `smoke:validation:java-multimodule`, while REST DTO validation remains future work.
 
-Core Paging Common, the Spring Data Paging Adapter, the passive Querydsl foundation, and the Generated Java CI Pipeline are implemented. The CI foundation belongs to the build module and generates GitHub Actions with Java 25 and `mvn -B clean verify`. JaCoCo, PIT, Sonar, Testcontainers, and Docker remain future or optional capabilities. Core Filter Common and REST filters/search remain future capabilities.
+Core Paging Common, Core Filter Common, the Spring Data Paging Adapter, the passive Querydsl foundation, and the Generated Java CI Pipeline are implemented. Core Filter Common is a core-only, immutable filter expression model; it does not introduce REST query parameters, typed values, allowlists, field mapping, parsing, Querydsl mapping, Specifications, or repository runtime changes. The CI foundation belongs to the build module and generates GitHub Actions with Java 25 and `mvn -B clean verify`. JaCoCo, PIT, Sonar, Testcontainers, and Docker remain future or optional capabilities. REST filters/search remain future capabilities.
 
 ## Status and scope
 
@@ -59,6 +59,7 @@ The future `java-spring-clean-multimodule` profile baseline is:
 - OpenAPI specification (not necessarily UI);
 - configuration profiles;
 - `core-paging` common artifacts.
+- `core-filter` common artifacts.
 
 `archunit` is implemented as the default architecture guardrail of
 `java-spring-clean-multimodule`: it generates production-only architecture

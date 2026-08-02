@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the fifty-five complete Maven reactor artifacts", async () => {
+  it("renders the sixty-three complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,7 +68,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(55);
+    expect(operations).toHaveLength(63);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
@@ -88,6 +88,14 @@ describe("Java multi-module generation", () => {
       "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/SortOrderTests.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/PageRequestTests.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/common/paging/PageResultTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterOperator.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterCondition.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterGroupOperator.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterGroup.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/filter/FilterExpression.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterConditionTests.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterGroupTests.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterExpressionTests.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/ResponseStatus.java",
