@@ -206,6 +206,38 @@ templates:
     module: infra-database
     template: infra-database/querydsl-predicate-builder-test.java.njk
     output: infra/database/src/test/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/query/{{ className }}.java
+  - id: infra-database-querydsl-filter-field-definition
+    module: infra-database
+    template: infra-database/querydsl-filter-field-definition.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/common/filter/{{ className }}.java
+  - id: infra-database-querydsl-filter-definition
+    module: infra-database
+    template: infra-database/querydsl-filter-definition.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/common/filter/{{ className }}.java
+  - id: infra-database-querydsl-filter-value-converter
+    module: infra-database
+    template: infra-database/querydsl-filter-value-converter.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/common/filter/{{ className }}.java
+  - id: infra-database-querydsl-filter-mapper
+    module: infra-database
+    template: infra-database/querydsl-filter-mapper.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/common/filter/{{ className }}.java
+  - id: infra-database-querydsl-domain-filter-definition
+    module: infra-database
+    template: infra-database/querydsl-domain-filter-definition.java.njk
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/filter/{{ className }}.java
+  - id: infra-database-querydsl-filter-value-converter-test
+    module: infra-database
+    template: infra-database/querydsl-filter-value-converter-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/common/filter/{{ className }}.java
+  - id: infra-database-querydsl-filter-mapper-test
+    module: infra-database
+    template: infra-database/querydsl-filter-mapper-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/common/filter/{{ className }}.java
+  - id: infra-database-querydsl-domain-filter-definition-test
+    module: infra-database
+    template: infra-database/querydsl-domain-filter-definition-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/filter/{{ className }}.java
   - id: configuration-application
     module: configuration
     template: configuration/application.java.njk

@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the seventy complete Maven reactor artifacts", async () => {
+  it("renders the seventy-eight complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,7 +68,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(70);
+    expect(operations).toHaveLength(78);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
@@ -110,6 +110,14 @@ describe("Java multi-module generation", () => {
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/mapper/WalletPersistenceMapper.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/repository/WalletRepository.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterFieldDefinition.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterDefinition.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterValueConverter.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterMapper.java",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterValueConverterTests.java",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterMapperTests.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/filter/WalletQuerydslFilterDefinition.java",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/filter/WalletQuerydslFilterDefinitionTests.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageRequestMapper.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapper.java",
       "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageRequestMapperTests.java",

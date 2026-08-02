@@ -134,9 +134,13 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       ];
     });
     const pagingPackageName = `${namespace}.infra.database.common.paging`;
+    const filterPackageName = `${namespace}.infra.database.common.filter`;
     const pagingVariables = { packagePath: namespace.replaceAll(".", "/") };
     return [
       ...entityArtifacts,
+      ...["QuerydslFilterFieldDefinition", "QuerydslFilterDefinition", "QuerydslFilterValueConverter", "QuerydslFilterMapper"].map((className) => ({ templateId: `infra-database-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`, model: { packageName: filterPackageName, exceptionPackage: `${namespace}.core.common.exception`, filterPackage: `${namespace}.core.common.filter` }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className } })),
+      ...["QuerydslFilterValueConverter", "QuerydslFilterMapper"].map((className) => ({ templateId: `infra-database-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`, model: { packageName: filterPackageName, filterPackage: `${namespace}.core.common.filter` }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: `${className}Tests` } })),
+      ...request.application.entities.flatMap((entity) => { const domainName = toJavaPackageSegment(entity.name); const entityType = toJavaTypeName(entity.name); const packageName = `${namespace}.infra.database.domains.${domainName}.filter`; return [{ templateId: "infra-database-querydsl-domain-filter-definition", model: { packageName, commonPackage: filterPackageName, filterPackage: `${namespace}.core.common.filter`, entityPackage: `${namespace}.infra.domains.${domainName}.entity`, entityType, qVariableName: toJavaFieldName(`${entityType}Entity`) }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinition` } }, { templateId: "infra-database-querydsl-domain-filter-definition-test", model: { packageName, entityType }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinitionTests` } }]; }),
       {
         templateId: "infra-database-spring-data-page-request-mapper",
         model: { packageName: pagingPackageName, exceptionPackageName: `${namespace}.core.common.exception`, pagingPackageName: `${namespace}.core.common.paging`, className: "SpringDataPageRequestMapper" },
