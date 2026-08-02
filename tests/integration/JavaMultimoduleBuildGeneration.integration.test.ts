@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the sixty-three complete Maven reactor artifacts", async () => {
+  it("renders the seventy complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,7 +68,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(63);
+    expect(operations).toHaveLength(70);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
@@ -98,6 +98,13 @@ describe("Java multi-module generation", () => {
       "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterExpressionTests.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterOperator.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterFieldDefinition.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterDefinition.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterParser.java",
+      "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterParserTests.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/filter/WalletRestFilterDefinition.java",
+      "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/filter/WalletRestFilterDefinitionTests.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/ResponseStatus.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/entity/WalletEntity.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/mapper/WalletPersistenceMapper.java",

@@ -55,6 +55,7 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
             { groupId: "${project.groupId}", artifactId: "wallet-service-core", version: "${project.version}" },
             { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-web" },
             { groupId: "org.springdoc", artifactId: "springdoc-openapi-starter-webmvc-ui", version: "${springdoc-openapi.version}" },
+            { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
           ],
         }, outputVariables: {},
       },

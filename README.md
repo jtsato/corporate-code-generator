@@ -1,6 +1,8 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 63 artifacts, including the Core Filter Common foundation, a passive Querydsl predicate foundation in Infra and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`; Sonar, JaCoCo, PIT, and Testcontainers are not included yet. Validate Core Filter Common with `npm run smoke:filter:java-multimodule`.
+`java-spring-clean-multimodule` now generates 70 artifacts: build 6, Core 25, entrypoints-rest 35, Infra 35, and Configuration 70. It includes the passive REST Filter Contract Foundation, Core Filter Common, a passive Querydsl predicate foundation in Infra, and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`.
+
+REST filter parsing is a passive foundation: the future repeated query contract is `filter=<field>:<operator>[:<value>]`, with lowercase aliases, AND composition, string values, and a per-entity allowlist mapping `publicName` to `domainName`. Filters do not yet alter `GET /wallets`; OpenAPI filter documentation, the Querydsl mapper, and runtime filtering remain future work. Validate the parser with `npm run smoke:rest-filter:java-multimodule`.
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 

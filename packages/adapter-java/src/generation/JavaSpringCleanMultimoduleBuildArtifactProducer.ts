@@ -40,6 +40,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-web" },
       { groupId: "org.springdoc", artifactId: "springdoc-openapi-starter-webmvc-ui", version: "${springdoc-openapi.version}" },
+      { groupId: "org.junit.jupiter", artifactId: "junit-jupiter", scope: "test" },
     ]);
     const infraDatabase = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-infra-database`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core`, version: "${project.version}" },

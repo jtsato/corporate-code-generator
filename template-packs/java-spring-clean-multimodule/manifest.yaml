@@ -138,6 +138,34 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/common/response-status.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/{{ className }}.java
+  - id: entrypoints-rest-filter-operator
+    module: entrypoints-rest
+    template: entrypoints-rest/filter/rest-filter-operator.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/filter/{{ className }}.java
+  - id: entrypoints-rest-filter-field-definition
+    module: entrypoints-rest
+    template: entrypoints-rest/filter/rest-filter-field-definition.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/filter/{{ className }}.java
+  - id: entrypoints-rest-filter-definition
+    module: entrypoints-rest
+    template: entrypoints-rest/filter/rest-filter-definition.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/filter/{{ className }}.java
+  - id: entrypoints-rest-filter-parser
+    module: entrypoints-rest
+    template: entrypoints-rest/filter/rest-filter-parser.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/filter/{{ className }}.java
+  - id: entrypoints-rest-domain-filter-definition
+    module: entrypoints-rest
+    template: entrypoints-rest/filter/domain-filter-definition.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/filter/{{ className }}.java
+  - id: entrypoints-rest-filter-parser-test
+    module: entrypoints-rest
+    template: entrypoints-rest/filter/rest-filter-parser-test.java.njk
+    output: entrypoints/rest/src/test/java/{{ packagePath }}/entrypoint/rest/common/filter/{{ className }}.java
+  - id: entrypoints-rest-domain-filter-definition-test
+    module: entrypoints-rest
+    template: entrypoints-rest/filter/domain-filter-definition-test.java.njk
+    output: entrypoints/rest/src/test/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/filter/{{ className }}.java
   - id: infra-database-gateway-provider
     module: infra-database
     template: infra-database/gateway-provider.java.njk

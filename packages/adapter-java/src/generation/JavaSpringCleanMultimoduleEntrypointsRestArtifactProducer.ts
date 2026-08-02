@@ -80,6 +80,23 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         { templateId: "entrypoints-rest-response", model: response, outputVariables: { ...variables, className: responseName } },
       ];
     });
-    return [...entityArtifacts, { templateId: "entrypoints-rest-response-status", model: { packageName: `${namespace}.entrypoint.rest.common`, className: "ResponseStatus" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ResponseStatus" } }];
+    const packagePath = namespace.replaceAll(".", "/");
+    const filterArtifacts: TemplateInvocation[] = [
+      { templateId: "entrypoints-rest-filter-operator", model: { packageName: `${namespace}.entrypoint.rest.common.filter`, coreFilterPackage: `${namespace}.core.common.filter` }, outputVariables: { packagePath, className: "RestFilterOperator" } },
+      { templateId: "entrypoints-rest-filter-field-definition", model: { packageName: `${namespace}.entrypoint.rest.common.filter`, exceptionPackage: `${namespace}.core.common.exception` }, outputVariables: { packagePath, className: "RestFilterFieldDefinition" } },
+      { templateId: "entrypoints-rest-filter-definition", model: { packageName: `${namespace}.entrypoint.rest.common.filter`, exceptionPackage: `${namespace}.core.common.exception` }, outputVariables: { packagePath, className: "RestFilterDefinition" } },
+      { templateId: "entrypoints-rest-filter-parser", model: { packageName: `${namespace}.entrypoint.rest.common.filter`, coreFilterPackage: `${namespace}.core.common.filter`, exceptionPackage: `${namespace}.core.common.exception` }, outputVariables: { packagePath, className: "RestFilterParser" } },
+      { templateId: "entrypoints-rest-filter-parser-test", model: { packageName: `${namespace}.entrypoint.rest.common.filter`, exceptionPackage: `${namespace}.core.common.exception`, coreFilterPackage: `${namespace}.core.common.filter` }, outputVariables: { packagePath, className: "RestFilterParserTests" } },
+    ];
+    const entityFilterArtifacts = request.application.entities.flatMap((entity) => {
+      const domainName = toJavaPackageSegment(entity.name);
+      const entityType = toJavaTypeName(entity.name);
+      const definitionName = `${entityType}RestFilterDefinition`;
+      return [
+        { templateId: "entrypoints-rest-domain-filter-definition", model: { packageName: `${namespace}.entrypoint.rest.domains.${domainName}.filter`, commonFilterPackage: `${namespace}.entrypoint.rest.common.filter`, className: definitionName, attributes: entity.attributes.map((attribute) => ({ name: attribute.name, type: attribute.type })) }, outputVariables: { packagePath, domainName, className: definitionName } },
+        { templateId: "entrypoints-rest-domain-filter-definition-test", model: { packageName: `${namespace}.entrypoint.rest.domains.${domainName}.filter`, commonFilterPackage: `${namespace}.entrypoint.rest.common.filter`, exceptionPackage: `${namespace}.core.common.exception`, definitionName, className: `${definitionName}Tests` }, outputVariables: { packagePath, domainName, className: `${definitionName}Tests` } },
+      ];
+    });
+    return [...entityArtifacts, ...filterArtifacts, ...entityFilterArtifacts, { templateId: "entrypoints-rest-response-status", model: { packageName: `${namespace}.entrypoint.rest.common`, className: "ResponseStatus" }, outputVariables: { packagePath, className: "ResponseStatus" } }];
   }
 }

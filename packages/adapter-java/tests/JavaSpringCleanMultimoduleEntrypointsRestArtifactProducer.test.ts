@@ -13,8 +13,8 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
     });
     expect(producer.profileId).toBe("java-spring-clean-multimodule");
     expect(producer.moduleId).toBe("entrypoints-rest");
-    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-response-status"]);
-    expect(artifacts).toMatchObject([
+    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test", "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-response-status"]);
+    expect(artifacts.slice(0, 2)).toMatchObject([
       {
         outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletController" },
         model: {
@@ -55,7 +55,11 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           ],
         },
       },
-      { outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "ResponseStatus" }, model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.common", className: "ResponseStatus" } },
+    ]);
+    expect(artifacts.slice(2, -1)).toMatchObject([
+      { templateId: "entrypoints-rest-filter-operator", model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.common.filter", coreFilterPackage: "io.github.jtsato.walletservice.core.common.filter" } },
+      { templateId: "entrypoints-rest-filter-field-definition" }, { templateId: "entrypoints-rest-filter-definition" }, { templateId: "entrypoints-rest-filter-parser" }, { templateId: "entrypoints-rest-filter-parser-test" },
+      { templateId: "entrypoints-rest-domain-filter-definition", model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter" } }, { templateId: "entrypoints-rest-domain-filter-definition-test" },
     ]);
   });
 });

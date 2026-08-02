@@ -26,6 +26,7 @@
     "smoke:validation:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-validation.smoke.test.ts",
     "smoke:paging:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-paging.smoke.test.ts",
     "smoke:filter:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-filter.smoke.test.ts",
+    "smoke:rest-filter:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-rest-filter.smoke.test.ts",
     "smoke:jpa-paging:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-jpa-paging.smoke.test.ts",
     "smoke:querydsl:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-querydsl.smoke.test.ts",
     "smoke:error-handling:java-multimodule": "npm run build && vitest run tests/smoke/java-multimodule-error-handling.smoke.test.ts",
