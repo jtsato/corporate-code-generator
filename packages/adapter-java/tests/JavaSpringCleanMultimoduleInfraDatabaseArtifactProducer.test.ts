@@ -102,8 +102,8 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     ...["QuerydslFilterValueConverter", "QuerydslFilterMapper"].map((className) => ({
       templateId: `infra-database-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`, model: { packageName: "io.github.jtsato.walletservice.infra.database.common.filter", filterPackage: "io.github.jtsato.walletservice.core.common.filter" }, outputVariables: { packagePath: "io/github/jtsato/walletservice", className: `${className}Tests` },
     })),
-    { templateId: "infra-database-querydsl-domain-filter-definition", model: { packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.filter", commonPackage: "io.github.jtsato.walletservice.infra.database.common.filter", filterPackage: "io.github.jtsato.walletservice.core.common.filter", entityPackage: "io.github.jtsato.walletservice.infra.domains.wallet.entity", entityType: "Wallet", qVariableName: "walletEntity" }, outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletQuerydslFilterDefinition" } },
-    { templateId: "infra-database-querydsl-domain-filter-definition-test", model: { packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.filter", entityType: "Wallet" }, outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletQuerydslFilterDefinitionTests" } },
+    { templateId: "infra-database-querydsl-domain-filter-definition", model: { packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.filter", commonPackage: "io.github.jtsato.walletservice.infra.database.common.filter", filterPackage: "io.github.jtsato.walletservice.core.common.filter", entityPackage: "io.github.jtsato.walletservice.infra.domains.wallet.entity", entityType: "Wallet", qVariableName: "walletEntity", imports: ["java.util.UUID", "java.math.BigDecimal"], fields: [{ name: "id", domainName: "id", type: "UUID", import: "java.util.UUID", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }, { name: "balance", domainName: "balance", type: "BigDecimal", import: "java.math.BigDecimal", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "GREATER_THAN", method: "gt" }, { operator: "GREATER_THAN_OR_EQUALS", method: "goe" }, { operator: "LESS_THAN", method: "lt" }, { operator: "LESS_THAN_OR_EQUALS", method: "loe" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }] }, outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletQuerydslFilterDefinition" } },
+    { templateId: "infra-database-querydsl-domain-filter-definition-test", model: { packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.filter", entityType: "Wallet", imports: ["java.util.UUID", "java.math.BigDecimal"], fields: [{ name: "id", domainName: "id", type: "UUID", import: "java.util.UUID", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }, { name: "balance", domainName: "balance", type: "BigDecimal", import: "java.math.BigDecimal", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "GREATER_THAN", method: "gt" }, { operator: "GREATER_THAN_OR_EQUALS", method: "goe" }, { operator: "LESS_THAN", method: "lt" }, { operator: "LESS_THAN_OR_EQUALS", method: "loe" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }] }, outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletQuerydslFilterDefinitionTests" } },
     {
       templateId: "infra-database-spring-data-page-request-mapper",
       model: { packageName: "io.github.jtsato.walletservice.infra.database.common.paging", exceptionPackageName: "io.github.jtsato.walletservice.core.common.exception", pagingPackageName: "io.github.jtsato.walletservice.core.common.paging", className: "SpringDataPageRequestMapper" },
@@ -169,5 +169,36 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
       modules: [{ id: "infra-database", requires: ["core"] }],
     })).toThrow(message);
+  });
+
+  it("prepares Querydsl filter fields from the actual entity attributes", () => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    const artifacts = producer.produce({
+      application: { schemaVersion: "1.0", name: "schedule-service", namespace: "example.schedule", entities: [{ name: "Schedule", attributes: [
+        { name: "id", type: "uuid", identifier: true, required: true },
+        { name: "title", type: "string", identifier: false, required: true },
+        { name: "active", type: "boolean", identifier: false, required: true },
+        { name: "priority", type: "int32", identifier: false, required: true },
+        { name: "sequence", type: "int64", identifier: false, required: true },
+        { name: "amount", type: "decimal", identifier: false, required: true },
+        { name: "scheduledFor", type: "date", identifier: false, required: true },
+        { name: "startsAt", type: "datetime", identifier: false, required: true },
+      ] }] },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    });
+
+    const definition = artifacts.find((artifact) => artifact.templateId === "infra-database-querydsl-domain-filter-definition");
+    expect(definition).toMatchObject({ outputVariables: { domainName: "schedule", className: "ScheduleQuerydslFilterDefinition" }, model: { entityType: "Schedule", qVariableName: "scheduleEntity" } });
+    const fields = (definition!.model as { fields: Array<{ domainName: string; type: string; operators: Array<{ operator: string }> }> }).fields;
+    expect(fields.map(({ domainName, type }) => ({ domainName, type }))).toEqual([
+      { domainName: "id", type: "UUID" }, { domainName: "title", type: "String" }, { domainName: "active", type: "Boolean" }, { domainName: "priority", type: "Integer" },
+      { domainName: "sequence", type: "Long" }, { domainName: "amount", type: "BigDecimal" }, { domainName: "scheduledFor", type: "LocalDate" }, { domainName: "startsAt", type: "OffsetDateTime" },
+    ]);
+    expect(fields.find((field) => field.domainName === "title")!.operators.map(({ operator }) => operator)).toEqual(["EQUALS", "NOT_EQUALS", "CONTAINS", "STARTS_WITH", "ENDS_WITH", "IN", "IS_NULL", "IS_NOT_NULL"]);
+    expect(fields.find((field) => field.domainName === "active")!.operators.map(({ operator }) => operator)).toEqual(["EQUALS", "NOT_EQUALS", "IN", "IS_NULL", "IS_NOT_NULL"]);
+    expect(fields.find((field) => field.domainName === "startsAt")!.operators.map(({ operator }) => operator)).toEqual(["EQUALS", "NOT_EQUALS", "GREATER_THAN", "GREATER_THAN_OR_EQUALS", "LESS_THAN", "LESS_THAN_OR_EQUALS", "IN", "IS_NULL", "IS_NOT_NULL"]);
+    expect(JSON.stringify(definition)).not.toContain("balance");
+    expect(JSON.stringify(definition)).not.toContain("Wallet");
   });
 });

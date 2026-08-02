@@ -140,7 +140,44 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       ...entityArtifacts,
       ...["QuerydslFilterFieldDefinition", "QuerydslFilterDefinition", "QuerydslFilterValueConverter", "QuerydslFilterMapper"].map((className) => ({ templateId: `infra-database-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`, model: { packageName: filterPackageName, exceptionPackage: `${namespace}.core.common.exception`, filterPackage: `${namespace}.core.common.filter` }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className } })),
       ...["QuerydslFilterValueConverter", "QuerydslFilterMapper"].map((className) => ({ templateId: `infra-database-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`, model: { packageName: filterPackageName, filterPackage: `${namespace}.core.common.filter` }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: `${className}Tests` } })),
-      ...request.application.entities.flatMap((entity) => { const domainName = toJavaPackageSegment(entity.name); const entityType = toJavaTypeName(entity.name); const packageName = `${namespace}.infra.database.domains.${domainName}.filter`; return [{ templateId: "infra-database-querydsl-domain-filter-definition", model: { packageName, commonPackage: filterPackageName, filterPackage: `${namespace}.core.common.filter`, entityPackage: `${namespace}.infra.domains.${domainName}.entity`, entityType, qVariableName: toJavaFieldName(`${entityType}Entity`) }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinition` } }, { templateId: "infra-database-querydsl-domain-filter-definition-test", model: { packageName, entityType }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinitionTests` } }]; }),
+      ...request.application.entities.flatMap((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const packageName = `${namespace}.infra.database.domains.${domainName}.filter`;
+        const fields = entity.attributes.map((attribute) => {
+          const javaType = typeResolver.resolve(attribute.type);
+          const comparisonOperators = ["EQUALS", "NOT_EQUALS", "GREATER_THAN", "GREATER_THAN_OR_EQUALS", "LESS_THAN", "LESS_THAN_OR_EQUALS", "IN", "IS_NULL", "IS_NOT_NULL"];
+          const stringOperators = ["EQUALS", "NOT_EQUALS", "CONTAINS", "STARTS_WITH", "ENDS_WITH", "IN", "IS_NULL", "IS_NOT_NULL"];
+          const equalityOperators = ["EQUALS", "NOT_EQUALS", "IN", "IS_NULL", "IS_NOT_NULL"];
+          const operators = (attribute.type === "decimal" || attribute.type === "int32" || attribute.type === "int64" || attribute.type === "date" || attribute.type === "datetime"
+            ? comparisonOperators
+            : attribute.type === "string"
+              ? stringOperators
+              : equalityOperators).map((operator) => ({
+            operator,
+            method: ({
+              EQUALS: "eq",
+              NOT_EQUALS: "ne",
+              GREATER_THAN: "gt",
+              GREATER_THAN_OR_EQUALS: "goe",
+              LESS_THAN: "lt",
+              LESS_THAN_OR_EQUALS: "loe",
+              CONTAINS: "contains",
+              STARTS_WITH: "startsWith",
+              ENDS_WITH: "endsWith",
+              IN: "in",
+              IS_NULL: "isNull",
+              IS_NOT_NULL: "isNotNull",
+            } as const)[operator],
+          }));
+          return { name: toJavaFieldName(attribute.name), domainName: attribute.name, type: javaType.name, import: javaType.import, operators };
+        });
+        const filterModel = { packageName, commonPackage: filterPackageName, filterPackage: `${namespace}.core.common.filter`, entityPackage: `${namespace}.infra.domains.${domainName}.entity`, entityType, qVariableName: toJavaFieldName(`${entityType}Entity`), imports: [...new Set(fields.flatMap((field) => field.import === undefined ? [] : [field.import]))], fields };
+        return [
+          { templateId: "infra-database-querydsl-domain-filter-definition", model: filterModel, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinition` } },
+          { templateId: "infra-database-querydsl-domain-filter-definition-test", model: { packageName, entityType, imports: filterModel.imports, fields }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinitionTests` } },
+        ];
+      }),
       {
         templateId: "infra-database-spring-data-page-request-mapper",
         model: { packageName: pagingPackageName, exceptionPackageName: `${namespace}.core.common.exception`, pagingPackageName: `${namespace}.core.common.paging`, className: "SpringDataPageRequestMapper" },
