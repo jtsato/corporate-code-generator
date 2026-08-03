@@ -28,7 +28,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
       "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-architecture-test",
-      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test",
+      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-querydsl-filter-persistence-test",
     ]);
     /* Detailed legacy expectations retained below for fixture reference.
     expect(artifacts).toMatchObject([{
@@ -221,7 +221,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       modules: [{ id: "configuration", requires: [] }],
     });
 
-    expect(artifacts.at(-1)).toMatchObject({
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-persistence-read-test")).toMatchObject({
       templateId: "configuration-http-persistence-read-test",
       model: {
         imports: expect.arrayContaining([

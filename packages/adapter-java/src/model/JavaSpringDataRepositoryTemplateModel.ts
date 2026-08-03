@@ -5,4 +5,5 @@ export interface JavaSpringDataRepositoryTemplateModel {
   readonly entityType: string;
   readonly identifierType: string;
   readonly baseRepositoryType: string;
+  readonly additionalInterfaces: readonly string[];
 }

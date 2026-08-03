@@ -13,4 +13,9 @@ public class {{ className }} {
     public {{ useCaseType }} {{ useCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
         return new {{ useCaseImplementationType }}({{ gatewayParameterName }});
     }
+
+    @Bean
+    public {{ byFilterUseCaseType }} {{ byFilterUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ byFilterUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
 }

@@ -39,6 +39,15 @@ class ArchitectureTests {
     }
 
     @Test
+    void coreShouldNotDependOnQuerydsl() {
+        noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + ".core..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("com.querydsl..")
+            .check(importedClasses);
+    }
+
+    @Test
     void entrypointShouldNotDependOnInfra() {
         noClasses()
             .that().resideInAPackage(BASE_PACKAGE + ".entrypoint..")

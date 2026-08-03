@@ -4,4 +4,6 @@ package {{ packageName }};
 {% endfor %}
 public interface {{ interfaceName }} {
     List<{{ entityType }}> {{ findAllMethodName }}();
+
+    List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }});
 }

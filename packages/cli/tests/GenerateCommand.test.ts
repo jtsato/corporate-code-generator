@@ -89,7 +89,7 @@ describe("GenerateCommand", () => {
         else expect(writer).toHaveBeenCalledOnce();
 
         if (!dryRun) {
-          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(78);
+          expect(writer.mock.calls[0]?.[0].operations).toHaveLength(82);
         }
       } finally {
         error.mockRestore();
@@ -122,7 +122,7 @@ describe("GenerateCommand", () => {
     ]);
   });
 
-  it("generates the twenty-five core artifacts when the multi-module core capability is requested", async () => {
+  it("generates the twenty-eight core artifacts when the multi-module core capability is requested", async () => {
     let targetPaths: readonly string[] = [];
     const writer = vi.fn(async (plan: { readonly operations: readonly { readonly targetPath: string }[] }) => {
       targetPaths = plan.operations.map((operation) => operation.targetPath);
@@ -137,6 +137,9 @@ describe("GenerateCommand", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ApplicationException.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/FieldViolation.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ValidationException.java",
@@ -171,7 +174,7 @@ describe("GenerateCommand", () => {
       moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
-    expect(targetPaths).toHaveLength(31);
+    expect(targetPaths).toHaveLength(34);
     expect(targetPaths.at(-1)).toBe(
       "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterExpressionTests.java",
     );
@@ -180,18 +183,18 @@ describe("GenerateCommand", () => {
   it.each([
     {
       moduleIds: ["entrypoints-rest"],
-      operationCount: 35,
+      operationCount: 38,
       expectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       unexpectedPath: "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
     },
     {
       moduleIds: ["infra-database"],
-      operationCount: 43,
+      operationCount: 46,
       expectedPath: "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapperTests.java",
       unexpectedPath: "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
     },
-    { moduleIds: ["configuration"], operationCount: 78, expectedPath: ".github/workflows/java-ci.yml" },
-    { moduleIds: ["build", "configuration"], operationCount: 78, expectedPath: ".github/workflows/java-ci.yml" },
+    { moduleIds: ["configuration"], operationCount: 82, expectedPath: ".github/workflows/java-ci.yml" },
+    { moduleIds: ["build", "configuration"], operationCount: 82, expectedPath: ".github/workflows/java-ci.yml" },
   ])(
     "resolves multi-module selection $moduleIds to $operationCount operations",
     async ({ moduleIds, operationCount, expectedPath, unexpectedPath }) => {

@@ -42,6 +42,18 @@ templates:
     module: core
     template: core/usecase/find/interactor.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-by-filter
+    module: core
+    template: core/usecase/find/usecase-by-filter.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-by-filter-interactor
+    module: core
+    template: core/usecase/find/interactor-by-filter.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-by-filter-interactor-test
+    module: core
+    template: core/usecase/find/interactor-by-filter-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
   - id: core-application-exception
     module: core
     template: core/common/application-exception.java.njk
@@ -309,6 +321,10 @@ templates:
   - id: configuration-http-smoke-test
     module: configuration
     template: configuration/http-smoke-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-querydsl-filter-persistence-test
+    module: configuration
+    template: configuration/querydsl-filter-persistence-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-persistence-read-test
     module: configuration

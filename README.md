@@ -1,8 +1,10 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 70 artifacts: build 6, Core 25, entrypoints-rest 35, Infra 35, and Configuration 70. It includes the passive REST Filter Contract Foundation, Core Filter Common, a passive Querydsl predicate foundation in Infra, and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`.
+`java-spring-clean-multimodule` now generates 82 artifacts in the full profile: build 6, Core 28, entrypoints-rest 38, Infra 46, and Configuration 82. The build+core selection emits 34 artifacts; build+configuration emits 82. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the passive REST Filter Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`.
 
-REST filter parsing is a passive foundation: the future repeated query contract is `filter=<field>:<operator>[:<value>]`, with lowercase aliases, AND composition, string values, and a per-entity allowlist mapping `publicName` to `domainName`. Filters do not yet alter `GET /wallets`; OpenAPI filter documentation, the Querydsl mapper, and runtime filtering remain future work. Validate the parser with `npm run smoke:rest-filter:java-multimodule`.
+Querydsl filters now run against the database through a dedicated filtered use case. The generated flow is `FilterExpression -> QuerydslFilterMapper -> ListQuerydslPredicateExecutor -> repository -> gateway -> Find<Entity>ByFilterUseCase`. `FilterExpression.empty()` falls back to `repository.findAll()`. Validate it with `npm run smoke:querydsl-filter-runtime:java-multimodule`.
+
+REST filter parsing remains a passive foundation: the future repeated query contract is `filter=<field>:<operator>[:<value>]`, with lowercase aliases, AND composition, string values, and a per-entity allowlist mapping `publicName` to `domainName`. Filters do not yet alter `GET /wallets`; OpenAPI filter documentation and HTTP-exposed filtering remain future work. Validate the parser with `npm run smoke:rest-filter:java-multimodule` and the generated Querydsl definitions with `npm run smoke:querydsl-filter:java-multimodule`.
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 
@@ -147,6 +149,22 @@ npm run smoke:filter:java-multimodule
 
 Ele exige Maven e JDK compatível com Java 25 e segue a mesma política dos
 demais smokes Maven.
+
+### Smoke Querydsl filter runtime multi-módulo
+
+O runtime de filtro é provado sem HTTP. O smoke executa somente
+`*QuerydslFilterPersistenceTests` e `*FindWalletsByFilterUseCaseInteractorTests`:
+
+```bash
+npm run smoke:querydsl-filter-runtime:java-multimodule
+```
+
+O teste de persistência sobe o contexto Spring com H2, persiste três registros
+determinísticos e valida condição única, `IN`, `AND`, `OR`, grupo aninhado e
+expressão vazia por conjunto de identificadores. Quando o atributo-condutor
+suporta ordenação, também valida `GREATER_THAN` e faixa. Ele não usa
+`RestFilterParser`, não expõe filtros por HTTP e não introduz paginação ou
+ordenação. Segue a mesma política de disponibilidade do Maven dos demais smokes.
 
 ### Smoke de contexto Spring multi-módulo
 

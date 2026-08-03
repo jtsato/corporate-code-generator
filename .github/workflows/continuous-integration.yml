@@ -107,6 +107,16 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: Querydsl filter smoke Java multi-module
+        run: npm run smoke:querydsl-filter:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
+      - name: Querydsl filter runtime smoke Java multi-module
+        run: npm run smoke:querydsl-filter-runtime:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: JPA paging smoke Java multi-module
         run: npm run smoke:jpa-paging:java-multimodule
         env:

@@ -72,6 +72,9 @@ describe("Java multi-module profile foundation", () => {
       "core-gateway",
       "core-find-usecase",
       "core-find-usecase-interactor",
+      "core-find-usecase-by-filter",
+      "core-find-usecase-by-filter-interactor",
+      "core-find-usecase-by-filter-interactor-test",
       "core-application-exception", "core-field-violation", "core-validation-exception", "core-not-found-exception",
       "core-self-validating",
       "core-sort-direction",
@@ -131,6 +134,7 @@ describe("Java multi-module profile foundation", () => {
       "configuration-cors-smoke-test",
       "configuration-openapi-smoke-test",
       "configuration-http-smoke-test",
+      "configuration-querydsl-filter-persistence-test",
       "configuration-http-persistence-read-test",
     ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([

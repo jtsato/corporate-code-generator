@@ -16,6 +16,14 @@ import { toJavaFieldName } from "../naming/JavaFieldName.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 
+/**
+ * Spring Data Querydsl executor used by generated repositories. `ListQuerydslPredicateExecutor`
+ * returns `List` from `findAll(Predicate)`; `QuerydslPredicateExecutor` returns `Iterable` and
+ * requires the provider to convert explicitly. See ADR-036.
+ */
+const querydslPredicateExecutorType = "ListQuerydslPredicateExecutor";
+const requiresIterableConversion = false;
+
 export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
   implements GenerationArtifactProducer {
   public readonly profileId = "java-spring-clean-multimodule";
@@ -81,6 +89,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       repositoryImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
       repositoryImports.add(identifierType.import);
       repositoryImports.add("org.springframework.data.jpa.repository.JpaRepository");
+      repositoryImports.add(`org.springframework.data.querydsl.${querydslPredicateExecutorType}`);
       const repositoryModel: JavaSpringDataRepositoryTemplateModel = {
         packageName: `${namespace}.infra.domains.${domainName}.repository`,
         imports: repositoryImports.values(),
@@ -88,13 +97,24 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         entityType: `${entityType}Entity`,
         identifierType: identifierType.name,
         baseRepositoryType: "JpaRepository",
+        additionalInterfaces: [`${querydslPredicateExecutorType}<${entityType}Entity>`],
       };
       const imports = new JavaImportCollector();
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
       imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
       imports.add(`${namespace}.infra.domains.${domainName}.mapper.${mapperModel.className}`);
       imports.add(`${namespace}.infra.domains.${domainName}.repository.${repositoryModel.interfaceName}`);
+      imports.add(`${namespace}.core.common.filter.FilterExpression`);
+      imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+      imports.add(`${namespace}.infra.database.common.filter.QuerydslFilterMapper`);
+      imports.add(`${namespace}.infra.database.domains.${domainName}.filter.${entityType}QuerydslFilterDefinition`);
+      imports.add("com.querydsl.core.types.dsl.BooleanExpression");
       imports.add("java.util.List");
+      imports.add("java.util.Objects");
+      imports.add("java.util.Optional");
+      if (requiresIterableConversion) {
+        imports.add("java.util.stream.StreamSupport");
+      }
       const repositoryFieldName = toJavaFieldName(repositoryModel.interfaceName);
       const model: JavaGatewayProviderTemplateModel = {
         packageName: `${namespace}.infra.domains.${domainName}`,
@@ -109,6 +129,16 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         mapperType: mapperModel.className,
         repositoryFindAllMethodName: "findAll",
         mapperToDomainMethodName: "toDomain",
+        findByFilterMethodName: "findByFilter",
+        filterExpressionType: "FilterExpression",
+        filterExpressionParameterName: "filterExpression",
+        filterMapperType: "QuerydslFilterMapper",
+        filterMapperMethodName: "toPredicate",
+        filterDefinitionType: `${entityType}QuerydslFilterDefinition`,
+        filterDefinitionFactoryMethodName: "create",
+        persistenceEntityType: `${entityType}Entity`,
+        persistenceEntitiesVariableName: toJavaFieldName(`${entityType}Entities`),
+        requiresIterableConversion,
       };
 
       return [

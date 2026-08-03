@@ -24,10 +24,39 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const gatewayType = `${entityType}Gateway`;
       const useCaseType = `Find${toJavaPluralTypeName(entityType)}UseCase`;
       const interactorType = `${useCaseType}Interactor`;
+      const byFilterUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterUseCase`;
+      const byFilterInteractorType = `${byFilterUseCaseType}Interactor`;
       const domainPackage = `${namespace}.core.domains.${domainName}`;
+      const filterPackage = `${namespace}.core.common.filter`;
+      const exceptionPackage = `${namespace}.core.common.exception`;
       const entityImports = new JavaImportCollector();
       entityImports.add(`${domainPackage}.model.${entityType}`);
       entityImports.add("java.util.List");
+      const gatewayImports = new JavaImportCollector();
+      gatewayImports.add(`${filterPackage}.FilterExpression`);
+      gatewayImports.add(`${domainPackage}.model.${entityType}`);
+      gatewayImports.add("java.util.List");
+      const byFilterUseCaseImports = new JavaImportCollector();
+      byFilterUseCaseImports.add(`${filterPackage}.FilterExpression`);
+      byFilterUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterUseCaseImports.add("java.util.List");
+      const byFilterInteractorImports = new JavaImportCollector();
+      byFilterInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      byFilterInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      byFilterInteractorImports.add(`${filterPackage}.FilterExpression`);
+      byFilterInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      byFilterInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterInteractorImports.add("java.util.List");
+      const byFilterInteractorTestImports = new JavaImportCollector();
+      byFilterInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      byFilterInteractorTestImports.add(`${filterPackage}.FilterCondition`);
+      byFilterInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      byFilterInteractorTestImports.add(`${filterPackage}.FilterGroup`);
+      byFilterInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      byFilterInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterInteractorTestImports.add("java.util.ArrayList");
+      byFilterInteractorTestImports.add("java.util.List");
+      byFilterInteractorTestImports.add("org.junit.jupiter.api.Test");
       const outputVariables = {
         packagePath: namespace.replaceAll(".", "/"),
         domainName,
@@ -48,10 +77,13 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           templateId: "core-gateway",
           model: {
             packageName: `${domainPackage}.gateway`,
-            imports: entityImports.values(),
+            imports: gatewayImports.values(),
             interfaceName: gatewayType,
             entityType,
             findAllMethodName: "findAll",
+            findByFilterMethodName: "findByFilter",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
           },
           outputVariables: { ...outputVariables, className: gatewayType },
         },
@@ -84,6 +116,58 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             gatewayFindAllMethodName: "findAll",
           },
           outputVariables: { ...outputVariables, className: interactorType },
+        },
+        {
+          templateId: "core-find-usecase-by-filter",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterUseCaseImports.values(),
+            interfaceName: byFilterUseCaseType,
+            entityType,
+            executeMethodName: "execute",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+          },
+          outputVariables: { ...outputVariables, className: byFilterUseCaseType },
+        },
+        {
+          templateId: "core-find-usecase-by-filter-interactor",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterInteractorImports.values(),
+            className: byFilterInteractorType,
+            interfaceName: byFilterUseCaseType,
+            gatewayType,
+            gatewayFieldName: `${domainName}Gateway`,
+            entityType,
+            executeMethodName: "execute",
+            gatewayFindByFilterMethodName: "findByFilter",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            requiredMessageKey: "common.filter.expression.required",
+            requiredDefaultMessage: "Filter expression is required.",
+          },
+          outputVariables: { ...outputVariables, className: byFilterInteractorType },
+        },
+        {
+          templateId: "core-find-usecase-by-filter-interactor-test",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterInteractorTestImports.values(),
+            className: `${byFilterInteractorType}Tests`,
+            interactorType: byFilterInteractorType,
+            fakeGatewayType: `Fake${gatewayType}`,
+            gatewayType,
+            entityType,
+            executeMethodName: "execute",
+            gatewayFindAllMethodName: "findAll",
+            gatewayFindByFilterMethodName: "findByFilter",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            requiredMessageKey: "common.filter.expression.required",
+            sampleFieldName: entity.attributes[0]!.name,
+          },
+          outputVariables: { ...outputVariables, className: `${byFilterInteractorType}Tests` },
         },
       ];
     });

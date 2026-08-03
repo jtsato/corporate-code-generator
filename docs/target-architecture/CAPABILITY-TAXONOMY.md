@@ -4,7 +4,7 @@ Configuration profiles and properties-driven CORS are implemented default capabi
 
 Core self-validation is an implemented default capability: required attributes map to Jakarta Validation `@NotNull` and `SelfValidating<T>`. The Core is Jakarta-aware but Spring-free; provider dependencies remain runtime/test infrastructure. Its dedicated quality gate is `smoke:validation:java-multimodule`, while REST DTO validation remains future work.
 
-Core Paging Common, Core Filter Common, the passive REST Filter Contract Foundation, the Spring Data Paging Adapter, the passive Querydsl foundation, and the Generated Java CI Pipeline are implemented. REST Filter Contract is an `entrypoints-rest` default passive foundation: it parses lowercase REST aliases into the Core expression model using a per-entity public-to-domain field allowlist. It does not wire filters into controllers or OpenAPI, map expressions to Querydsl, or alter repository runtime behavior. The CI foundation belongs to the build module and generates GitHub Actions with Java 25 and `mvn -B clean verify`. JaCoCo, PIT, Sonar, Testcontainers, and Docker remain future or optional capabilities. OpenAPI filter docs, controller wiring, Querydsl/runtime filtering, OR/nested parsing, type conversion, persistence field mapping, and comma escaping remain future capabilities.
+Core Paging Common, Core Filter Common, the passive REST Filter Contract Foundation, the Spring Data Paging Adapter, the entity-aware Querydsl filter mapper foundation, and the Generated Java CI Pipeline are implemented. REST Filter Contract is an `entrypoints-rest` default passive foundation: it parses lowercase REST aliases into the Core expression model using a per-entity public-to-domain field allowlist. It does not wire filters into controllers or OpenAPI. Querydsl filter runtime integration is implemented separately: a generated `Find<Entity>ByFilterUseCase` reaches the database through `findByFilter(FilterExpression)` on the gateway and `ListQuerydslPredicateExecutor` on the repository, so repository runtime behavior is now filterable without any HTTP surface. The CI foundation belongs to the build module and generates GitHub Actions with Java 25 and `mvn -B clean verify`. JaCoCo, PIT, Sonar, Testcontainers, and Docker remain future or optional capabilities. OpenAPI filter docs, controller wiring, OR/nested REST parsing, REST type conversion, persistence field mapping, comma escaping, and filtered paging/sorting remain future capabilities.
 
 ## Status and scope
 
@@ -49,7 +49,7 @@ not require external infrastructure or undeclared domain intent.
 
 ### Baseline defaults
 
-The future `java-spring-clean-multimodule` profile baseline is:
+The implemented `java-spring-clean-multimodule` profile baseline is 82 artifacts (build 6, Core 28, entrypoints-rest 38, Infra 46, Configuration 82). The build+core selection is 34 artifacts and build+configuration is 82. Selection counts for `entrypoints-rest` and `infra-database` include Core transitively, since both declare `requires: [core]`. Its baseline capabilities are:
 
 - `archunit`;
 - `jacoco`;
@@ -60,6 +60,8 @@ The future `java-spring-clean-multimodule` profile baseline is:
 - configuration profiles;
 - `core-paging` common artifacts.
 - `core-filter` common artifacts.
+- entity-aware Querydsl filter definition and mapper foundation.
+- Querydsl filter runtime integration through a filtered use case.
 
 `archunit` is implemented as the default architecture guardrail of
 `java-spring-clean-multimodule`: it generates production-only architecture

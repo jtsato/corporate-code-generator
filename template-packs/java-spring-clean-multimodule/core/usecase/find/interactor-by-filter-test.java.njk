@@ -1,0 +1,71 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+class {{ className }} {
+    private static final class {{ fakeGatewayType }} implements {{ gatewayType }} {
+        private final List<{{ entityType }}> result = new ArrayList<>();
+        private {{ filterExpressionType }} received;
+        private int findAllCallCount;
+        private int findByFilterCallCount;
+
+        @Override
+        public List<{{ entityType }}> {{ gatewayFindAllMethodName }}() {
+            findAllCallCount++;
+            return result;
+        }
+
+        @Override
+        public List<{{ entityType }}> {{ gatewayFindByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) {
+            findByFilterCallCount++;
+            received = {{ filterExpressionParameterName }};
+            return result;
+        }
+    }
+
+    @Test
+    void shouldDelegateFilterExpressionToGatewayWithoutModifyingIt() {
+        var gateway = new {{ fakeGatewayType }}();
+        var expression = {{ filterExpressionType }}.of(FilterGroup.and(List.of(FilterCondition.isNotNull("{{ sampleFieldName }}"))));
+
+        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(expression);
+
+        assertSame(expression, gateway.received);
+        assertSame(gateway.result, result);
+        assertEquals(1, gateway.findByFilterCallCount);
+        assertEquals(0, gateway.findAllCallCount);
+    }
+
+    @Test
+    void shouldAcceptEmptyFilterExpression() {
+        var gateway = new {{ fakeGatewayType }}();
+        var expression = {{ filterExpressionType }}.empty();
+
+        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(expression);
+
+        assertSame(expression, gateway.received);
+        assertFalse(gateway.received.hasFilters());
+        assertSame(gateway.result, result);
+        assertEquals(1, gateway.findByFilterCallCount);
+    }
+
+    @Test
+    void shouldRejectNullFilterExpression() {
+        var gateway = new {{ fakeGatewayType }}();
+
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null)
+        );
+
+        assertEquals("{{ filterExpressionParameterName }}", exception.getFields().getFirst().name());
+        assertEquals("{{ requiredMessageKey }}", exception.getFields().getFirst().messageKey());
+        assertEquals(0, gateway.findByFilterCallCount);
+        assertEquals(0, gateway.findAllCallCount);
+    }
+}

@@ -16,4 +16,27 @@ public class {{ className }} implements {{ gatewayType }} {
             .map({{ mapperType }}::{{ mapperToDomainMethodName }})
             .toList();
     }
+
+    @Override
+    public List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) {
+        Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
+
+        Optional<BooleanExpression> predicate = {{ filterMapperType }}.{{ filterMapperMethodName }}(
+            {{ filterExpressionParameterName }},
+            {{ filterDefinitionType }}.{{ filterDefinitionFactoryMethodName }}()
+        );
+
+{% if requiresIterableConversion %}        Iterable<{{ persistenceEntityType }}> {{ persistenceEntitiesVariableName }} = predicate.isPresent()
+            ? {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}(predicate.get())
+            : {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}();
+
+        return StreamSupport.stream({{ persistenceEntitiesVariableName }}.spliterator(), false)
+{% else %}        List<{{ persistenceEntityType }}> {{ persistenceEntitiesVariableName }} = predicate
+            .map({{ repositoryFieldName }}::{{ repositoryFindAllMethodName }})
+            .orElseGet(() -> {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}());
+
+        return {{ persistenceEntitiesVariableName }}.stream()
+{% endif %}            .map({{ mapperType }}::{{ mapperToDomainMethodName }})
+            .toList();
+    }
 }

@@ -23,6 +23,7 @@ import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
+import { createJavaQuerydslFilterPersistenceTestModel } from "../transformers/createJavaQuerydslFilterPersistenceTestModel.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements GenerationArtifactProducer {
@@ -84,10 +85,13 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const entityType = toJavaTypeName(entity.name);
         const gatewayType = `${entityType}Gateway`;
         const useCaseType = `Find${toJavaPluralTypeName(entityType)}UseCase`;
+        const byFilterUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterUseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
@@ -105,6 +109,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           useCaseType,
           useCaseImplementationType: `${useCaseType}Interactor`,
           gatewayParameterName: `${domainName}Gateway`,
+          byFilterUseCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}ByFilterUseCase`,
+          byFilterUseCaseType,
+          byFilterUseCaseImplementationType: `${byFilterUseCaseType}Interactor`,
         };
 
         return {
@@ -266,6 +273,23 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           outputVariables: {
             ...outputVariables,
             className: persistenceReadModel.className,
+          },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const filterPersistenceModel = createJavaQuerydslFilterPersistenceTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+
+        return {
+          templateId: "configuration-querydsl-filter-persistence-test",
+          model: filterPersistenceModel,
+          outputVariables: {
+            ...outputVariables,
+            className: filterPersistenceModel.className,
           },
         };
       }),
