@@ -18,6 +18,18 @@ public class {{ className }} implements {{ gatewayType }} {
     }
 
     @Override
+    public {{ entityType }} {{ findByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
+        Objects.requireNonNull({{ identifierParameterName }}, "{{ identifierParameterName }}");
+
+        return {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ identifierParameterName }})
+            .map({{ mapperType }}::{{ mapperToDomainMethodName }})
+            .orElseThrow(() -> new {{ notFoundExceptionType }}(
+                "{{ notFoundMessageKey }}",
+                "{{ notFoundDefaultMessage }}"
+            ));
+    }
+
+    @Override
     public List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) {
         Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
 

@@ -1,0 +1,63 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+class {{ className }} {
+    private static final class {{ fakeGatewayType }} implements {{ gatewayType }} {
+        private {{ identifierType }} received;
+        private {{ entityType }} result;
+        private int findByIdCallCount;
+
+        @Override
+        public List<{{ entityType }}> {{ gatewayFindAllMethodName }}() { return List.of(); }
+
+        @Override
+        public List<{{ entityType }}> {{ gatewayFindByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) { return List.of(); }
+
+        @Override
+        public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindPageMethodName }}({{ pageRequestType }} {{ pageRequestParameterName }}) { return null; }
+
+        @Override
+        public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }}) { return null; }
+
+        @Override
+        public {{ entityType }} {{ gatewayFindByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
+            findByIdCallCount++;
+            received = {{ identifierParameterName }};
+            return result;
+        }
+    }
+
+    @Test
+    void shouldDelegateIdentifierToGatewayAndReturnItsResult() {
+        var gateway = new {{ fakeGatewayType }}();
+        var identifier = {{ identifierValueExpression }};
+        gateway.result = new {{ entityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+
+        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(identifier);
+
+        assertSame(identifier, gateway.received);
+        assertSame(gateway.result, result);
+        assertEquals(1, gateway.findByIdCallCount);
+    }
+
+    @Test
+    void shouldRejectNullIdentifier() {
+        var gateway = new {{ fakeGatewayType }}();
+
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null)
+        );
+
+        assertEquals("{{ identifierParameterName }}", exception.getFields().getFirst().name());
+        assertEquals("{{ requiredMessageKey }}", exception.getFields().getFirst().messageKey());
+        assertEquals(0, gateway.findByIdCallCount);
+    }
+}

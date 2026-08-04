@@ -43,6 +43,11 @@ class {{ className }} {
             receivedPageRequest = pageRequest;
             return pageResult;
         }
+
+        @Override
+        public {{ entityType }} {{ gatewayFindByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
+            return null;
+        }
     }
 
     @Test

@@ -80,6 +80,25 @@ class WalletOpenApiSmokeTests {
         assertThat(sort.path("description").asText()).contains("<field>:<direction>");
     }
 
+    @Test void documentsFindByIdOperation() throws Exception {
+        JsonNode document = document();
+        JsonNode operation = findByIdOperation(document);
+        JsonNode parameter = findParameter(operation.path("parameters"), "id");
+
+        assertThat(parameter.path("in").asText()).isEqualTo("path");
+        assertThat(parameter.path("required").asBoolean(false)).isTrue();
+        assertThat(parameter.path("schema").path("type").asText()).isEqualTo("string");
+        assertThat(parameter.path("schema").path("format").asText()).isEqualTo("uuid");
+        JsonNode response = operation.path("responses").path("200");
+        JsonNode content = response.path("content");
+        JsonNode media = content.has("application/json") ? content.path("application/json") : content.path("*/*");
+        String responseReference = media.path("schema").path("$ref").asText("");
+        assertThat(responseReference).contains("WalletResponse");
+        assertThat(operation.path("responses").has("400")).isTrue();
+        assertThat(operation.path("responses").has("404")).isTrue();
+        assertThat(operation.path("responses").has("500")).isTrue();
+    }
+
     private JsonNode document() throws Exception {
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/v3/api-docs")).GET().build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -91,6 +110,12 @@ class WalletOpenApiSmokeTests {
         assertThat(document.path("paths").has("/wallets")).isTrue();
         assertThat(document.path("paths").path("/wallets").has("get")).isTrue();
         return document.path("paths").path("/wallets").path("get");
+    }
+
+    private JsonNode findByIdOperation(JsonNode document) {
+        assertThat(document.path("paths").has("/wallets/{id}")).isTrue();
+        assertThat(document.path("paths").path("/wallets/{id}").has("get")).isTrue();
+        return document.path("paths").path("/wallets/{id}").path("get");
     }
 
     private static JsonNode resolveSchema(JsonNode document, JsonNode schema) {

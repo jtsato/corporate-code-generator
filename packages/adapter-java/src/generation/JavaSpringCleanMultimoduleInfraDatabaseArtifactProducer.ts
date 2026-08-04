@@ -102,6 +102,8 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       const imports = new JavaImportCollector();
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
       imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+      imports.add(`${namespace}.core.common.exception.NotFoundException`);
+      imports.add(identifierType.import);
       imports.add(`${namespace}.infra.domains.${domainName}.mapper.${mapperModel.className}`);
       imports.add(`${namespace}.infra.domains.${domainName}.repository.${repositoryModel.interfaceName}`);
       imports.add(`${namespace}.core.common.filter.FilterExpression`);
@@ -136,6 +138,13 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         mapperType: mapperModel.className,
         repositoryFindAllMethodName: "findAll",
         mapperToDomainMethodName: "toDomain",
+        identifierType: identifierType.name,
+        identifierParameterName: identifiers[0]!.name,
+        findByIdMethodName: "findById",
+        repositoryFindByIdMethodName: "findById",
+        notFoundExceptionType: "NotFoundException",
+        notFoundMessageKey: `${toJavaPackageSegment(entity.name)}.not-found`,
+        notFoundDefaultMessage: `${entityType} was not found.`,
         findByFilterMethodName: "findByFilter",
         filterExpressionType: "FilterExpression",
         filterExpressionParameterName: "filterExpression",

@@ -12,6 +12,13 @@ export interface JavaDelegatingRestControllerTemplateModel {
   readonly useCaseType: string;
   readonly useCaseFieldName: string;
   readonly useCaseExecuteMethodName: string;
+  readonly byIdUseCaseType: string;
+  readonly byIdUseCaseFieldName: string;
+  readonly identifierType: string;
+  readonly identifierParameterName: string;
+  readonly findByIdMethodName: string;
+  readonly findByIdOperationSummary: string;
+  readonly findByIdOperationDescription: string;
   readonly responseFactoryMethodName: string;
   readonly tagName: string;
   readonly tagDescription: string;

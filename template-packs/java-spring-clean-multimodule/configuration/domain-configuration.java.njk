@@ -15,6 +15,11 @@ public class {{ className }} {
     }
 
     @Bean
+    public {{ byIdUseCaseType }} {{ byIdUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ byIdUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
+
+    @Bean
     public {{ byFilterUseCaseType }} {{ byFilterUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
         return new {{ byFilterUseCaseImplementationType }}({{ gatewayParameterName }});
     }

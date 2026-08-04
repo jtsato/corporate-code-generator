@@ -11,6 +11,13 @@ export interface JavaGatewayProviderTemplateModel {
   readonly mapperType: string;
   readonly repositoryFindAllMethodName: string;
   readonly mapperToDomainMethodName: string;
+  readonly identifierType: string;
+  readonly identifierParameterName: string;
+  readonly findByIdMethodName: string;
+  readonly repositoryFindByIdMethodName: string;
+  readonly notFoundExceptionType: string;
+  readonly notFoundMessageKey: string;
+  readonly notFoundDefaultMessage: string;
   readonly findByFilterMethodName: string;
   readonly filterExpressionType: string;
   readonly filterExpressionParameterName: string;

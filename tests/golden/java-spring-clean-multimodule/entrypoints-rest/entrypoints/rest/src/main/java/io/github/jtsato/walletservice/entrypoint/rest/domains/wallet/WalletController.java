@@ -5,6 +5,7 @@ import io.github.jtsato.walletservice.core.common.paging.PageRequest;
 import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.common.paging.SortOrder;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase;
 import io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser;
 import io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus;
@@ -12,6 +13,7 @@ import io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser
 import io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter.WalletRestFilterDefinition;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.sort.WalletRestSortDefinition;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,7 +23,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,9 +36,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Wallets", description = "Wallet operations")
 public class WalletController {
     private final FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase;
+    private final FindWalletByIdUseCase findWalletByIdUseCase;
 
-    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase) {
+    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase, FindWalletByIdUseCase findWalletByIdUseCase) {
         this.findWalletsByFilterPageUseCase = findWalletsByFilterPageUseCase;
+        this.findWalletByIdUseCase = findWalletByIdUseCase;
     }
 
     @GetMapping
@@ -67,5 +73,19 @@ public class WalletController {
             .map(WalletResponse::from)
             .toList();
         return new WalletPageResponse(items, result.page(), result.size(), result.totalItems(), result.totalPages());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Find wallet by id", description = "Returns a wallet by its identifier.")
+    @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Wallet found", content = @Content(schema = @Schema(implementation = WalletResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "Wallet not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public WalletResponse findById(@PathVariable UUID id) {
+        Wallet result = findWalletByIdUseCase.execute(id);
+        return WalletResponse.from(result);
     }
 }

@@ -8,9 +8,11 @@ package {{ packageName }};
 @Tag(name = "{{ tagName }}", description = "{{ tagDescription }}")
 public class {{ className }} {
     private final {{ useCaseType }} {{ useCaseFieldName }};
+    private final {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }};
 
-    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}) {
+    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}, {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }}) {
         this.{{ useCaseFieldName }} = {{ useCaseFieldName }};
+        this.{{ byIdUseCaseFieldName }} = {{ byIdUseCaseFieldName }};
     }
 
     @GetMapping
@@ -43,5 +45,19 @@ public class {{ className }} {
             .map({{ responseClassName }}::{{ responseFactoryMethodName }})
             .toList();
         return new {{ pageResponseClassName }}(items, result.page(), result.size(), result.totalItems(), result.totalPages());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "{{ findByIdOperationSummary }}", description = "{{ findByIdOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "{{ domainClassName }} found", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public {{ responseClassName }} {{ findByIdMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}) {
+        {{ domainClassName }} result = {{ byIdUseCaseFieldName }}.{{ useCaseExecuteMethodName }}({{ identifierParameterName }});
+        return {{ responseClassName }}.{{ responseFactoryMethodName }}(result);
     }
 }

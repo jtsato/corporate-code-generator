@@ -5,6 +5,7 @@ import io.github.jtsato.walletservice.core.common.paging.PageRequest;
 import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
 import java.util.List;
+import java.util.UUID;
 
 public interface WalletGateway {
     List<Wallet> findAll();
@@ -14,4 +15,6 @@ public interface WalletGateway {
     PageResult<Wallet> findPage(PageRequest pageRequest);
 
     PageResult<Wallet> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest);
+
+    Wallet findById(UUID id);
 }

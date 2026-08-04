@@ -1,6 +1,7 @@
 package io.github.jtsato.walletservice.infra.domains.wallet;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import io.github.jtsato.walletservice.core.common.exception.NotFoundException;
 import io.github.jtsato.walletservice.core.common.filter.FilterExpression;
 import io.github.jtsato.walletservice.core.common.paging.PageRequest;
 import io.github.jtsato.walletservice.core.common.paging.PageResult;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -33,6 +35,18 @@ public class WalletGatewayProvider implements WalletGateway {
             .stream()
             .map(WalletPersistenceMapper::toDomain)
             .toList();
+    }
+
+    @Override
+    public Wallet findById(UUID id) {
+        Objects.requireNonNull(id, "id");
+
+        return walletRepository.findById(id)
+            .map(WalletPersistenceMapper::toDomain)
+            .orElseThrow(() -> new NotFoundException(
+                "wallet.not-found",
+                "Wallet was not found."
+            ));
     }
 
     @Override

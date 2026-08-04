@@ -15,6 +15,7 @@ import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class FindWalletsByFilterUseCaseInteractorTests {
@@ -44,6 +45,11 @@ class FindWalletsByFilterUseCaseInteractorTests {
 
         @Override
         public PageResult<Wallet> findPage(PageRequest pageRequest) {
+            return null;
+        }
+
+        @Override
+        public Wallet findById(UUID id) {
             return null;
         }
     }

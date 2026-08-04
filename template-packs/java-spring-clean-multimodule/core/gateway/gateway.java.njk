@@ -10,4 +10,6 @@ public interface {{ interfaceName }} {
     {{ pageResultType }}<{{ entityType }}> {{ findPageMethodName }}({{ pageRequestType }} {{ pageRequestParameterName }});
 
     {{ pageResultType }}<{{ entityType }}> {{ findByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }});
+
+    {{ entityType }} {{ findByIdMethodName }}({{ identifierType }} {{ identifierParameterName }});
 }

@@ -4,13 +4,20 @@ import type {
   TemplateInvocation,
 } from "@corporate-code-generator/core";
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
+import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
 import { createJavaEntityTemplateModel } from "../transformers/createJavaEntityTemplateModel.js";
+import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 export class JavaSpringCleanMultimoduleCoreArtifactProducer implements GenerationArtifactProducer {
   public readonly profileId = "java-spring-clean-multimodule";
   public readonly moduleId = "core";
+
+  public constructor(
+    private readonly typeResolver: JavaTypeResolver = new JavaTypeResolver(),
+    private readonly fixtureResolver: JavaTestFixtureValueResolver = new JavaTestFixtureValueResolver(),
+  ) {}
 
   public produce(request: GenerationRequest): readonly TemplateInvocation[] {
     const namespace = request.application.namespace;
@@ -30,10 +37,18 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const pageInteractorType = `${pageUseCaseType}Interactor`;
       const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
       const byFilterPageInteractorType = `${byFilterPageUseCaseType}Interactor`;
+      const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
+      const byIdInteractorType = `${byIdUseCaseType}Interactor`;
       const domainPackage = `${namespace}.core.domains.${domainName}`;
       const filterPackage = `${namespace}.core.common.filter`;
       const pagingPackage = `${namespace}.core.common.paging`;
       const exceptionPackage = `${namespace}.core.common.exception`;
+      const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
+      if (identifiers.length !== 1) {
+        throw new Error(`Cannot generate find-by-id use case for entity '${entity.name}' without exactly one identifier attribute.`);
+      }
+      const identifier = identifiers[0]!;
+      const identifierType = this.typeResolver.resolve(identifier.type);
       const entityImports = new JavaImportCollector();
       entityImports.add(`${domainPackage}.model.${entityType}`);
       entityImports.add("java.util.List");
@@ -42,6 +57,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       gatewayImports.add(`${pagingPackage}.PageRequest`);
       gatewayImports.add(`${pagingPackage}.PageResult`);
       gatewayImports.add(`${domainPackage}.model.${entityType}`);
+      gatewayImports.add(identifierType.import);
       gatewayImports.add("java.util.List");
       const pageUseCaseImports = new JavaImportCollector();
       pageUseCaseImports.add(`${pagingPackage}.PageRequest`);
@@ -64,6 +80,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       pageInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
       pageInteractorTestImports.add("java.util.List");
       pageInteractorTestImports.add("org.junit.jupiter.api.Test");
+      pageInteractorTestImports.add(identifierType.import);
       const byFilterPageUseCaseImports = new JavaImportCollector();
       byFilterPageUseCaseImports.add(`${filterPackage}.FilterExpression`);
       byFilterPageUseCaseImports.add(`${pagingPackage}.PageRequest`);
@@ -90,6 +107,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       byFilterPageInteractorTestImports.add("java.util.ArrayList");
       byFilterPageInteractorTestImports.add("java.util.List");
       byFilterPageInteractorTestImports.add("org.junit.jupiter.api.Test");
+      byFilterPageInteractorTestImports.add(identifierType.import);
       const byFilterUseCaseImports = new JavaImportCollector();
       byFilterUseCaseImports.add(`${filterPackage}.FilterExpression`);
       byFilterUseCaseImports.add(`${domainPackage}.model.${entityType}`);
@@ -113,6 +131,30 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       byFilterInteractorTestImports.add("java.util.ArrayList");
       byFilterInteractorTestImports.add("java.util.List");
       byFilterInteractorTestImports.add("org.junit.jupiter.api.Test");
+      byFilterInteractorTestImports.add(identifierType.import);
+      const byIdUseCaseImports = new JavaImportCollector();
+      byIdUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      byIdUseCaseImports.add(identifierType.import);
+      const byIdInteractorImports = new JavaImportCollector();
+      byIdInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      byIdInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      byIdInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      byIdInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      byIdInteractorImports.add("java.util.List");
+      byIdInteractorImports.add(identifierType.import);
+      const byIdInteractorTestImports = new JavaImportCollector();
+      byIdInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      byIdInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      byIdInteractorTestImports.add(`${pagingPackage}.PageRequest`);
+      byIdInteractorTestImports.add(`${pagingPackage}.PageResult`);
+      byIdInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      byIdInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      byIdInteractorTestImports.add("java.util.List");
+      byIdInteractorTestImports.add(identifierType.import);
+      byIdInteractorTestImports.add("org.junit.jupiter.api.Test");
+      for (const attribute of entity.attributes) {
+        byIdInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
+      }
       const outputVariables = {
         packagePath: namespace.replaceAll(".", "/"),
         domainName,
@@ -145,6 +187,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             pageRequestType: "PageRequest",
             pageRequestParameterName: "pageRequest",
             pageResultType: "PageResult",
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            findByIdMethodName: "findById",
           },
           outputVariables: { ...outputVariables, className: gatewayType },
         },
@@ -177,6 +222,69 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             gatewayFindAllMethodName: "findAll",
           },
           outputVariables: { ...outputVariables, className: interactorType },
+        },
+        {
+          templateId: "core-find-usecase-by-id",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byIdUseCaseImports.values(),
+            interfaceName: byIdUseCaseType,
+            entityType,
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            executeMethodName: "execute",
+          },
+          outputVariables: { ...outputVariables, className: byIdUseCaseType },
+        },
+        {
+          templateId: "core-find-usecase-by-id-interactor",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byIdInteractorImports.values(),
+            className: byIdInteractorType,
+            interfaceName: byIdUseCaseType,
+            gatewayType,
+            gatewayFieldName: `${domainName}Gateway`,
+            entityType,
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            executeMethodName: "execute",
+            gatewayFindByIdMethodName: "findById",
+            requiredMessageKey: "common.identifier.required",
+            requiredDefaultMessage: "Identifier is required.",
+          },
+          outputVariables: { ...outputVariables, className: byIdInteractorType },
+        },
+        {
+          templateId: "core-find-usecase-by-id-interactor-test",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byIdInteractorTestImports.values(),
+            className: `${byIdInteractorType}Tests`,
+            interactorType: byIdInteractorType,
+            fakeGatewayType: `Fake${gatewayType}`,
+            gatewayType,
+            entityType,
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            identifierValueExpression: this.fixtureResolver.resolve(identifier.type, 0).javaExpression,
+            entityConstructorArguments: entity.attributes.map((attribute, index) =>
+              this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+            ),
+            executeMethodName: "execute",
+            gatewayFindAllMethodName: "findAll",
+            gatewayFindByFilterMethodName: "findByFilter",
+            gatewayFindPageMethodName: "findPage",
+            gatewayFindByFilterPageMethodName: "findByFilterPage",
+            gatewayFindByIdMethodName: "findById",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            pageRequestType: "PageRequest",
+            pageRequestParameterName: "pageRequest",
+            pageResultType: "PageResult",
+            requiredMessageKey: "common.identifier.required",
+          },
+          outputVariables: { ...outputVariables, className: `${byIdInteractorType}Tests` },
         },
         {
           templateId: "core-find-usecase-by-filter",
@@ -232,6 +340,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             pageRequestType: "PageRequest",
             pageRequestParameterName: "pageRequest",
             pageResultType: "PageResult",
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            gatewayFindByIdMethodName: "findById",
           },
           outputVariables: { ...outputVariables, className: `${byFilterInteractorType}Tests` },
         },
@@ -298,6 +409,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             requiredFilterMessageKey: "common.filter.expression.required",
             requiredPageMessageKey: "common.paging.page-request.required",
             sampleFieldName: entity.attributes[0]!.name,
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            gatewayFindByIdMethodName: "findById",
           },
           outputVariables: { ...outputVariables, className: `${byFilterPageInteractorType}Tests` },
         },
@@ -356,6 +470,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             pageRequestParameterName: "pageRequest",
             pageResultType: "PageResult",
             requiredMessageKey: "common.paging.page-request.required",
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            gatewayFindByIdMethodName: "findById",
           },
           outputVariables: { ...outputVariables, className: `${pageInteractorType}Tests` },
         },

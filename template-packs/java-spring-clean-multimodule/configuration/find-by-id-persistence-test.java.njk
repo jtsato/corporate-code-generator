@@ -1,0 +1,40 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in fixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}
+    @Autowired
+    private {{ useCaseType }} {{ useCaseFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldFindPersisted{{ domainEntityType }}ByIdentifier() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for fixture in fixtures %}            {{ fixture.constantName }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        {{ domainEntityType }} result = {{ useCaseFieldName }}.execute({{ identifierConstantName }});
+
+{% for fixture in fixtures %}        assertThat(result.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}    }
+
+    @Test
+    void shouldRejectUnknownIdentifier() {
+        assertThatThrownBy(() -> {{ useCaseFieldName }}.execute({{ missingIdentifierExpression }}))
+            .isInstanceOf({{ notFoundExceptionType }}.class);
+    }
+}

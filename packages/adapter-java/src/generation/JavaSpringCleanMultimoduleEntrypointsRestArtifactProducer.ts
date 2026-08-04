@@ -39,11 +39,19 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const controllerName = `${entityType}Controller`;
       const responseName = `${entityType}Response`;
       const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
+      const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
+      const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
+      if (identifiers.length !== 1) {
+        throw new Error(`Cannot generate find-by-id controller for entity '${entity.name}' without exactly one identifier attribute.`);
+      }
+      const identifier = identifiers[0]!;
+      const identifierType = this.typeResolver.resolve(identifier.type);
       const filterDefinitionType = `${entityType}RestFilterDefinition`;
       const sortDefinitionType = `${entityType}RestSortDefinition`;
       const sortParameterDescription = `Sort expression as <field>:<direction>. Repeat to apply multiple orders in order. Fields: ${entity.attributes.map((attribute) => attribute.name).join(", ")}. Directions: asc, desc.`;
       const controllerImports = new JavaImportCollector();
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byIdUseCaseType}`);
       controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
       controllerImports.add(`${namespace}.core.common.paging.PageResult`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -56,12 +64,15 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.sort.${sortDefinitionType}`);
       controllerImports.add(`${namespace}.core.common.paging.SortOrder`);
       controllerImports.add("java.util.List");
+      controllerImports.add(identifierType.import);
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
+      controllerImports.add("org.springframework.web.bind.annotation.PathVariable");
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
       controllerImports.add("org.springframework.web.bind.annotation.RequestParam");
       controllerImports.add("org.springframework.web.bind.annotation.RestController");
       controllerImports.add("io.swagger.v3.oas.annotations.Operation");
       controllerImports.add("io.swagger.v3.oas.annotations.Parameter");
+      controllerImports.add("io.swagger.v3.oas.annotations.enums.ParameterIn");
       controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponse");
       controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponses");
       controllerImports.add("io.swagger.v3.oas.annotations.media.ArraySchema");
@@ -82,6 +93,13 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         useCaseType: byFilterPageUseCaseType,
         useCaseFieldName: toJavaFieldName(byFilterPageUseCaseType),
         useCaseExecuteMethodName: "execute",
+        byIdUseCaseType,
+        byIdUseCaseFieldName: toJavaFieldName(byIdUseCaseType),
+        identifierType: identifierType.name,
+        identifierParameterName: identifier.name,
+        findByIdMethodName: "findById",
+        findByIdOperationSummary: `Find ${entityType.toLowerCase()} by id`,
+        findByIdOperationDescription: `Returns a ${entityType.toLowerCase()} by its identifier.`,
         responseFactoryMethodName: "from",
         tagName: toJavaPluralTypeName(entityType), tagDescription: `${entityType} operations`, operationSummary: `Find ${toJavaPluralTypeName(entityType).toLowerCase()}`, operationDescription: `Returns all ${toJavaPluralTypeName(entityType).toLowerCase()}.`,
         filterParameterName: "filter",

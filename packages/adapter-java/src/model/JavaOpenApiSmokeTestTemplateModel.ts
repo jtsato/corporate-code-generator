@@ -3,6 +3,9 @@ export interface JavaOpenApiSmokeTestTemplateModel {
   readonly className: string;
   readonly title: string;
   readonly endpointPath: string;
+  readonly findByIdEndpointPath: string;
+  readonly identifierParameterName: string;
+  readonly identifierSchemaFormat: string;
   readonly filterParameterName: string;
   readonly filterParameterDescriptionFragment: string;
   readonly sortParameterName: string;

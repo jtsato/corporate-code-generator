@@ -15,6 +15,8 @@ import type { JavaOpenApiSmokeTestTemplateModel } from "../model/JavaOpenApiSmok
 import type { JavaArchUnitTestTemplateModel } from "../model/JavaArchUnitTestTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
+import type { JavaFindByIdPersistenceTestTemplateModel } from "../model/JavaFindByIdPersistenceTestTemplateModel.js";
+import type { JavaHttpFindByIdTestTemplateModel } from "../model/JavaHttpFindByIdTestTemplateModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
 import { toJavaConstantName } from "../naming/JavaConstantName.js";
@@ -70,11 +72,15 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       { key: "common.error.invalid-request", value: "Invalid request." },
       { key: "common.error.not-found", value: "Resource not found." },
       { key: "common.error.internal-server-error", value: "Internal server error." },
+      { key: "common.identifier.required", value: "Identifier is required." },
+      { key: "wallet.not-found", value: "Wallet was not found." },
     ];
     const portugueseMessages = [
       { key: "common.error.invalid-request", value: "Requisição inválida." },
       { key: "common.error.not-found", value: "Recurso não encontrado." },
       { key: "common.error.internal-server-error", value: "Erro interno do servidor." },
+      { key: "common.identifier.required", value: "Identificador é obrigatório." },
+      { key: "wallet.not-found", value: "Carteira não encontrada." },
     ];
 
     return [
@@ -91,10 +97,13 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const byFilterUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterUseCase`;
         const pageUseCaseType = `Find${toJavaPluralTypeName(entityType)}PageUseCase`;
         const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
+        const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byIdUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byIdUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${pageUseCaseType}`);
@@ -118,6 +127,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           useCaseType,
           useCaseImplementationType: `${useCaseType}Interactor`,
           gatewayParameterName: `${domainName}Gateway`,
+          byIdUseCaseBeanMethodName: `find${entityType}ByIdUseCase`,
+          byIdUseCaseType,
+          byIdUseCaseImplementationType: `${byIdUseCaseType}Interactor`,
           byFilterUseCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}ByFilterUseCase`,
           byFilterUseCaseType,
           byFilterUseCaseImplementationType: `${byFilterUseCaseType}Interactor`,
@@ -172,11 +184,16 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         return { templateId: "configuration-cors-smoke-test", model: corsSmokeModel, outputVariables: { ...outputVariables, className: corsSmokeModel.className } };
       }),
       ...request.application.entities.map((entity) => {
+        const identifier = entity.attributes.find((attribute) => attribute.identifier);
+        if (identifier === undefined) throw new Error(`Cannot generate OpenAPI find-by-id smoke test for entity '${entity.name}' without an identifier.`);
         const model: JavaOpenApiSmokeTestTemplateModel = {
           packageName: namespace,
           className: `${toJavaTypeName(entity.name)}OpenApiSmokeTests`,
           title: openApiConfiguration.title,
           endpointPath: toRestCollectionPath(entity.name),
+          findByIdEndpointPath: `${toRestCollectionPath(entity.name)}/{${identifier.name}}`,
+          identifierParameterName: identifier.name,
+          identifierSchemaFormat: identifier.type === "uuid" ? "uuid" : "",
           filterParameterName: "filter",
           filterParameterDescriptionFragment: "<field>:<operator>[:<value>]",
           sortParameterName: "sort",
@@ -314,6 +331,104 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
             ...outputVariables,
             className: persistenceReadModel.className,
           },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const identifier = entity.attributes.find((attribute) => attribute.identifier);
+        if (identifier === undefined) throw new Error(`Cannot generate find-by-id persistence test for entity '${entity.name}' without an identifier.`);
+        const imports = new JavaImportCollector();
+        const useCaseType = `Find${entityType}ByIdUseCase`;
+        imports.add(`${namespace}.core.common.exception.NotFoundException`);
+        imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
+        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add("org.junit.jupiter.api.AfterEach");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.beans.factory.annotation.Autowired");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.test.context.ActiveProfiles");
+        const fixtures = entity.attributes.map((attribute, index) => {
+          const javaType = this.typeResolver.resolve(attribute.type);
+          imports.add(javaType.import);
+          return {
+            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+            type: javaType.name,
+            javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+            accessorName: `get${toJavaTypeName(attribute.name)}`,
+          };
+        });
+        const persistenceModel: JavaFindByIdPersistenceTestTemplateModel = {
+          packageName: namespace,
+          imports: imports.values(),
+          className: `${entityType}FindByIdPersistenceTests`,
+          activeProfile: "test",
+          useCaseType,
+          useCaseFieldName: toJavaFieldName(useCaseType),
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          persistenceEntityType: `${entityType}Entity`,
+          domainEntityType: entityType,
+          fixtures,
+          identifierConstantName: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
+          notFoundExceptionType: "NotFoundException",
+        };
+        return {
+          templateId: "configuration-find-by-id-persistence-test",
+          model: persistenceModel,
+          outputVariables: { ...outputVariables, className: persistenceModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const identifier = entity.attributes.find((attribute) => attribute.identifier);
+        if (identifier === undefined) throw new Error(`Cannot generate HTTP find-by-id test for entity '${entity.name}' without an identifier.`);
+        const imports = new JavaImportCollector();
+        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add("com.fasterxml.jackson.databind.JsonNode");
+        imports.add("com.fasterxml.jackson.databind.ObjectMapper");
+        imports.add("java.net.URI");
+        imports.add("java.net.http.HttpClient");
+        imports.add("java.net.http.HttpRequest");
+        imports.add("java.net.http.HttpResponse");
+        imports.add("org.junit.jupiter.api.AfterEach");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.beans.factory.annotation.Autowired");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.boot.test.web.server.LocalServerPort");
+        imports.add("org.springframework.test.context.ActiveProfiles");
+        const fixtures = entity.attributes.map((attribute, index) => {
+          const javaType = this.typeResolver.resolve(attribute.type);
+          imports.add(javaType.import);
+          return {
+            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+            type: javaType.name,
+            javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+            jsonName: attribute.name,
+          };
+        });
+        const httpModel: JavaHttpFindByIdTestTemplateModel = {
+          packageName: namespace,
+          imports: imports.values(),
+          className: `${entityType}HttpFindByIdTests`,
+          activeProfile: "test",
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          persistenceEntityType: `${entityType}Entity`,
+          fixtures,
+          identifierConstantName: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
+          endpointPath: toRestCollectionPath(entity.name),
+        };
+        return {
+          templateId: "configuration-http-find-by-id-test",
+          model: httpModel,
+          outputVariables: { ...outputVariables, className: httpModel.className },
         };
       }),
       ...request.application.entities.map((entity) => {
