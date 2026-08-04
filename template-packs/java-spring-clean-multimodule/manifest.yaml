@@ -54,6 +54,18 @@ templates:
     module: core
     template: core/usecase/find/interactor-by-filter-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-by-filter-page
+    module: core
+    template: core/usecase/find/usecase-by-filter-page.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-by-filter-page-interactor
+    module: core
+    template: core/usecase/find/interactor-by-filter-page.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-by-filter-page-interactor-test
+    module: core
+    template: core/usecase/find/interactor-by-filter-page-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
   - id: core-find-usecase-page
     module: core
     template: core/usecase/find/usecase-page.java.njk
@@ -162,6 +174,34 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/common/response-status.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/{{ className }}.java
+  - id: entrypoints-rest-page-response
+    module: entrypoints-rest
+    template: entrypoints-rest/common/domain-page-response.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/{{ className }}.java
+  - id: entrypoints-rest-common-sort-field-definition
+    module: entrypoints-rest
+    template: entrypoints-rest/sort/rest-sort-field-definition.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/sort/{{ className }}.java
+  - id: entrypoints-rest-common-sort-definition
+    module: entrypoints-rest
+    template: entrypoints-rest/sort/rest-sort-definition.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/sort/{{ className }}.java
+  - id: entrypoints-rest-common-sort-parser
+    module: entrypoints-rest
+    template: entrypoints-rest/sort/rest-sort-parser.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/sort/{{ className }}.java
+  - id: entrypoints-rest-common-sort-parser-test
+    module: entrypoints-rest
+    template: entrypoints-rest/sort/rest-sort-parser-test.java.njk
+    output: entrypoints/rest/src/test/java/{{ packagePath }}/entrypoint/rest/common/sort/{{ className }}.java
+  - id: entrypoints-rest-domain-sort-definition
+    module: entrypoints-rest
+    template: entrypoints-rest/sort/domain-sort-definition.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/sort/{{ className }}.java
+  - id: entrypoints-rest-domain-sort-definition-test
+    module: entrypoints-rest
+    template: entrypoints-rest/sort/domain-sort-definition-test.java.njk
+    output: entrypoints/rest/src/test/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/sort/{{ className }}.java
   - id: entrypoints-rest-filter-operator
     module: entrypoints-rest
     template: entrypoints-rest/filter/rest-filter-operator.java.njk
@@ -353,4 +393,8 @@ templates:
   - id: configuration-paging-persistence-test
     module: configuration
     template: configuration/paging-persistence-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-querydsl-filter-paging-persistence-test
+    module: configuration
+    template: configuration/querydsl-filter-paging-persistence-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java

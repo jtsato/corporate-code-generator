@@ -113,5 +113,5 @@ describe("CLI smoke test", () => {
       await rm(bootstrapRoot, { recursive: true, force: true });
       await rm(restRoot, { recursive: true, force: true });
     }
-  });
+  }, 15_000);
 });

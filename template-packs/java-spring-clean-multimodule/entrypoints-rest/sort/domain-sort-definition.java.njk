@@ -1,0 +1,12 @@
+package {{ packageName }};
+
+import {{ commonSortPackage }}.RestSortDefinition;
+import {{ commonSortPackage }}.RestSortFieldDefinition;
+import java.util.List;
+
+public final class {{ className }} {
+    private {{ className }}() { }
+    public static RestSortDefinition create() { return RestSortDefinition.of(List.of(
+{% for field in fields %}        RestSortFieldDefinition.of("{{ field.publicName }}", "{{ field.domainName }}"){% if not loop.last %},{% endif %}
+{% endfor %}    )); }
+}

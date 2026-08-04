@@ -58,11 +58,40 @@ public class WalletGatewayProvider implements WalletGateway {
         Objects.requireNonNull(pageRequest, "pageRequest");
 
         Pageable pageable = SpringDataPageRequestMapper.toPageable(
-            pageRequest,
-            Map.of()
+        pageRequest,
+            Map.ofEntries(
+                Map.entry("id", "id"),
+                Map.entry("balance", "balance")
+            )
         );
 
         Page<WalletEntity> page = walletRepository.findAll(pageable);
+
+        return SpringDataPageResultMapper.toPageResult(
+            page,
+            WalletPersistenceMapper::toDomain
+        );
+    }
+
+    @Override
+    public PageResult<Wallet> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) {
+        Objects.requireNonNull(filterExpression, "filterExpression");
+        Objects.requireNonNull(pageRequest, "pageRequest");
+
+        Optional<BooleanExpression> predicate = QuerydslFilterMapper.toPredicate(
+            filterExpression,
+            WalletQuerydslFilterDefinition.create()
+        );
+        Pageable pageable = SpringDataPageRequestMapper.toPageable(
+            pageRequest,
+            Map.ofEntries(
+                Map.entry("id", "id"),
+                Map.entry("balance", "balance")
+            )
+        );
+        Page<WalletEntity> page = predicate
+            .map(value -> walletRepository.findAll(value, pageable))
+            .orElseGet(() -> walletRepository.findAll(pageable));
 
         return SpringDataPageResultMapper.toPageResult(
             page,

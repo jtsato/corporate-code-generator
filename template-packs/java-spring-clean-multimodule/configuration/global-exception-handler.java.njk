@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -37,6 +38,12 @@ public class GlobalExceptionHandler {
             .map(error -> new ResponseStatus.Field(error.getField(), error.getDefaultMessage()))
             .sorted(Comparator.comparing(ResponseStatus.Field::name).thenComparing(ResponseStatus.Field::message))
             .toList();
+        return response(HttpStatus.BAD_REQUEST, resolveMessage("common.error.invalid-request", "Invalid request.", locale), fields);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ResponseStatus> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception, Locale locale) {
+        List<ResponseStatus.Field> fields = List.of(new ResponseStatus.Field(exception.getName(), "Invalid value."));
         return response(HttpStatus.BAD_REQUEST, resolveMessage("common.error.invalid-request", "Invalid request.", locale), fields);
     }
 

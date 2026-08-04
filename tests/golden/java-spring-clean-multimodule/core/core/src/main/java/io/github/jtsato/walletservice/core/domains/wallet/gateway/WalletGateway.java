@@ -12,4 +12,6 @@ public interface WalletGateway {
     List<Wallet> findByFilter(FilterExpression filterExpression);
 
     PageResult<Wallet> findPage(PageRequest pageRequest);
+
+    PageResult<Wallet> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest);
 }

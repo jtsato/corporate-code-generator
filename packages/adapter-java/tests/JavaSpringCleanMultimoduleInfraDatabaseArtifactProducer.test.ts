@@ -110,6 +110,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         filterMapperMethodName: "toPredicate",
         filterDefinitionType: "WalletQuerydslFilterDefinition",
         filterDefinitionFactoryMethodName: "create",
+        findByFilterPageMethodName: "findByFilterPage",
         persistenceEntityType: "WalletEntity",
         persistenceEntitiesVariableName: "walletEntities",
         requiresIterableConversion: false,
@@ -125,6 +126,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         pageRequestMapperMethodName: "toPageable",
         pageResultMapperType: "SpringDataPageResultMapper",
         pageResultMapperMethodName: "toPageResult",
+        sortPropertyMapping: [{ domainName: "id", persistenceName: "id" }, { domainName: "balance", persistenceName: "balance" }],
       },
       outputVariables: {
         packagePath: "io/github/jtsato/walletservice",

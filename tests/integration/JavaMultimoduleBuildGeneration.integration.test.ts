@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the eighty-two complete Maven reactor artifacts", async () => {
+  it("renders the ninety-nine complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,7 +68,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(88);
+    expect(operations).toHaveLength(99);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
@@ -78,6 +78,9 @@ describe("Java multi-module generation", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractorTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterPageUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterPageUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterPageUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractorTests.java",
@@ -111,7 +114,14 @@ describe("Java multi-module generation", () => {
       "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterParserTests.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/filter/WalletRestFilterDefinition.java",
       "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/filter/WalletRestFilterDefinitionTests.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/sort/RestSortFieldDefinition.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/sort/RestSortDefinition.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/sort/RestSortParser.java",
+      "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/common/sort/RestSortParserTests.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/sort/WalletRestSortDefinition.java",
+      "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/sort/WalletRestSortDefinitionTests.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/ResponseStatus.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/WalletPageResponse.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/entity/WalletEntity.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/mapper/WalletPersistenceMapper.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/repository/WalletRepository.java",
@@ -153,6 +163,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFilterTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletPagingPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPagingPersistenceTests.java",
     ]);
     for (const operation of operations) {
       const goldenModule = goldenModuleFor(operation.targetPath);

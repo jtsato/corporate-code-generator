@@ -8,4 +8,6 @@ public interface {{ interfaceName }} {
     List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }});
 
     {{ pageResultType }}<{{ entityType }}> {{ findPageMethodName }}({{ pageRequestType }} {{ pageRequestParameterName }});
+
+    {{ pageResultType }}<{{ entityType }}> {{ findByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }});
 }

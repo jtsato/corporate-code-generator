@@ -2,6 +2,8 @@ package io.github.jtsato.walletservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity;
 import io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository;
 import java.math.BigDecimal;
@@ -61,7 +63,8 @@ class WalletHttpPersistenceReadTests {
             .hasValueSatisfying(contentType ->
                 assertThat(contentType).startsWith("application/json")
             );
-        assertThat(response.body()).isEqualTo(
+        JsonNode root = new ObjectMapper().readTree(response.body());
+        assertThat(root.path("items").toString()).isEqualTo(
             "[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"balance\":123.45}]"
         );
     }

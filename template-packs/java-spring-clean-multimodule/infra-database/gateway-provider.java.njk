@@ -45,11 +45,38 @@ public class {{ className }} implements {{ gatewayType }} {
         Objects.requireNonNull({{ pageRequestParameterName }}, "{{ pageRequestParameterName }}");
 
         {{ pageableType }} {{ pageableVariableName }} = {{ pageRequestMapperType }}.{{ pageRequestMapperMethodName }}(
-            {{ pageRequestParameterName }},
-            Map.of()
+        {{ pageRequestParameterName }},
+            Map.ofEntries(
+{% for mapping in sortPropertyMapping %}                Map.entry("{{ mapping.domainName }}", "{{ mapping.persistenceName }}"){% if not loop.last %},{% endif %}
+{% endfor %}            )
         );
 
         {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}({{ pageableVariableName }});
+
+        return {{ pageResultMapperType }}.{{ pageResultMapperMethodName }}(
+            {{ pageVariableName }},
+            {{ mapperType }}::{{ mapperToDomainMethodName }}
+        );
+    }
+
+    @Override
+    public {{ pageResultType }}<{{ entityType }}> {{ findByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }}) {
+        Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
+        Objects.requireNonNull({{ pageRequestParameterName }}, "{{ pageRequestParameterName }}");
+
+        Optional<BooleanExpression> predicate = {{ filterMapperType }}.{{ filterMapperMethodName }}(
+            {{ filterExpressionParameterName }},
+            {{ filterDefinitionType }}.{{ filterDefinitionFactoryMethodName }}()
+        );
+        {{ pageableType }} {{ pageableVariableName }} = {{ pageRequestMapperType }}.{{ pageRequestMapperMethodName }}(
+            {{ pageRequestParameterName }},
+            Map.ofEntries(
+{% for mapping in sortPropertyMapping %}                Map.entry("{{ mapping.domainName }}", "{{ mapping.persistenceName }}"){% if not loop.last %},{% endif %}
+{% endfor %}            )
+        );
+        {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = predicate
+            .map(value -> {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}(value, {{ pageableVariableName }}))
+            .orElseGet(() -> {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}({{ pageableVariableName }}));
 
         return {{ pageResultMapperType }}.{{ pageResultMapperMethodName }}(
             {{ pageVariableName }},

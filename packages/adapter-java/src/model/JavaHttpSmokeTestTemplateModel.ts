@@ -10,8 +10,13 @@ export interface JavaHttpSmokeTestTemplateModel {
   readonly responseType: string;
   readonly responseBodyType: string;
   readonly httpClientType: string;
+  readonly objectMapperType: string;
+  readonly jsonNodeType: string;
   readonly expectedStatusCode: number;
-  readonly expectedBody: string;
+  readonly expectedPage: number;
+  readonly expectedSize: number;
+  readonly expectedTotalItems: number;
+  readonly expectedTotalPages: number;
   readonly contentTypeHeaderName: string;
   readonly expectedContentTypePrefix: string;
   readonly activeProfile: string;

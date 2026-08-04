@@ -1,0 +1,23 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import {{ commonSortPackage }}.RestSortDefinition;
+import {{ commonSortPackage }}.RestSortFieldDefinition;
+import {{ exceptionPackage }}.ValidationException;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class {{ className }} {
+    @Test void shouldCreateDefinitionWithExpectedFields() {
+        var definition = {{ definitionName }}.create();
+        assertEquals(List.of({% for field in fields %}"{{ field.publicName }}"{% if not loop.last %}, {% endif %}{% endfor %}), definition.fields().stream().map(RestSortFieldDefinition::publicName).toList());
+{% for field in fields %}        assertEquals("{{ field.domainName }}", definition.findField("{{ field.publicName }}").orElseThrow().domainName());
+{% endfor %}    }
+
+    @Test void shouldRejectDuplicateFieldsInDefinition() {
+        var field = RestSortFieldDefinition.of("duplicate", "duplicate");
+        var exception = assertThrows(ValidationException.class, () -> RestSortDefinition.of(List.of(field, field)));
+        assertEquals("common.rest.sort.definition.fields.duplicate", exception.getFields().getFirst().messageKey());
+    }
+}

@@ -22,7 +22,13 @@ class {{ className }} {
         );
 
         assertThat(response.statusCode()).isEqualTo({{ expectedStatusCode }});
-        assertThat(response.body()).isEqualTo("{{ expectedBody }}");
+        {{ jsonNodeType }} root = new {{ objectMapperType }}().readTree(response.body());
+        assertThat(root.path("items").isArray()).isTrue();
+        assertThat(root.path("items").size()).isEqualTo(0);
+        assertThat(root.path("page").asInt()).isEqualTo({{ expectedPage }});
+        assertThat(root.path("size").asInt()).isEqualTo({{ expectedSize }});
+        assertThat(root.path("totalItems").asLong()).isEqualTo({{ expectedTotalItems }}L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo({{ expectedTotalPages }});
         assertThat(response.headers().firstValue("{{ contentTypeHeaderName }}"))
             .hasValueSatisfying(contentType ->
                 assertThat(contentType).startsWith("{{ expectedContentTypePrefix }}")

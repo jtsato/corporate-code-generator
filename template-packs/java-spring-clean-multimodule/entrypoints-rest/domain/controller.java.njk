@@ -16,16 +16,32 @@ public class {{ className }} {
     @GetMapping
     @Operation(summary = "{{ operationSummary }}", description = "{{ operationDescription }}")
     @Parameter(name = "{{ filterParameterName }}", description = "{{ filterParameterDescription }}", example = "{{ filterParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
+    @Parameter(name = "{{ pageParameterName }}", description = "{{ pageParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "0", minimum = "0"))
+    @Parameter(name = "{{ sizeParameterName }}", description = "{{ sizeParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "20", minimum = "1"))
+    @Parameter(name = "{{ sortParameterName }}", description = "{{ sortParameterDescription }}", example = "{{ sortParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "{{ tagName }} found"),
+        @ApiResponse(responseCode = "200", description = "{{ tagName }} found", content = @Content(schema = @Schema(implementation = {{ pageResponseClassName }}.class))),
         @ApiResponse(responseCode = "400", description = "Invalid filter", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
         @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
     })
-    public List<{{ responseClassName }}> {{ findAllMethodName }}(@RequestParam(name = "{{ filterParameterName }}", required = false) {{ filterParameterType }} {{ filterParameterName }}) {
+    public {{ pageResponseClassName }} {{ findAllMethodName }}(
+        @RequestParam(name = "{{ filterParameterName }}", required = false) {{ filterParameterType }} {{ filterParameterName }},
+        @RequestParam(name = "{{ pageParameterName }}", required = false) Integer {{ pageParameterName }},
+        @RequestParam(name = "{{ sizeParameterName }}", required = false) Integer {{ sizeParameterName }},
+        @RequestParam(name = "{{ sortParameterName }}", required = false) {{ sortParameterType }} {{ sortParameterName }}
+    ) {
         {{ filterExpressionType }} {{ filterExpressionVariableName }} = {{ filterParserType }}.{{ filterParserMethodName }}({{ filterParameterName }}, {{ filterDefinitionType }}.{{ filterDefinitionFactoryMethodName }}());
-        return {{ useCaseFieldName }}.{{ useCaseExecuteMethodName }}({{ filterExpressionVariableName }})
+        {{ sortOrdersType }}<{{ sortOrderType }}> sortOrders = {{ sortParserType }}.{{ sortParserMethodName }}({{ sortParameterName }}, {{ sortDefinitionType }}.{{ sortDefinitionFactoryMethodName }}());
+        {{ pageRequestClassName }} pageRequest = {{ pageRequestClassName }}.of(
+            {{ pageParameterName }} == null ? {{ pageRequestClassName }}.DEFAULT_PAGE : {{ pageParameterName }},
+            {{ sizeParameterName }} == null ? {{ pageRequestClassName }}.DEFAULT_SIZE : {{ sizeParameterName }},
+            sortOrders
+        );
+        {{ pageResultClassName }}<{{ domainClassName }}> result = {{ useCaseFieldName }}.{{ useCaseExecuteMethodName }}({{ filterExpressionVariableName }}, pageRequest);
+        List<{{ responseClassName }}> items = result.items()
             .stream()
             .map({{ responseClassName }}::{{ responseFactoryMethodName }})
             .toList();
+        return new {{ pageResponseClassName }}(items, result.page(), result.size(), result.totalItems(), result.totalPages());
     }
 }

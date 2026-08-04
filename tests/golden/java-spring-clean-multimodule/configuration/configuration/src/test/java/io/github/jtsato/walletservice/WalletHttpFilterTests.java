@@ -62,68 +62,218 @@ class WalletHttpFilterTests {
 
     @Test
     void shouldReturnAllRecordsWhenFilterIsAbsent() throws Exception {
-        HttpResponse<String> response = get();
+        HttpResponse<String> response = get(null, null, List.of(), List.of());
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(identifiersOf(response)).containsExactlyInAnyOrder(WALLET_ID1, WALLET_ID2, WALLET_ID3);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(20);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(3L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactlyInAnyOrder(WALLET_ID1, WALLET_ID2, WALLET_ID3);
     }
 
     @Test
     void shouldFilterByBalanceEquals() throws Exception {
-        HttpResponse<String> response = get("balance:eq:124.45");
+        HttpResponse<String> response = get(null, null, List.of("balance:eq:124.45"), List.of());
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(identifiersOf(response)).containsExactlyInAnyOrder(WALLET_ID2);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(20);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(1L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactlyInAnyOrder(WALLET_ID2);
     }
 
     @Test
     void shouldFilterByIdIn() throws Exception {
-        HttpResponse<String> response = get("id:in:11111111-1111-1111-1111-111111111111,11111111-1111-1111-1111-111111111113");
+        HttpResponse<String> response = get(0, 20, List.of("id:in:11111111-1111-1111-1111-111111111111,11111111-1111-1111-1111-111111111113"), List.of());
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(identifiersOf(response)).containsExactlyInAnyOrder(WALLET_ID1, WALLET_ID3);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(20);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(2L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactlyInAnyOrder(WALLET_ID1, WALLET_ID3);
+    }
+
+    @Test
+    void shouldReturnFirstPage() throws Exception {
+        HttpResponse<String> response = get(0, 2, List.of(), List.of());
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(2);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(3L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(2);
+        assertThat(identifiersOf(root)).containsExactlyInAnyOrder(WALLET_ID1, WALLET_ID2);
+    }
+
+    @Test
+    void shouldReturnSecondPage() throws Exception {
+        HttpResponse<String> response = get(1, 2, List.of(), List.of());
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(1);
+        assertThat(root.path("size").asInt()).isEqualTo(2);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(3L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(2);
+        assertThat(identifiersOf(root)).containsExactlyInAnyOrder(WALLET_ID3);
+    }
+
+    @Test
+    void shouldSortBalanceAscending() throws Exception {
+        HttpResponse<String> response = get(0, 3, List.of(), List.of("balance:asc"));
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(3);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(3L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactly(WALLET_ID1, WALLET_ID2, WALLET_ID3);
+    }
+
+    @Test
+    void shouldSortBalanceDescending() throws Exception {
+        HttpResponse<String> response = get(0, 3, List.of(), List.of("balance:desc"));
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(3);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(3L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactly(WALLET_ID3, WALLET_ID2, WALLET_ID1);
     }
 
     @Test
     void shouldFilterByBalanceGreaterThan() throws Exception {
-        HttpResponse<String> response = get("balance:gt:123.45");
+        HttpResponse<String> response = get(0, 2, List.of("balance:gt:123.45"), List.of());
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(identifiersOf(response)).containsExactlyInAnyOrder(WALLET_ID2, WALLET_ID3);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(2);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(2L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactlyInAnyOrder(WALLET_ID2, WALLET_ID3);
     }
 
     @Test
     void shouldCombineRepeatedFiltersWithAnd() throws Exception {
-        HttpResponse<String> response = get("balance:gt:123.45", "balance:lt:125.45");
+        HttpResponse<String> response = get(0, 2, List.of("balance:gt:123.45", "balance:lt:125.45"), List.of());
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(identifiersOf(response)).containsExactlyInAnyOrder(WALLET_ID2);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(2);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(1L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactlyInAnyOrder(WALLET_ID2);
+    }
+
+    @Test
+    void shouldCombineFilterPagingAndSort() throws Exception {
+        HttpResponse<String> response = get(0, 2, List.of("balance:gt:123.45"), List.of("balance:desc"));
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(2);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(2L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactly(WALLET_ID3, WALLET_ID2);
+    }
+
+    @Test
+    void shouldAcceptRepeatedSort() throws Exception {
+        HttpResponse<String> response = get(0, 3, List.of(), List.of("balance:desc", "id:asc"));
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(3);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(3L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactly(WALLET_ID3, WALLET_ID2, WALLET_ID1);
+    }
+
+    @Test
+    void shouldPreserveFilterInCommaWithSort() throws Exception {
+        HttpResponse<String> response = get(0, 20, List.of("id:in:11111111-1111-1111-1111-111111111111,11111111-1111-1111-1111-111111111113"), List.of("balance:asc"));
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(20);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(2L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(1);
+        assertThat(identifiersOf(root)).containsExactly(WALLET_ID1, WALLET_ID3);
     }
 
     @Test
     void shouldRejectUnknownField() throws Exception {
-        HttpResponse<String> response = get("unknown:eq:1");
+        HttpResponse<String> response = get(null, null, List.of("unknown:eq:1"), List.of());
         assertThat(response.statusCode()).isEqualTo(400);
     }
 
     @Test
     void shouldRejectDisallowedOperatorForBalance() throws Exception {
-        HttpResponse<String> response = get("balance:contains:1");
+        HttpResponse<String> response = get(null, null, List.of("balance:contains:1"), List.of());
         assertThat(response.statusCode()).isEqualTo(400);
     }
 
     @Test
     void shouldRejectInvalidBalanceValue() throws Exception {
-        HttpResponse<String> response = get("balance:eq:not-a-valid-value");
+        HttpResponse<String> response = get(0, 2, List.of("balance:eq:not-a-valid-value"), List.of());
         assertThat(response.statusCode()).isEqualTo(400);
     }
 
     @Test
     void shouldRejectInvalidFormat() throws Exception {
-        HttpResponse<String> response = get("balance");
+        HttpResponse<String> response = get(null, null, List.of("balance"), List.of());
         assertThat(response.statusCode()).isEqualTo(400);
     }
 
-    private HttpResponse<String> get(String... filters) throws Exception {
+    @Test
+    void shouldRejectUnknownSortField() throws Exception {
+        HttpResponse<String> response = get(null, null, List.of(), List.of("unknown:asc"));
+        assertThat(response.statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidSortDirection() throws Exception {
+        HttpResponse<String> response = get(null, null, List.of(), List.of("balance:invalid"));
+        assertThat(response.statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidSortFormat() throws Exception {
+        HttpResponse<String> response = get(null, null, List.of(), List.of("balance"));
+        assertThat(response.statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectSortWithSpaces() throws Exception {
+        HttpResponse<String> response = get(null, null, List.of(), List.of("balance: desc"));
+        assertThat(response.statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectNonNumericPage() throws Exception {
+        HttpResponse<String> response = get("abc", 2, List.of(), List.of());
+        assertThat(response.statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectNonNumericSize() throws Exception {
+        HttpResponse<String> response = get(0, "abc", List.of(), List.of());
+        assertThat(response.statusCode()).isEqualTo(400);
+    }
+
+    private HttpResponse<String> get(Object page, Object size, List<String> filters, List<String> sorts) throws Exception {
         StringBuilder query = new StringBuilder();
         for (String filter : filters) {
             query.append(query.isEmpty() ? '?' : '&').append("filter=").append(URLEncoder.encode(filter, StandardCharsets.UTF_8));
         }
+        for (String sort : sorts) {
+            query.append(query.isEmpty() ? '?' : '&').append("sort=").append(URLEncoder.encode(sort, StandardCharsets.UTF_8));
+        }
+        if (page != null) query.append(query.isEmpty() ? '?' : '&').append("page=").append(URLEncoder.encode(String.valueOf(page), StandardCharsets.UTF_8));
+        if (size != null) query.append(query.isEmpty() ? '?' : '&').append("size=").append(URLEncoder.encode(String.valueOf(size), StandardCharsets.UTF_8));
 
         HttpRequest request = HttpRequest.newBuilder(
             URI.create("http://localhost:" + port + "/wallets" + query)
@@ -132,10 +282,9 @@ class WalletHttpFilterTests {
         return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private List<UUID> identifiersOf(HttpResponse<String> response) throws Exception {
-        JsonNode root = OBJECT_MAPPER.readTree(response.body());
+    private List<UUID> identifiersOf(JsonNode root) {
         List<UUID> identifiers = new ArrayList<>();
-        for (JsonNode node : root) identifiers.add(UUID.fromString(node.get("id").asText()));
+        for (JsonNode node : root.path("items")) identifiers.add(UUID.fromString(node.get("id").asText()));
         return identifiers;
     }
 }

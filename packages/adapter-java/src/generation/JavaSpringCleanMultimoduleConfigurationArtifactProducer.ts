@@ -25,6 +25,7 @@ import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
 import { createJavaHttpFilterTestModel } from "../transformers/createJavaHttpFilterTestModel.js";
 import { createJavaPagingPersistenceTestModel } from "../transformers/createJavaPagingPersistenceTestModel.js";
+import { createJavaFilteredPagingPersistenceTestModel } from "../transformers/createJavaFilteredPagingPersistenceTestModel.js";
 import { createJavaQuerydslFilterPersistenceTestModel } from "../transformers/createJavaQuerydslFilterPersistenceTestModel.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
@@ -89,6 +90,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const useCaseType = `Find${toJavaPluralTypeName(entityType)}UseCase`;
         const byFilterUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterUseCase`;
         const pageUseCaseType = `Find${toJavaPluralTypeName(entityType)}PageUseCase`;
+        const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
@@ -97,6 +99,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${pageUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${pageUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
@@ -120,6 +124,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           pageUseCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}PageUseCase`,
           pageUseCaseType,
           pageUseCaseImplementationType: `${pageUseCaseType}Interactor`,
+          byFilterPageUseCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`,
+          byFilterPageUseCaseType,
+          byFilterPageUseCaseImplementationType: `${byFilterPageUseCaseType}Interactor`,
         };
 
         return {
@@ -172,6 +179,12 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           endpointPath: toRestCollectionPath(entity.name),
           filterParameterName: "filter",
           filterParameterDescriptionFragment: "<field>:<operator>[:<value>]",
+          sortParameterName: "sort",
+          sortParameterDescriptionFragment: "<field>:<direction>",
+          pageParameterName: "page",
+          sizeParameterName: "size",
+          pageResponseSchemaName: `${toJavaTypeName(entity.name)}PageResponse`,
+          itemResponseSchemaName: `${toJavaTypeName(entity.name)}Response`,
         };
         return { templateId: "configuration-openapi-smoke-test", model, outputVariables: { ...outputVariables, className: model.className } };
       }),
@@ -181,6 +194,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("java.net.http.HttpClient");
         imports.add("java.net.http.HttpRequest");
         imports.add("java.net.http.HttpResponse");
+        imports.add("com.fasterxml.jackson.databind.JsonNode");
+        imports.add("com.fasterxml.jackson.databind.ObjectMapper");
         imports.add("org.junit.jupiter.api.Test");
         imports.add("org.springframework.boot.test.context.SpringBootTest");
         imports.add("org.springframework.boot.test.web.server.LocalServerPort");
@@ -197,8 +212,13 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           responseType: "HttpResponse",
           responseBodyType: "String",
           httpClientType: "HttpClient",
+          objectMapperType: "ObjectMapper",
+          jsonNodeType: "JsonNode",
           expectedStatusCode: 200,
-          expectedBody: "[]",
+          expectedPage: 0,
+          expectedSize: 20,
+          expectedTotalItems: 0,
+          expectedTotalPages: 0,
           contentTypeHeaderName: "Content-Type",
           expectedContentTypePrefix: "application/json",
           activeProfile: "test",
@@ -225,6 +245,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("java.net.http.HttpClient");
         imports.add("java.net.http.HttpRequest");
         imports.add("java.net.http.HttpResponse");
+        imports.add("com.fasterxml.jackson.databind.JsonNode");
+        imports.add("com.fasterxml.jackson.databind.ObjectMapper");
         imports.add("org.junit.jupiter.api.AfterEach");
         imports.add("org.junit.jupiter.api.Test");
         imports.add("org.springframework.beans.factory.annotation.Autowired");
@@ -276,8 +298,10 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           responseType: "HttpResponse",
           responseBodyType: "String",
           httpClientType: "HttpClient",
+          objectMapperType: "ObjectMapper",
+          jsonNodeType: "JsonNode",
           expectedStatusCode: 200,
-          expectedBodyExpression: JSON.stringify(expectedBody),
+          expectedItemsBodyExpression: JSON.stringify(expectedBody),
           contentTypeHeaderName: "Content-Type",
           expectedContentTypePrefix: "application/json",
           activeProfile: "test",
@@ -341,6 +365,19 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
             ...outputVariables,
             className: pagingPersistenceModel.className,
           },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const filteredPagingPersistenceModel = createJavaFilteredPagingPersistenceTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+        return {
+          templateId: "configuration-querydsl-filter-paging-persistence-test",
+          model: filteredPagingPersistenceModel,
+          outputVariables: { ...outputVariables, className: filteredPagingPersistenceModel.className },
         };
       }),
     ];

@@ -1,0 +1,109 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+class {{ className }} {
+    private static final class {{ fakeGatewayType }} implements {{ gatewayType }} {
+        private final List<{{ entityType }}> result = new ArrayList<>();
+        private {{ filterExpressionType }} receivedFilter;
+        private {{ pageRequestType }} receivedPageRequest;
+        private {{ pageResultType }}<{{ entityType }}> pageResult;
+        private int findAllCallCount;
+        private int findByFilterCallCount;
+        private int findPageCallCount;
+        private int findByFilterPageCallCount;
+
+        @Override
+        public List<{{ entityType }}> {{ gatewayFindAllMethodName }}() {
+            findAllCallCount++;
+            return result;
+        }
+
+        @Override
+        public List<{{ entityType }}> {{ gatewayFindByFilterMethodName }}({{ filterExpressionType }} filterExpression) {
+            findByFilterCallCount++;
+            return result;
+        }
+
+        @Override
+        public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindPageMethodName }}({{ pageRequestType }} pageRequest) {
+            findPageCallCount++;
+            return pageResult;
+        }
+
+        @Override
+        public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindByFilterPageMethodName }}({{ filterExpressionType }} filterExpression, {{ pageRequestType }} pageRequest) {
+            findByFilterPageCallCount++;
+            receivedFilter = filterExpression;
+            receivedPageRequest = pageRequest;
+            return pageResult;
+        }
+    }
+
+    @Test
+    void shouldDelegateFilterAndPageRequestToGatewayAndReturnItsResult() {
+        var gateway = new {{ fakeGatewayType }}();
+        var expression = {{ filterExpressionType }}.of(FilterGroup.and(List.of(FilterCondition.isNotNull("{{ sampleFieldName }}"))));
+        var pageRequest = {{ pageRequestType }}.of(1, 2);
+        gateway.pageResult = new {{ pageResultType }}<>(List.of(), 1, 2, 0);
+
+        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(expression, pageRequest);
+
+        assertSame(expression, gateway.receivedFilter);
+        assertSame(pageRequest, gateway.receivedPageRequest);
+        assertSame(gateway.pageResult, result);
+        assertEquals(1, gateway.findByFilterPageCallCount);
+        assertEquals(0, gateway.findAllCallCount);
+        assertEquals(0, gateway.findByFilterCallCount);
+        assertEquals(0, gateway.findPageCallCount);
+    }
+
+    @Test
+    void shouldAcceptEmptyFilterExpression() {
+        var gateway = new {{ fakeGatewayType }}();
+        var expression = {{ filterExpressionType }}.empty();
+        var pageRequest = {{ pageRequestType }}.of(0, 2);
+        gateway.pageResult = new {{ pageResultType }}<>(List.of(), 0, 2, 0);
+
+        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(expression, pageRequest);
+
+        assertFalse(gateway.receivedFilter.hasFilters());
+        assertSame(gateway.pageResult, result);
+        assertEquals(1, gateway.findByFilterPageCallCount);
+    }
+
+    @Test
+    void shouldRejectNullFilterExpression() {
+        var gateway = new {{ fakeGatewayType }}();
+        var pageRequest = {{ pageRequestType }}.of(0, 2);
+
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null, pageRequest)
+        );
+
+        assertEquals("{{ filterExpressionParameterName }}", exception.getFields().getFirst().name());
+        assertEquals("{{ requiredFilterMessageKey }}", exception.getFields().getFirst().messageKey());
+        assertEquals(0, gateway.findByFilterPageCallCount);
+    }
+
+    @Test
+    void shouldRejectNullPageRequest() {
+        var gateway = new {{ fakeGatewayType }}();
+        var expression = {{ filterExpressionType }}.empty();
+
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(expression, null)
+        );
+
+        assertEquals("{{ pageRequestParameterName }}", exception.getFields().getFirst().name());
+        assertEquals("{{ requiredPageMessageKey }}", exception.getFields().getFirst().messageKey());
+        assertEquals(0, gateway.findByFilterPageCallCount);
+    }
+}

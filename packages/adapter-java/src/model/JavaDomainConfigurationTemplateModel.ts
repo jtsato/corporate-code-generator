@@ -17,4 +17,7 @@ export interface JavaDomainConfigurationTemplateModel {
   readonly pageUseCaseBeanMethodName: string;
   readonly pageUseCaseType: string;
   readonly pageUseCaseImplementationType: string;
+  readonly byFilterPageUseCaseBeanMethodName: string;
+  readonly byFilterPageUseCaseType: string;
+  readonly byFilterPageUseCaseImplementationType: string;
 }

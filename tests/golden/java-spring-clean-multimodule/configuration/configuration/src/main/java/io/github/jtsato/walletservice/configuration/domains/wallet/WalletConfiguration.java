@@ -1,6 +1,8 @@
 package io.github.jtsato.walletservice.configuration.domains.wallet;
 
 import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCaseInteractor;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterUseCaseInteractor;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsPageUseCase;
@@ -32,5 +34,10 @@ public class WalletConfiguration {
     @Bean
     public FindWalletsPageUseCase findWalletsPageUseCase(WalletGateway walletGateway) {
         return new FindWalletsPageUseCaseInteractor(walletGateway);
+    }
+
+    @Bean
+    public FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase(WalletGateway walletGateway) {
+        return new FindWalletsByFilterPageUseCaseInteractor(walletGateway);
     }
 }

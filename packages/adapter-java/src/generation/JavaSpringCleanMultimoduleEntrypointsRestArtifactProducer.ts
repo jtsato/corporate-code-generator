@@ -38,14 +38,24 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const entityType = toJavaTypeName(entity.name);
       const controllerName = `${entityType}Controller`;
       const responseName = `${entityType}Response`;
-      const byFilterUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterUseCase`;
+      const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
       const filterDefinitionType = `${entityType}RestFilterDefinition`;
+      const sortDefinitionType = `${entityType}RestSortDefinition`;
       const controllerImports = new JavaImportCollector();
-      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}`);
+      controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
+      controllerImports.add(`${namespace}.core.common.paging.PageResult`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
       controllerImports.add(`${namespace}.core.common.filter.FilterExpression`);
+      controllerImports.add(`${namespace}.entrypoint.rest.common.${entityType}PageResponse`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.ResponseStatus`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.filter.RestFilterParser`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.filter.${filterDefinitionType}`);
+      controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortParser`);
+      controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortDefinition`);
+      controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortFieldDefinition`);
+      controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.sort.${sortDefinitionType}`);
+      controllerImports.add(`${namespace}.core.common.paging.SortOrder`);
       controllerImports.add("java.util.List");
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
@@ -65,9 +75,13 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         className: controllerName,
         requestMapping: toRestCollectionPath(entity.name),
         responseClassName: responseName,
+        domainClassName: entityType,
+        pageResponseClassName: `${entityType}PageResponse`,
+        pageRequestClassName: "PageRequest",
+        pageResultClassName: "PageResult",
         findAllMethodName: "findAll",
-        useCaseType: byFilterUseCaseType,
-        useCaseFieldName: toJavaFieldName(byFilterUseCaseType),
+        useCaseType: byFilterPageUseCaseType,
+        useCaseFieldName: toJavaFieldName(byFilterPageUseCaseType),
         useCaseExecuteMethodName: "execute",
         responseFactoryMethodName: "from",
         tagName: toJavaPluralTypeName(entityType), tagDescription: `${entityType} operations`, operationSummary: `Find ${toJavaPluralTypeName(entityType).toLowerCase()}`, operationDescription: `Returns all ${toJavaPluralTypeName(entityType).toLowerCase()}.`,
@@ -81,6 +95,20 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         filterParserMethodName: "parse",
         filterDefinitionType,
         filterDefinitionFactoryMethodName: "create",
+        pageParameterName: "page",
+        pageParameterDescription: "Zero-based page index. Defaults to 0.",
+        sizeParameterName: "size",
+        sizeParameterDescription: "Number of items per page. Defaults to 20.",
+        sortParameterName: "sort",
+        sortParameterType: "List<String>",
+        sortParameterDescription: "Sort expression as <field>:<direction>. Repeat to apply multiple orders in order. Fields: id, balance. Directions: asc, desc.",
+        sortParameterExample: "balance:desc",
+        sortOrdersType: "List",
+        sortOrderType: "SortOrder",
+        sortParserType: "RestSortParser",
+        sortParserMethodName: "parse",
+        sortDefinitionType: sortDefinitionType,
+        sortDefinitionFactoryMethodName: "create",
       };
       const responseImports = new JavaImportCollector();
       responseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -124,6 +152,32 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         { templateId: "entrypoints-rest-domain-filter-definition-test", model: { packageName: `${namespace}.entrypoint.rest.domains.${domainName}.filter`, commonFilterPackage: `${namespace}.entrypoint.rest.common.filter`, exceptionPackage: `${namespace}.core.common.exception`, definitionName, className: `${definitionName}Tests` }, outputVariables: { packagePath, domainName, className: `${definitionName}Tests` } },
       ];
     });
-    return [...entityArtifacts, ...filterArtifacts, ...entityFilterArtifacts, { templateId: "entrypoints-rest-response-status", model: { packageName: `${namespace}.entrypoint.rest.common`, className: "ResponseStatus" }, outputVariables: { packagePath, className: "ResponseStatus" } }];
+    const sortArtifacts: TemplateInvocation[] = [
+      { templateId: "entrypoints-rest-common-sort-field-definition", model: { packageName: `${namespace}.entrypoint.rest.common.sort`, exceptionPackage: `${namespace}.core.common.exception`, className: "RestSortFieldDefinition" }, outputVariables: { packagePath, className: "RestSortFieldDefinition" } },
+      { templateId: "entrypoints-rest-common-sort-definition", model: { packageName: `${namespace}.entrypoint.rest.common.sort`, exceptionPackage: `${namespace}.core.common.exception`, className: "RestSortDefinition" }, outputVariables: { packagePath, className: "RestSortDefinition" } },
+      { templateId: "entrypoints-rest-common-sort-parser", model: { packageName: `${namespace}.entrypoint.rest.common.sort`, exceptionPackage: `${namespace}.core.common.exception`, corePagingPackage: `${namespace}.core.common.paging`, className: "RestSortParser" }, outputVariables: { packagePath, className: "RestSortParser" } },
+      { templateId: "entrypoints-rest-common-sort-parser-test", model: { packageName: `${namespace}.entrypoint.rest.common.sort`, exceptionPackage: `${namespace}.core.common.exception`, corePagingPackage: `${namespace}.core.common.paging`, className: "RestSortParserTests" }, outputVariables: { packagePath, className: "RestSortParserTests" } },
+      ...request.application.entities.flatMap((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const definitionName = `${entityType}RestSortDefinition`;
+        const fields = entity.attributes.map((attribute) => ({ publicName: attribute.name, domainName: attribute.name }));
+        return [
+          { templateId: "entrypoints-rest-domain-sort-definition", model: { packageName: `${namespace}.entrypoint.rest.domains.${domainName}.sort`, commonSortPackage: `${namespace}.entrypoint.rest.common.sort`, className: definitionName, fields }, outputVariables: { packagePath, domainName, className: definitionName } },
+          { templateId: "entrypoints-rest-domain-sort-definition-test", model: { packageName: `${namespace}.entrypoint.rest.domains.${domainName}.sort`, commonSortPackage: `${namespace}.entrypoint.rest.common.sort`, exceptionPackage: `${namespace}.core.common.exception`, className: `${definitionName}Tests`, definitionName, fields }, outputVariables: { packagePath, domainName, className: `${definitionName}Tests` } },
+        ];
+      }),
+    ];
+    return [...entityArtifacts, ...filterArtifacts, ...entityFilterArtifacts, ...sortArtifacts,
+      { templateId: "entrypoints-rest-response-status", model: { packageName: `${namespace}.entrypoint.rest.common`, className: "ResponseStatus" }, outputVariables: { packagePath, className: "ResponseStatus" } },
+      ...request.application.entities.map((entity) => {
+        const entityType = toJavaTypeName(entity.name);
+        return {
+          templateId: "entrypoints-rest-page-response",
+          model: { packageName: `${namespace}.entrypoint.rest.common`, pageResultPackageName: `${namespace}.core.common.paging`, responsePackageName: `${namespace}.entrypoint.rest.domains.${toJavaPackageSegment(entity.name)}`, responseType: `${entityType}Response`, className: `${entityType}PageResponse` },
+          outputVariables: { packagePath, className: `${entityType}PageResponse` },
+        };
+      }),
+    ];
   }
 }

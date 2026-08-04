@@ -32,6 +32,11 @@ class {{ className }} {
             received = {{ pageRequestParameterName }};
             return result;
         }
+
+        @Override
+        public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindByFilterPageMethodName }}({{ filterExpressionType }} filterExpression, {{ pageRequestType }} pageRequest) {
+            return null;
+        }
     }
 
     @Test

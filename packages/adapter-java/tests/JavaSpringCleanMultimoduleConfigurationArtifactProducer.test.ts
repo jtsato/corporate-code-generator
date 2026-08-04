@@ -28,7 +28,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
       "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-architecture-test",
-      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test",
+      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test",
     ]);
     /* Detailed legacy expectations retained below for fixture reference.
     expect(artifacts).toMatchObject([{
@@ -127,7 +127,10 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         responseBodyType: "String",
         httpClientType: "HttpClient",
         expectedStatusCode: 200,
-        expectedBody: "[]",
+        expectedPage: 0,
+        expectedSize: 20,
+        expectedTotalItems: 0,
+        expectedTotalPages: 0,
         contentTypeHeaderName: "Content-Type",
         expectedContentTypePrefix: "application/json",
       },
@@ -182,7 +185,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         responseBodyType: "String",
         httpClientType: "HttpClient",
         expectedStatusCode: 200,
-        expectedBodyExpression: "\"[{\\\"id\\\":\\\"11111111-1111-1111-1111-111111111111\\\",\\\"balance\\\":123.45}]\"",
+        expectedItemsBodyExpression: "\"[{\\\"id\\\":\\\"11111111-1111-1111-1111-111111111111\\\",\\\"balance\\\":123.45}]\"",
         contentTypeHeaderName: "Content-Type",
         expectedContentTypePrefix: "application/json",
       },
@@ -243,7 +246,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
           "SCHEDULE_SCHEDULED_ON",
           "SCHEDULE_PROCESSED_AT",
         ],
-        expectedBodyExpression: "\"[{\\\"id\\\":\\\"11111111-1111-1111-1111-111111111111\\\",\\\"label\\\":\\\"sample\\\",\\\"alternateLabel\\\":\\\"sample-2\\\",\\\"scheduledOn\\\":\\\"2026-01-15\\\",\\\"processedAt\\\":\\\"2026-01-15T10:30:00Z\\\"}]\"",
+          expectedItemsBodyExpression: "\"[{\\\"id\\\":\\\"11111111-1111-1111-1111-111111111111\\\",\\\"label\\\":\\\"sample\\\",\\\"alternateLabel\\\":\\\"sample-2\\\",\\\"scheduledOn\\\":\\\"2026-01-15\\\",\\\"processedAt\\\":\\\"2026-01-15T10:30:00Z\\\"}]\"",
       },
     });
   });

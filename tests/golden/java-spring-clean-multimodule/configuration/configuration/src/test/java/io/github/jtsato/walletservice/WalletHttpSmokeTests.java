@@ -3,6 +3,8 @@ package io.github.jtsato.walletservice;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -29,7 +31,13 @@ class WalletHttpSmokeTests {
         );
 
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.body()).isEqualTo("[]");
+        JsonNode root = new ObjectMapper().readTree(response.body());
+        assertThat(root.path("items").isArray()).isTrue();
+        assertThat(root.path("items").size()).isEqualTo(0);
+        assertThat(root.path("page").asInt()).isEqualTo(0);
+        assertThat(root.path("size").asInt()).isEqualTo(20);
+        assertThat(root.path("totalItems").asLong()).isEqualTo(0L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo(0);
         assertThat(response.headers().firstValue("Content-Type"))
             .hasValueSatisfying(contentType ->
                 assertThat(contentType).startsWith("application/json")

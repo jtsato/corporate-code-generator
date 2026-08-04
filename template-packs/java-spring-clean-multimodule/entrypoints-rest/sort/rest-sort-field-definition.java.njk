@@ -1,0 +1,16 @@
+package {{ packageName }};
+
+import {{ exceptionPackage }}.FieldViolation;
+import {{ exceptionPackage }}.ValidationException;
+import java.util.ArrayList;
+
+public record {{ className }}(String publicName, String domainName) {
+    public {{ className }} {
+        var fields = new ArrayList<FieldViolation>();
+        if (publicName == null || publicName.isBlank()) fields.add(new FieldViolation("publicName", "common.rest.sort.field.public-name.required", "Public sort field name is required."));
+        if (domainName == null || domainName.isBlank()) fields.add(new FieldViolation("domainName", "common.rest.sort.field.domain-name.required", "Domain sort field name is required."));
+        fields.sort(java.util.Comparator.comparing(FieldViolation::name));
+        if (!fields.isEmpty()) throw new ValidationException(fields);
+    }
+    public static {{ className }} of(String publicName, String domainName) { return new {{ className }}(publicName, domainName); }
+}

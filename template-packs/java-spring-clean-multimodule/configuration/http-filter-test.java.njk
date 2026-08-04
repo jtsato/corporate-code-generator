@@ -34,16 +34,26 @@ class {{ className }} {
 
 {% for scenario in scenarios %}    @Test
     void {{ scenario.methodName }}() throws Exception {
-        {{ responseType }}<{{ responseBodyType }}> response = get({% for filter in scenario.filterLiterals %}{% if not loop.first %}, {% endif %}"{{ filter }}"{% endfor %});
+        {{ responseType }}<{{ responseBodyType }}> response = get({{ scenario.pageExpression }}, {{ scenario.sizeExpression }}, List.of({% for filter in scenario.filterLiterals %}"{{ filter }}"{% if not loop.last %}, {% endif %}{% endfor %}), List.of({% for sort in scenario.sortLiterals %}"{{ sort }}"{% if not loop.last %}, {% endif %}{% endfor %}));
         assertThat(response.statusCode()).isEqualTo({{ scenario.expectedStatusCode }});{% if scenario.expectedIdentifierConstantNames %}
-        assertThat(identifiersOf(response)).containsExactlyInAnyOrder({% for identifier in scenario.expectedIdentifierConstantNames %}{{ identifier }}{% if not loop.last %}, {% endif %}{% endfor %});{% endif %}
+        {{ jsonNodeType }} root = OBJECT_MAPPER.readTree(response.body());
+        assertThat(root.path("page").asInt()).isEqualTo({{ scenario.expectedPage }});
+        assertThat(root.path("size").asInt()).isEqualTo({{ scenario.expectedSize }});
+        assertThat(root.path("totalItems").asLong()).isEqualTo({{ scenario.expectedTotalItems }}L);
+        assertThat(root.path("totalPages").asInt()).isEqualTo({{ scenario.expectedTotalPages }});
+        {% if scenario.expectedOrdered %}assertThat(identifiersOf(root)).containsExactly({% for identifier in scenario.expectedIdentifierConstantNames %}{{ identifier }}{% if not loop.last %}, {% endif %}{% endfor %});{% else %}assertThat(identifiersOf(root)).containsExactlyInAnyOrder({% for identifier in scenario.expectedIdentifierConstantNames %}{{ identifier }}{% if not loop.last %}, {% endif %}{% endfor %});{% endif %}{% endif %}
     }
 
-{% endfor %}    private {{ responseType }}<{{ responseBodyType }}> get(String... filters) throws Exception {
+{% endfor %}    private {{ responseType }}<{{ responseBodyType }}> get(Object page, Object size, List<String> filters, List<String> sorts) throws Exception {
         StringBuilder query = new StringBuilder();
         for (String filter : filters) {
             query.append(query.isEmpty() ? '?' : '&').append("{{ filterParameterName }}=").append(URLEncoder.encode(filter, StandardCharsets.UTF_8));
         }
+        for (String sort : sorts) {
+            query.append(query.isEmpty() ? '?' : '&').append("sort=").append(URLEncoder.encode(sort, StandardCharsets.UTF_8));
+        }
+        if (page != null) query.append(query.isEmpty() ? '?' : '&').append("page=").append(URLEncoder.encode(String.valueOf(page), StandardCharsets.UTF_8));
+        if (size != null) query.append(query.isEmpty() ? '?' : '&').append("size=").append(URLEncoder.encode(String.valueOf(size), StandardCharsets.UTF_8));
 
         {{ requestType }} request = {{ requestType }}.newBuilder(
             URI.create("http://localhost:" + {{ serverPortFieldName }} + "{{ endpointPath }}" + query)
@@ -52,10 +62,9 @@ class {{ className }} {
         return HTTP_CLIENT.send(request, {{ responseType }}.BodyHandlers.of{{ responseBodyType }}());
     }
 
-    private List<{{ identifierType }}> identifiersOf({{ responseType }}<{{ responseBodyType }}> response) throws Exception {
-        {{ jsonNodeType }} root = OBJECT_MAPPER.readTree(response.body());
+    private List<{{ identifierType }}> identifiersOf({{ jsonNodeType }} root) {
         List<{{ identifierType }}> identifiers = new ArrayList<>();
-        for ({{ jsonNodeType }} node : root) identifiers.add({{ identifierFromJsonExpression }});
+        for ({{ jsonNodeType }} node : root.path("items")) identifiers.add({{ identifierFromJsonExpression }});
         return identifiers;
     }
 }

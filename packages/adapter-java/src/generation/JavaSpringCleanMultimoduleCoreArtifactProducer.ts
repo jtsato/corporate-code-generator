@@ -28,6 +28,8 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const byFilterInteractorType = `${byFilterUseCaseType}Interactor`;
       const pageUseCaseType = `Find${toJavaPluralTypeName(entityType)}PageUseCase`;
       const pageInteractorType = `${pageUseCaseType}Interactor`;
+      const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
+      const byFilterPageInteractorType = `${byFilterPageUseCaseType}Interactor`;
       const domainPackage = `${namespace}.core.domains.${domainName}`;
       const filterPackage = `${namespace}.core.common.filter`;
       const pagingPackage = `${namespace}.core.common.paging`;
@@ -62,6 +64,32 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       pageInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
       pageInteractorTestImports.add("java.util.List");
       pageInteractorTestImports.add("org.junit.jupiter.api.Test");
+      const byFilterPageUseCaseImports = new JavaImportCollector();
+      byFilterPageUseCaseImports.add(`${filterPackage}.FilterExpression`);
+      byFilterPageUseCaseImports.add(`${pagingPackage}.PageRequest`);
+      byFilterPageUseCaseImports.add(`${pagingPackage}.PageResult`);
+      byFilterPageUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      const byFilterPageInteractorImports = new JavaImportCollector();
+      byFilterPageInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      byFilterPageInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      byFilterPageInteractorImports.add(`${filterPackage}.FilterExpression`);
+      byFilterPageInteractorImports.add(`${pagingPackage}.PageRequest`);
+      byFilterPageInteractorImports.add(`${pagingPackage}.PageResult`);
+      byFilterPageInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      byFilterPageInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterPageInteractorImports.add("java.util.List");
+      const byFilterPageInteractorTestImports = new JavaImportCollector();
+      byFilterPageInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      byFilterPageInteractorTestImports.add(`${filterPackage}.FilterCondition`);
+      byFilterPageInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      byFilterPageInteractorTestImports.add(`${filterPackage}.FilterGroup`);
+      byFilterPageInteractorTestImports.add(`${pagingPackage}.PageRequest`);
+      byFilterPageInteractorTestImports.add(`${pagingPackage}.PageResult`);
+      byFilterPageInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      byFilterPageInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterPageInteractorTestImports.add("java.util.ArrayList");
+      byFilterPageInteractorTestImports.add("java.util.List");
+      byFilterPageInteractorTestImports.add("org.junit.jupiter.api.Test");
       const byFilterUseCaseImports = new JavaImportCollector();
       byFilterUseCaseImports.add(`${filterPackage}.FilterExpression`);
       byFilterUseCaseImports.add(`${domainPackage}.model.${entityType}`);
@@ -113,6 +141,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             filterExpressionType: "FilterExpression",
             filterExpressionParameterName: "filterExpression",
             findPageMethodName: "findPage",
+            findByFilterPageMethodName: "findByFilterPage",
             pageRequestType: "PageRequest",
             pageRequestParameterName: "pageRequest",
             pageResultType: "PageResult",
@@ -199,11 +228,78 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             requiredMessageKey: "common.filter.expression.required",
             sampleFieldName: entity.attributes[0]!.name,
             gatewayFindPageMethodName: "findPage",
+            gatewayFindByFilterPageMethodName: "findByFilterPage",
             pageRequestType: "PageRequest",
             pageRequestParameterName: "pageRequest",
             pageResultType: "PageResult",
           },
           outputVariables: { ...outputVariables, className: `${byFilterInteractorType}Tests` },
+        },
+        {
+          templateId: "core-find-usecase-by-filter-page",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterPageUseCaseImports.values(),
+            interfaceName: byFilterPageUseCaseType,
+            entityType,
+            executeMethodName: "execute",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            pageRequestType: "PageRequest",
+            pageRequestParameterName: "pageRequest",
+            pageResultType: "PageResult",
+          },
+          outputVariables: { ...outputVariables, className: byFilterPageUseCaseType },
+        },
+        {
+          templateId: "core-find-usecase-by-filter-page-interactor",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterPageInteractorImports.values(),
+            className: byFilterPageInteractorType,
+            interfaceName: byFilterPageUseCaseType,
+            gatewayType,
+            gatewayFieldName: `${domainName}Gateway`,
+            entityType,
+            executeMethodName: "execute",
+            gatewayFindByFilterPageMethodName: "findByFilterPage",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            pageRequestType: "PageRequest",
+            pageRequestParameterName: "pageRequest",
+            pageResultType: "PageResult",
+            requiredFilterMessageKey: "common.filter.expression.required",
+            requiredFilterDefaultMessage: "Filter expression is required.",
+            requiredPageMessageKey: "common.paging.page-request.required",
+            requiredPageDefaultMessage: "Page request is required.",
+          },
+          outputVariables: { ...outputVariables, className: byFilterPageInteractorType },
+        },
+        {
+          templateId: "core-find-usecase-by-filter-page-interactor-test",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterPageInteractorTestImports.values(),
+            className: `${byFilterPageInteractorType}Tests`,
+            interactorType: byFilterPageInteractorType,
+            fakeGatewayType: `Fake${gatewayType}`,
+            gatewayType,
+            entityType,
+            executeMethodName: "execute",
+            gatewayFindAllMethodName: "findAll",
+            gatewayFindByFilterMethodName: "findByFilter",
+            gatewayFindPageMethodName: "findPage",
+            gatewayFindByFilterPageMethodName: "findByFilterPage",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            pageRequestType: "PageRequest",
+            pageRequestParameterName: "pageRequest",
+            pageResultType: "PageResult",
+            requiredFilterMessageKey: "common.filter.expression.required",
+            requiredPageMessageKey: "common.paging.page-request.required",
+            sampleFieldName: entity.attributes[0]!.name,
+          },
+          outputVariables: { ...outputVariables, className: `${byFilterPageInteractorType}Tests` },
         },
         {
           templateId: "core-find-usecase-page",
@@ -253,6 +349,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             gatewayFindAllMethodName: "findAll",
             gatewayFindByFilterMethodName: "findByFilter",
             gatewayFindPageMethodName: "findPage",
+            gatewayFindByFilterPageMethodName: "findByFilterPage",
             filterExpressionType: "FilterExpression",
             filterExpressionParameterName: "filterExpression",
             pageRequestType: "PageRequest",

@@ -39,6 +39,11 @@ class FindWalletsPageUseCaseInteractorTests {
             received = pageRequest;
             return result;
         }
+
+        @Override
+        public PageResult<Wallet> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) {
+            return null;
+        }
     }
 
     @Test

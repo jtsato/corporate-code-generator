@@ -84,10 +84,16 @@ export type {
   JavaPagingPersistenceTestScenario,
   JavaPagingPersistenceTestTemplateModel,
 } from "./model/JavaPagingPersistenceTestTemplateModel.js";
+export type {
+  JavaFilteredPagingPersistenceTestRecord,
+  JavaFilteredPagingPersistenceTestScenario,
+  JavaFilteredPagingPersistenceTestTemplateModel,
+} from "./model/JavaFilteredPagingPersistenceTestTemplateModel.js";
 
 export {
   createJavaPagingPersistenceTestModel,
 } from "./transformers/createJavaPagingPersistenceTestModel.js";
+export { createJavaFilteredPagingPersistenceTestModel } from "./transformers/createJavaFilteredPagingPersistenceTestModel.js";
 
 export {
   JavaTestFixtureValueResolver,
@@ -108,6 +114,8 @@ export type {
 export type {
   JavaDelegatingRestControllerTemplateModel,
 } from "./model/JavaDelegatingRestControllerTemplateModel.js";
+export type { JavaPageResponseTemplateModel } from "./model/JavaPageResponseTemplateModel.js";
+export type { JavaRestSortFieldTemplateModel, JavaRestSortTemplateModel } from "./model/JavaRestSortTemplateModels.js";
 
 export type {
   JavaGatewayProviderTemplateModel,

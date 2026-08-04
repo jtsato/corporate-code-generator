@@ -7,8 +7,16 @@ export interface JavaHttpFilterTestRecord {
 export interface JavaHttpFilterTestScenario {
   readonly methodName: string;
   readonly filterLiterals: readonly string[];
+  readonly sortLiterals: readonly string[];
+  readonly pageExpression: string;
+  readonly sizeExpression: string;
   readonly expectedStatusCode: number;
   readonly expectedIdentifierConstantNames: readonly string[] | null;
+  readonly expectedPage: number | null;
+  readonly expectedSize: number | null;
+  readonly expectedTotalItems: number | null;
+  readonly expectedTotalPages: number | null;
+  readonly expectedOrdered: boolean;
 }
 
 export interface JavaHttpFilterTestTemplateModel {

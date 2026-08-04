@@ -28,6 +28,11 @@ class {{ className }} {
         }
 
         @Override
+        public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindByFilterPageMethodName }}({{ filterExpressionType }} filterExpression, {{ pageRequestType }} pageRequest) {
+            return null;
+        }
+
+        @Override
         public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindPageMethodName }}({{ pageRequestType }} {{ pageRequestParameterName }}) {
             return null;
         }

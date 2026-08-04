@@ -4,6 +4,10 @@ export interface JavaDelegatingRestControllerTemplateModel {
   readonly className: string;
   readonly requestMapping: string;
   readonly responseClassName: string;
+  readonly domainClassName: string;
+  readonly pageResponseClassName: string;
+  readonly pageRequestClassName: string;
+  readonly pageResultClassName: string;
   readonly findAllMethodName: string;
   readonly useCaseType: string;
   readonly useCaseFieldName: string;
@@ -23,4 +27,18 @@ export interface JavaDelegatingRestControllerTemplateModel {
   readonly filterParserMethodName: string;
   readonly filterDefinitionType: string;
   readonly filterDefinitionFactoryMethodName: string;
+  readonly pageParameterName: string;
+  readonly pageParameterDescription: string;
+  readonly sizeParameterName: string;
+  readonly sizeParameterDescription: string;
+  readonly sortParameterName: string;
+  readonly sortParameterType: string;
+  readonly sortParameterDescription: string;
+  readonly sortParameterExample: string;
+  readonly sortOrdersType: string;
+  readonly sortOrderType: string;
+  readonly sortParserType: string;
+  readonly sortParserMethodName: string;
+  readonly sortDefinitionType: string;
+  readonly sortDefinitionFactoryMethodName: string;
 }

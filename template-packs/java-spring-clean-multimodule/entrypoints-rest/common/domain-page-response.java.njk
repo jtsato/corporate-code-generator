@@ -1,0 +1,23 @@
+package {{ packageName }};
+
+import {{ pageResultPackageName }}.PageResult;
+import {{ responsePackageName }}.{{ responseType }};
+import java.util.List;
+
+public record {{ className }}(
+    List<{{ responseType }}> items,
+    int page,
+    int size,
+    long totalItems,
+    long totalPages
+) {
+    public static {{ className }} from(PageResult<{{ responseType }}> pageResult) {
+        return new {{ className }}(
+            pageResult.items(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalItems(),
+            pageResult.totalPages()
+        );
+    }
+}

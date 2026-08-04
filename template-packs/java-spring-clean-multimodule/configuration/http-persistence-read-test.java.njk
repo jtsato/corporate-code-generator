@@ -44,8 +44,9 @@ class {{ className }} {
             .hasValueSatisfying(contentType ->
                 assertThat(contentType).startsWith("{{ expectedContentTypePrefix }}")
             );
-        assertThat(response.body()).isEqualTo(
-            {{ expectedBodyExpression }}
+        {{ jsonNodeType }} root = new {{ objectMapperType }}().readTree(response.body());
+        assertThat(root.path("items").toString()).isEqualTo(
+            {{ expectedItemsBodyExpression }}
         );
     }
 }

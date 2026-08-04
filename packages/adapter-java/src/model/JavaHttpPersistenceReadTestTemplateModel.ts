@@ -26,8 +26,10 @@ export interface JavaHttpPersistenceReadTestTemplateModel {
   readonly responseType: string;
   readonly responseBodyType: string;
   readonly httpClientType: string;
+  readonly objectMapperType: string;
+  readonly jsonNodeType: string;
   readonly expectedStatusCode: number;
-  readonly expectedBodyExpression: string;
+  readonly expectedItemsBodyExpression: string;
   readonly contentTypeHeaderName: string;
   readonly expectedContentTypePrefix: string;
   readonly activeProfile: string;

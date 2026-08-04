@@ -18,6 +18,7 @@ export interface JavaGatewayProviderTemplateModel {
   readonly filterMapperMethodName: string;
   readonly filterDefinitionType: string;
   readonly filterDefinitionFactoryMethodName: string;
+  readonly findByFilterPageMethodName: string;
   readonly persistenceEntityType: string;
   readonly persistenceEntitiesVariableName: string;
   readonly requiresIterableConversion: boolean;
@@ -33,4 +34,8 @@ export interface JavaGatewayProviderTemplateModel {
   readonly pageRequestMapperMethodName: string;
   readonly pageResultMapperType: string;
   readonly pageResultMapperMethodName: string;
+  readonly sortPropertyMapping: readonly {
+    readonly domainName: string;
+    readonly persistenceName: string;
+  }[];
 }

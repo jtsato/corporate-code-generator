@@ -38,6 +38,11 @@ class FindWalletsByFilterUseCaseInteractorTests {
         }
 
         @Override
+        public PageResult<Wallet> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) {
+            return null;
+        }
+
+        @Override
         public PageResult<Wallet> findPage(PageRequest pageRequest) {
             return null;
         }

@@ -143,6 +143,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         filterMapperMethodName: "toPredicate",
         filterDefinitionType: `${entityType}QuerydslFilterDefinition`,
         filterDefinitionFactoryMethodName: "create",
+        findByFilterPageMethodName: "findByFilterPage",
         persistenceEntityType: `${entityType}Entity`,
         persistenceEntitiesVariableName: toJavaFieldName(`${entityType}Entities`),
         requiresIterableConversion,
@@ -158,6 +159,10 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         pageRequestMapperMethodName: "toPageable",
         pageResultMapperType: "SpringDataPageResultMapper",
         pageResultMapperMethodName: "toPageResult",
+        sortPropertyMapping: entity.attributes.map((attribute) => ({
+          domainName: attribute.name,
+          persistenceName: toJavaFieldName(attribute.name),
+        })),
       };
 
       return [
