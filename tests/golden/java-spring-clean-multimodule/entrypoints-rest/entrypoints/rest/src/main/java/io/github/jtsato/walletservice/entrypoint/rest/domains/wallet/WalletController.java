@@ -8,8 +8,6 @@ import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase;
 import io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser;
 import io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus;
-import io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortDefinition;
-import io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortFieldDefinition;
 import io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser;
 import io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter.WalletRestFilterDefinition;

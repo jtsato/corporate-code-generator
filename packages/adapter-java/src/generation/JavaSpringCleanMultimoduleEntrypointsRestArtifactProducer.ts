@@ -41,6 +41,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
       const filterDefinitionType = `${entityType}RestFilterDefinition`;
       const sortDefinitionType = `${entityType}RestSortDefinition`;
+      const sortParameterDescription = `Sort expression as <field>:<direction>. Repeat to apply multiple orders in order. Fields: ${entity.attributes.map((attribute) => attribute.name).join(", ")}. Directions: asc, desc.`;
       const controllerImports = new JavaImportCollector();
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}`);
       controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
@@ -52,8 +53,6 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.entrypoint.rest.common.filter.RestFilterParser`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.filter.${filterDefinitionType}`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortParser`);
-      controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortDefinition`);
-      controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortFieldDefinition`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.sort.${sortDefinitionType}`);
       controllerImports.add(`${namespace}.core.common.paging.SortOrder`);
       controllerImports.add("java.util.List");
@@ -101,7 +100,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         sizeParameterDescription: "Number of items per page. Defaults to 20.",
         sortParameterName: "sort",
         sortParameterType: "List<String>",
-        sortParameterDescription: "Sort expression as <field>:<direction>. Repeat to apply multiple orders in order. Fields: id, balance. Directions: asc, desc.",
+        sortParameterDescription,
         sortParameterExample: "balance:desc",
         sortOrdersType: "List",
         sortOrderType: "SortOrder",

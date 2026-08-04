@@ -50,8 +50,6 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase",
           "io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser",
           "io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus",
-          "io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortDefinition",
-          "io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortFieldDefinition",
           "io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser",
           "io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter.WalletRestFilterDefinition",
