@@ -97,6 +97,11 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: Paging runtime smoke Java multi-module
+        run: npm run smoke:paging-runtime:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: Filter smoke Java multi-module
         run: npm run smoke:filter:java-multimodule
         env:
@@ -154,6 +159,11 @@ jobs:
 
       - name: HTTP persistence read smoke Java multi-module
         run: npm run smoke:http-persistence-read:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
+      - name: HTTP filter smoke Java multi-module
+        run: npm run smoke:http-filter:java-multimodule
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 

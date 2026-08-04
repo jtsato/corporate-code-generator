@@ -13,6 +13,16 @@ import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
+/**
+ * Mirrors the field/operator combinations hard-coded by the
+ * `entrypoints-rest-domain-filter-definition` template (`RestFilterDefinition.of(...)` always
+ * exposes exactly `id` and `balance`), so the OpenAPI description matches what the generated
+ * `RestFilterParser` actually accepts.
+ */
+const restFilterParameterDescription =
+  "Filter expression as <field>:<operator>[:<value>]. Repeat to combine with AND. " +
+  "Fields: id (eq, ne, in, isnull, notnull); balance (eq, ne, gt, gte, lt, lte, in, isnull, notnull).";
+
 export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implements GenerationArtifactProducer {
   public readonly profileId = "java-spring-clean-multimodule";
   public readonly moduleId = "entrypoints-rest";
@@ -28,17 +38,24 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const entityType = toJavaTypeName(entity.name);
       const controllerName = `${entityType}Controller`;
       const responseName = `${entityType}Response`;
-      const useCaseType = `Find${toJavaPluralTypeName(entityType)}UseCase`;
+      const byFilterUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterUseCase`;
+      const filterDefinitionType = `${entityType}RestFilterDefinition`;
       const controllerImports = new JavaImportCollector();
-      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}`);
+      controllerImports.add(`${namespace}.core.common.filter.FilterExpression`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.ResponseStatus`);
+      controllerImports.add(`${namespace}.entrypoint.rest.common.filter.RestFilterParser`);
+      controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.filter.${filterDefinitionType}`);
       controllerImports.add("java.util.List");
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
+      controllerImports.add("org.springframework.web.bind.annotation.RequestParam");
       controllerImports.add("org.springframework.web.bind.annotation.RestController");
       controllerImports.add("io.swagger.v3.oas.annotations.Operation");
+      controllerImports.add("io.swagger.v3.oas.annotations.Parameter");
       controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponse");
       controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponses");
+      controllerImports.add("io.swagger.v3.oas.annotations.media.ArraySchema");
       controllerImports.add("io.swagger.v3.oas.annotations.media.Content");
       controllerImports.add("io.swagger.v3.oas.annotations.media.Schema");
       controllerImports.add("io.swagger.v3.oas.annotations.tags.Tag");
@@ -49,11 +66,21 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         requestMapping: toRestCollectionPath(entity.name),
         responseClassName: responseName,
         findAllMethodName: "findAll",
-        useCaseType,
-        useCaseFieldName: toJavaFieldName(useCaseType),
+        useCaseType: byFilterUseCaseType,
+        useCaseFieldName: toJavaFieldName(byFilterUseCaseType),
         useCaseExecuteMethodName: "execute",
         responseFactoryMethodName: "from",
         tagName: toJavaPluralTypeName(entityType), tagDescription: `${entityType} operations`, operationSummary: `Find ${toJavaPluralTypeName(entityType).toLowerCase()}`, operationDescription: `Returns all ${toJavaPluralTypeName(entityType).toLowerCase()}.`,
+        filterParameterName: "filter",
+        filterParameterType: "List<String>",
+        filterParameterDescription: restFilterParameterDescription,
+        filterParameterExample: "balance:gt:100",
+        filterExpressionType: "FilterExpression",
+        filterExpressionVariableName: "expression",
+        filterParserType: "RestFilterParser",
+        filterParserMethodName: "parse",
+        filterDefinitionType,
+        filterDefinitionFactoryMethodName: "create",
       };
       const responseImports = new JavaImportCollector();
       responseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);

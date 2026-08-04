@@ -1,10 +1,12 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 82 artifacts in the full profile: build 6, Core 28, entrypoints-rest 38, Infra 46, and Configuration 82. The build+core selection emits 34 artifacts; build+configuration emits 82. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the passive REST Filter Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`.
+`java-spring-clean-multimodule` now generates 88 artifacts in the full profile: build 6, Core 31, entrypoints-rest 41, Infra 49, and Configuration 88. The build+core selection emits 37 artifacts; build+configuration emits 88. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the REST Filter Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, the REST filter runtime integration, the paging runtime integration, and `.github/workflows/java-ci.yml`. The generated Java CI uses Java 25 and `mvn -B clean verify`.
 
-Querydsl filters now run against the database through a dedicated filtered use case. The generated flow is `FilterExpression -> QuerydslFilterMapper -> ListQuerydslPredicateExecutor -> repository -> gateway -> Find<Entity>ByFilterUseCase`. `FilterExpression.empty()` falls back to `repository.findAll()`. Validate it with `npm run smoke:querydsl-filter-runtime:java-multimodule`.
+Querydsl filters run against the database through a dedicated filtered use case. The generated flow is `FilterExpression -> QuerydslFilterMapper -> ListQuerydslPredicateExecutor -> repository -> gateway -> Find<Entity>ByFilterUseCase`. `FilterExpression.empty()` falls back to `repository.findAll()`. Validate it with `npm run smoke:querydsl-filter-runtime:java-multimodule`.
 
-REST filter parsing remains a passive foundation: the future repeated query contract is `filter=<field>:<operator>[:<value>]`, with lowercase aliases, AND composition, string values, and a per-entity allowlist mapping `publicName` to `domainName`. Filters do not yet alter `GET /wallets`; OpenAPI filter documentation and HTTP-exposed filtering remain future work. Validate the parser with `npm run smoke:rest-filter:java-multimodule` and the generated Querydsl definitions with `npm run smoke:querydsl-filter:java-multimodule`.
+Paging now runs against the database through a dedicated paginated use case, separate from filtering. The generated flow is `PageRequest -> Find<Entity>PageUseCase -> gateway.findPage -> SpringDataPageRequestMapper -> JpaRepository.findAll(Pageable) -> SpringDataPageResultMapper -> PageResult<Entity>`. Sorting stays out of scope: tests use `PageRequest.of(page, size)` and the provider passes `Map.of()` as the mapper's sort allowlist. Pagination is not yet reachable over HTTP — `GET /wallets` still returns `List<WalletResponse>`. Validate it with `npm run smoke:paging-runtime:java-multimodule`. See [ADR-038](docs/adr/ADR-038-paging-runtime-integration.md).
+
+REST filter parsing is now wired end to end: `GET /wallets?filter=<field>:<operator>[:<value>]` (repeatable, combined with AND) reaches `WalletController`, which calls `RestFilterParser.parse` with the generated `WalletRestFilterDefinition`, then `FindWalletsByFilterUseCase`, reusing the Querydsl filter runtime unchanged. A generated `RestFilterWebConfiguration` registers a `String -> List<String>` converter so a single `filter` occurrence (e.g. an `in` value with commas) is not comma-split by Spring's default collection binding, while repeated `filter` occurrences still combine correctly. The parameter is documented in OpenAPI via `@Parameter`/`@ArraySchema`; parsing and value errors both surface as HTTP 400 through the existing `GlobalExceptionHandler`. Validate the parser alone with `npm run smoke:rest-filter:java-multimodule`, the generated Querydsl definitions with `npm run smoke:querydsl-filter:java-multimodule`, and the full HTTP path with `npm run smoke:http-filter:java-multimodule`. See [ADR-037](docs/adr/ADR-037-rest-filter-runtime-integration.md).
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 
@@ -166,6 +168,26 @@ suporta ordenação, também valida `GREATER_THAN` e faixa. Ele não usa
 `RestFilterParser`, não expõe filtros por HTTP e não introduz paginação ou
 ordenação. Segue a mesma política de disponibilidade do Maven dos demais smokes.
 
+### Smoke paging runtime multi-módulo
+
+A paginação é provada sem HTTP, num fluxo isolado do filtro. O smoke executa
+somente `*PagingPersistenceTests` e `*FindWalletsPageUseCaseInteractorTests`:
+
+```bash
+npm run smoke:paging-runtime:java-multimodule
+```
+
+O teste de persistência sobe o contexto Spring com H2 (sem `webEnvironment`),
+persiste cinco registros determinísticos e valida, para `page`/`size` de
+0/2, 1/2, 2/2 e 10/2, a quantidade de itens da página e os metadados
+(`totalItems`, `totalPages`, `page`, `size`) do `PageResult` retornado por
+`Find<Entity>PageUseCase`. Não valida conteúdo por ordem, porque
+`findAll(Pageable)` sem `Sort` explícito não garante ordem estável, e não
+introduz sorting só para estabilizar o teste. Não usa `RestFilterParser` nem
+o runtime de filtro, não expõe paginação por HTTP e não combina paginação
+com filtro. Segue a mesma política de disponibilidade do Maven dos demais
+smokes.
+
 ### Smoke de contexto Spring multi-módulo
 
 O Golden Path `java-spring-clean-multimodule` também possui um smoke dedicado
@@ -212,6 +234,25 @@ npm run smoke:http-persistence-read:java-multimodule
 O teste valida status `200`, `Content-Type` JSON e o body exato com o UUID e o
 balance persistidos. Ele não cria endpoint de escrita, seed global, migration
 ou configuração de datasource de produção.
+
+### Smoke HTTP filter multi-módulo
+
+O smoke de filtro HTTP prova o Milestone 6.15 ponta a ponta, executando
+somente `*HttpFilterTests`:
+
+```bash
+npm run smoke:http-filter:java-multimodule
+```
+
+O teste persiste três `WalletEntity` determinísticas (mesmas fixtures do
+`*QuerydslFilterPersistenceTests`), chama `GET /wallets` com e sem `filter` via
+`java.net.http.HttpClient`, e valida: ausência de filtro retorna todos;
+`balance:eq`, `balance:gt`, dois `filter` repetidos combinados com AND e
+`id:in` retornam o conjunto de identificadores esperado (comparado sem
+depender de ordem); campo desconhecido, operador não permitido, valor
+inválido e formato inválido retornam `400`. Ele não duplica os testes
+unitários do `RestFilterParser` nem introduz paginação, sorting ou sintaxe
+OR. Segue a mesma política de disponibilidade do Maven dos demais smokes.
 
 Para limpar a saída local:
 

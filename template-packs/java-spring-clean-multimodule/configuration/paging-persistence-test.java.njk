@@ -1,0 +1,40 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+    @Autowired
+    private {{ useCaseType }} {{ useCaseFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @BeforeEach
+    void arrange() {
+        {{ repositoryFieldName }}.deleteAll();
+        {{ repositoryFieldName }}.saveAllAndFlush(List.of(
+{% for record in records %}            new {{ persistenceEntityType }}({% for argument in record.constructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %},{% endif %}
+{% endfor %}        ));
+    }
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+{% for scenario in scenarios %}    @Test
+    void {{ scenario.methodName }}() {
+        {{ pageResultType }}<{{ entityType }}> result = {{ useCaseFieldName }}.{{ executeMethodName }}({{ pageRequestType }}.{{ pageRequestFactoryMethodName }}({{ scenario.page }}, {{ scenario.size }}));
+
+        assertThat(result.items()).hasSize({{ scenario.expectedItemCount }});
+        assertThat(result.totalItems()).isEqualTo({{ scenario.expectedTotalItems }});
+        assertThat(result.totalPages()).isEqualTo({{ scenario.expectedTotalPages }});
+        assertThat(result.page()).isEqualTo({{ scenario.page }});
+        assertThat(result.size()).isEqualTo({{ scenario.size }});
+    }
+
+{% endfor %}}

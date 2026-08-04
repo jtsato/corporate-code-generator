@@ -40,6 +40,9 @@ describe("Java multi-module CLI smoke test", () => {
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCase.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractor.java",
         "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractorTests.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCase.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractor.java",
+        "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractorTests.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ApplicationException.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/FieldViolation.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ValidationException.java",
@@ -70,6 +73,7 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsProperties.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsWebConfiguration.java",
+        "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/RestFilterWebConfiguration.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/openapi/OpenApiConfiguration.java",
         "configuration/src/main/resources/application.yaml",
         "configuration/src/main/resources/application-local.yaml",
@@ -85,6 +89,8 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPersistenceTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFilterTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/WalletPagingPersistenceTests.java",
       ]) {
         const [generated, golden] = await Promise.all([
           readFile(join(outputRoot, ...targetPath.split("/")), "utf8"),

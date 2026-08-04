@@ -2,16 +2,23 @@ package io.github.jtsato.walletservice.infra.domains.wallet;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import io.github.jtsato.walletservice.core.common.filter.FilterExpression;
+import io.github.jtsato.walletservice.core.common.paging.PageRequest;
+import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
 import io.github.jtsato.walletservice.infra.database.common.filter.QuerydslFilterMapper;
+import io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageRequestMapper;
+import io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageResultMapper;
 import io.github.jtsato.walletservice.infra.database.domains.wallet.filter.WalletQuerydslFilterDefinition;
 import io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity;
 import io.github.jtsato.walletservice.infra.domains.wallet.mapper.WalletPersistenceMapper;
 import io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public class WalletGatewayProvider implements WalletGateway {
     private final WalletRepository walletRepository;
@@ -44,5 +51,22 @@ public class WalletGatewayProvider implements WalletGateway {
         return walletEntities.stream()
             .map(WalletPersistenceMapper::toDomain)
             .toList();
+    }
+
+    @Override
+    public PageResult<Wallet> findPage(PageRequest pageRequest) {
+        Objects.requireNonNull(pageRequest, "pageRequest");
+
+        Pageable pageable = SpringDataPageRequestMapper.toPageable(
+            pageRequest,
+            Map.of()
+        );
+
+        Page<WalletEntity> page = walletRepository.findAll(pageable);
+
+        return SpringDataPageResultMapper.toPageResult(
+            page,
+            WalletPersistenceMapper::toDomain
+        );
     }
 }

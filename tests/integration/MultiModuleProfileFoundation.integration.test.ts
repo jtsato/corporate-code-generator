@@ -75,6 +75,9 @@ describe("Java multi-module profile foundation", () => {
       "core-find-usecase-by-filter",
       "core-find-usecase-by-filter-interactor",
       "core-find-usecase-by-filter-interactor-test",
+      "core-find-usecase-page",
+      "core-find-usecase-page-interactor",
+      "core-find-usecase-page-interactor-test",
       "core-application-exception", "core-field-violation", "core-validation-exception", "core-not-found-exception",
       "core-self-validating",
       "core-sort-direction",
@@ -124,7 +127,7 @@ describe("Java multi-module profile foundation", () => {
       "configuration-application",
       "configuration-domain-wiring",
       "configuration-global-exception-handler",
-      "configuration-cors-properties", "configuration-cors-web-configuration",
+      "configuration-cors-properties", "configuration-cors-web-configuration", "configuration-rest-filter-web-configuration",
       "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
       "configuration-messages", "configuration-messages-pt-br",
@@ -136,6 +139,8 @@ describe("Java multi-module profile foundation", () => {
       "configuration-http-smoke-test",
       "configuration-querydsl-filter-persistence-test",
       "configuration-http-persistence-read-test",
+      "configuration-http-filter-test",
+      "configuration-paging-persistence-test",
     ]);
     expect(resolver.resolveAll(profile.modules).map((module) => module.id)).toEqual([
       "build",

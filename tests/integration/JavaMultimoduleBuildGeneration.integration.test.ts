@@ -68,7 +68,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(82);
+    expect(operations).toHaveLength(88);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
@@ -78,6 +78,9 @@ describe("Java multi-module generation", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractorTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ApplicationException.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/FieldViolation.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ValidationException.java",
@@ -132,6 +135,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsProperties.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsWebConfiguration.java",
+      "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/RestFilterWebConfiguration.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/openapi/OpenApiConfiguration.java",
       "configuration/src/main/resources/application.yaml",
       "configuration/src/main/resources/application-local.yaml",
@@ -147,6 +151,8 @@ describe("Java multi-module generation", () => {
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFilterTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletPagingPersistenceTests.java",
     ]);
     for (const operation of operations) {
       const goldenModule = goldenModuleFor(operation.targetPath);

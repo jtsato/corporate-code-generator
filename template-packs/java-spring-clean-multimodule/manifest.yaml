@@ -54,6 +54,18 @@ templates:
     module: core
     template: core/usecase/find/interactor-by-filter-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-page
+    module: core
+    template: core/usecase/find/usecase-page.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-page-interactor
+    module: core
+    template: core/usecase/find/interactor-page.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-usecase-page-interactor-test
+    module: core
+    template: core/usecase/find/interactor-page-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
   - id: core-application-exception
     module: core
     template: core/common/application-exception.java.njk
@@ -270,6 +282,10 @@ templates:
     module: configuration
     template: configuration/cors-web-configuration.java.njk
     output: configuration/src/main/java/{{ packagePath }}/configuration/web/{{ className }}.java
+  - id: configuration-rest-filter-web-configuration
+    module: configuration
+    template: configuration/rest-filter-web-configuration.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/web/{{ className }}.java
   - id: configuration-openapi-configuration
     module: configuration
     template: configuration/openapi-configuration.java.njk
@@ -329,4 +345,12 @@ templates:
   - id: configuration-http-persistence-read-test
     module: configuration
     template: configuration/http-persistence-read-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-filter-test
+    module: configuration
+    template: configuration/http-filter-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-paging-persistence-test
+    module: configuration
+    template: configuration/paging-persistence-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java

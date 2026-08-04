@@ -1,0 +1,61 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for record in records %}    private static final {{ identifierType }} {{ record.identifierConstantName }} =
+        {{ record.identifierExpression }};
+
+{% endfor %}    private static final {{ httpClientType }} HTTP_CLIENT = {{ httpClientType }}.newHttpClient();
+    private static final {{ objectMapperType }} OBJECT_MAPPER = new {{ objectMapperType }}();
+
+    @{{ serverPortAnnotationType }}
+    private int {{ serverPortFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @BeforeEach
+    void arrange() {
+        {{ repositoryFieldName }}.deleteAll();
+        {{ repositoryFieldName }}.saveAllAndFlush(List.of(
+{% for record in records %}            new {{ persistenceEntityType }}({% for argument in record.constructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %},{% endif %}
+{% endfor %}        ));
+    }
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+{% for scenario in scenarios %}    @Test
+    void {{ scenario.methodName }}() throws Exception {
+        {{ responseType }}<{{ responseBodyType }}> response = get({% for filter in scenario.filterLiterals %}{% if not loop.first %}, {% endif %}"{{ filter }}"{% endfor %});
+        assertThat(response.statusCode()).isEqualTo({{ scenario.expectedStatusCode }});{% if scenario.expectedIdentifierConstantNames %}
+        assertThat(identifiersOf(response)).containsExactlyInAnyOrder({% for identifier in scenario.expectedIdentifierConstantNames %}{{ identifier }}{% if not loop.last %}, {% endif %}{% endfor %});{% endif %}
+    }
+
+{% endfor %}    private {{ responseType }}<{{ responseBodyType }}> get(String... filters) throws Exception {
+        StringBuilder query = new StringBuilder();
+        for (String filter : filters) {
+            query.append(query.isEmpty() ? '?' : '&').append("{{ filterParameterName }}=").append(URLEncoder.encode(filter, StandardCharsets.UTF_8));
+        }
+
+        {{ requestType }} request = {{ requestType }}.newBuilder(
+            URI.create("http://localhost:" + {{ serverPortFieldName }} + "{{ endpointPath }}" + query)
+        ).GET().build();
+
+        return HTTP_CLIENT.send(request, {{ responseType }}.BodyHandlers.of{{ responseBodyType }}());
+    }
+
+    private List<{{ identifierType }}> identifiersOf({{ responseType }}<{{ responseBodyType }}> response) throws Exception {
+        {{ jsonNodeType }} root = OBJECT_MAPPER.readTree(response.body());
+        List<{{ identifierType }}> identifiers = new ArrayList<>();
+        for ({{ jsonNodeType }} node : root) identifiers.add({{ identifierFromJsonExpression }});
+        return identifiers;
+    }
+}

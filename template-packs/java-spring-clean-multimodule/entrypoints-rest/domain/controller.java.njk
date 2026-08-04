@@ -15,12 +15,15 @@ public class {{ className }} {
 
     @GetMapping
     @Operation(summary = "{{ operationSummary }}", description = "{{ operationDescription }}")
+    @Parameter(name = "{{ filterParameterName }}", description = "{{ filterParameterDescription }}", example = "{{ filterParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "{{ tagName }} found"),
+        @ApiResponse(responseCode = "400", description = "Invalid filter", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
         @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
     })
-    public List<{{ responseClassName }}> {{ findAllMethodName }}() {
-        return {{ useCaseFieldName }}.{{ useCaseExecuteMethodName }}()
+    public List<{{ responseClassName }}> {{ findAllMethodName }}(@RequestParam(name = "{{ filterParameterName }}", required = false) {{ filterParameterType }} {{ filterParameterName }}) {
+        {{ filterExpressionType }} {{ filterExpressionVariableName }} = {{ filterParserType }}.{{ filterParserMethodName }}({{ filterParameterName }}, {{ filterDefinitionType }}.{{ filterDefinitionFactoryMethodName }}());
+        return {{ useCaseFieldName }}.{{ useCaseExecuteMethodName }}({{ filterExpressionVariableName }})
             .stream()
             .map({{ responseClassName }}::{{ responseFactoryMethodName }})
             .toList();

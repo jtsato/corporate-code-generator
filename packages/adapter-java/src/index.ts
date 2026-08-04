@@ -53,6 +53,42 @@ export type {
   JavaTestFixtureConstantModel,
 } from "./model/JavaHttpPersistenceReadTestTemplateModel.js";
 
+export type {
+  JavaHttpFilterTestRecord,
+  JavaHttpFilterTestScenario,
+  JavaHttpFilterTestTemplateModel,
+} from "./model/JavaHttpFilterTestTemplateModel.js";
+
+export type {
+  JavaOpenApiSmokeTestTemplateModel,
+} from "./model/JavaOpenApiSmokeTestTemplateModel.js";
+
+export {
+  createJavaHttpFilterTestModel,
+} from "./transformers/createJavaHttpFilterTestModel.js";
+
+export {
+  createJavaQuerydslFilterPersistenceTestModel,
+  selectDriverAttribute,
+  comparablePrimitiveTypes,
+} from "./transformers/createJavaQuerydslFilterPersistenceTestModel.js";
+
+export type {
+  JavaQuerydslFilterPersistenceTestRecord,
+  JavaQuerydslFilterPersistenceTestScenario,
+  JavaQuerydslFilterPersistenceTestTemplateModel,
+} from "./model/JavaQuerydslFilterPersistenceTestTemplateModel.js";
+
+export type {
+  JavaPagingPersistenceTestRecord,
+  JavaPagingPersistenceTestScenario,
+  JavaPagingPersistenceTestTemplateModel,
+} from "./model/JavaPagingPersistenceTestTemplateModel.js";
+
+export {
+  createJavaPagingPersistenceTestModel,
+} from "./transformers/createJavaPagingPersistenceTestModel.js";
+
 export {
   JavaTestFixtureValueResolver,
 } from "./fixtures/JavaTestFixtureValueResolver.js";

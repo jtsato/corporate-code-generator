@@ -10,7 +10,7 @@ import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 /** Types whose Querydsl filter definition exposes ordering operators. */
-const comparablePrimitiveTypes: ReadonlySet<PrimitiveType> = new Set<PrimitiveType>([
+export const comparablePrimitiveTypes: ReadonlySet<PrimitiveType> = new Set<PrimitiveType>([
   "decimal",
   "int32",
   "int64",

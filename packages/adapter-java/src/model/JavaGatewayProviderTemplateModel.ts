@@ -21,4 +21,16 @@ export interface JavaGatewayProviderTemplateModel {
   readonly persistenceEntityType: string;
   readonly persistenceEntitiesVariableName: string;
   readonly requiresIterableConversion: boolean;
+  readonly findPageMethodName: string;
+  readonly pageRequestType: string;
+  readonly pageRequestParameterName: string;
+  readonly pageResultType: string;
+  readonly pageableType: string;
+  readonly pageableVariableName: string;
+  readonly pageType: string;
+  readonly pageVariableName: string;
+  readonly pageRequestMapperType: string;
+  readonly pageRequestMapperMethodName: string;
+  readonly pageResultMapperType: string;
+  readonly pageResultMapperMethodName: string;
 }

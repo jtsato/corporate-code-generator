@@ -23,6 +23,8 @@ import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
+import { createJavaHttpFilterTestModel } from "../transformers/createJavaHttpFilterTestModel.js";
+import { createJavaPagingPersistenceTestModel } from "../transformers/createJavaPagingPersistenceTestModel.js";
 import { createJavaQuerydslFilterPersistenceTestModel } from "../transformers/createJavaQuerydslFilterPersistenceTestModel.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
@@ -86,12 +88,15 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const gatewayType = `${entityType}Gateway`;
         const useCaseType = `Find${toJavaPluralTypeName(entityType)}UseCase`;
         const byFilterUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterUseCase`;
+        const pageUseCaseType = `Find${toJavaPluralTypeName(entityType)}PageUseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${pageUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${pageUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
@@ -112,6 +117,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           byFilterUseCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}ByFilterUseCase`,
           byFilterUseCaseType,
           byFilterUseCaseImplementationType: `${byFilterUseCaseType}Interactor`,
+          pageUseCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}PageUseCase`,
+          pageUseCaseType,
+          pageUseCaseImplementationType: `${pageUseCaseType}Interactor`,
         };
 
         return {
@@ -127,6 +135,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       { templateId: "configuration-global-exception-handler", model: { packageName: exceptionPackage, responseStatusPackageName: `${namespace}.entrypoint.rest.common`, coreExceptionPackageName: `${namespace}.core.common.exception` }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandler" } },
       { templateId: "configuration-cors-properties", model: corsProperties, outputVariables: { ...outputVariables, className: corsProperties.className } },
       { templateId: "configuration-cors-web-configuration", model: corsWebConfiguration, outputVariables: { ...outputVariables, className: corsWebConfiguration.className } },
+      { templateId: "configuration-rest-filter-web-configuration", model: { packageName: `${namespace}.configuration.web`, className: "RestFilterWebConfiguration" }, outputVariables: { ...outputVariables, className: "RestFilterWebConfiguration" } },
       { templateId: "configuration-openapi-configuration", model: openApiConfiguration, outputVariables: { ...outputVariables, className: openApiConfiguration.className } },
       { templateId: "configuration-application-yaml", model: applicationYaml, outputVariables: {} },
       { templateId: "configuration-application-local-yaml", model: {}, outputVariables: {} },
@@ -156,7 +165,14 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         return { templateId: "configuration-cors-smoke-test", model: corsSmokeModel, outputVariables: { ...outputVariables, className: corsSmokeModel.className } };
       }),
       ...request.application.entities.map((entity) => {
-        const model: JavaOpenApiSmokeTestTemplateModel = { packageName: namespace, className: `${toJavaTypeName(entity.name)}OpenApiSmokeTests`, title: openApiConfiguration.title };
+        const model: JavaOpenApiSmokeTestTemplateModel = {
+          packageName: namespace,
+          className: `${toJavaTypeName(entity.name)}OpenApiSmokeTests`,
+          title: openApiConfiguration.title,
+          endpointPath: toRestCollectionPath(entity.name),
+          filterParameterName: "filter",
+          filterParameterDescriptionFragment: "<field>:<operator>[:<value>]",
+        };
         return { templateId: "configuration-openapi-smoke-test", model, outputVariables: { ...outputVariables, className: model.className } };
       }),
       ...request.application.entities.map((entity) => {
@@ -290,6 +306,40 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           outputVariables: {
             ...outputVariables,
             className: filterPersistenceModel.className,
+          },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const httpFilterModel = createJavaHttpFilterTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+
+        return {
+          templateId: "configuration-http-filter-test",
+          model: httpFilterModel,
+          outputVariables: {
+            ...outputVariables,
+            className: httpFilterModel.className,
+          },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const pagingPersistenceModel = createJavaPagingPersistenceTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+
+        return {
+          templateId: "configuration-paging-persistence-test",
+          model: pagingPersistenceModel,
+          outputVariables: {
+            ...outputVariables,
+            className: pagingPersistenceModel.className,
           },
         };
       }),

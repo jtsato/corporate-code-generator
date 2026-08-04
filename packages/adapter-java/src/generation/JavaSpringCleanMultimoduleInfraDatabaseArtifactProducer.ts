@@ -108,10 +108,17 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
       imports.add(`${namespace}.infra.database.common.filter.QuerydslFilterMapper`);
       imports.add(`${namespace}.infra.database.domains.${domainName}.filter.${entityType}QuerydslFilterDefinition`);
+      imports.add(`${namespace}.core.common.paging.PageRequest`);
+      imports.add(`${namespace}.core.common.paging.PageResult`);
+      imports.add(`${namespace}.infra.database.common.paging.SpringDataPageRequestMapper`);
+      imports.add(`${namespace}.infra.database.common.paging.SpringDataPageResultMapper`);
       imports.add("com.querydsl.core.types.dsl.BooleanExpression");
       imports.add("java.util.List");
+      imports.add("java.util.Map");
       imports.add("java.util.Objects");
       imports.add("java.util.Optional");
+      imports.add("org.springframework.data.domain.Page");
+      imports.add("org.springframework.data.domain.Pageable");
       if (requiresIterableConversion) {
         imports.add("java.util.stream.StreamSupport");
       }
@@ -139,6 +146,18 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         persistenceEntityType: `${entityType}Entity`,
         persistenceEntitiesVariableName: toJavaFieldName(`${entityType}Entities`),
         requiresIterableConversion,
+        findPageMethodName: "findPage",
+        pageRequestType: "PageRequest",
+        pageRequestParameterName: "pageRequest",
+        pageResultType: "PageResult",
+        pageableType: "Pageable",
+        pageableVariableName: "pageable",
+        pageType: "Page",
+        pageVariableName: "page",
+        pageRequestMapperType: "SpringDataPageRequestMapper",
+        pageRequestMapperMethodName: "toPageable",
+        pageResultMapperType: "SpringDataPageResultMapper",
+        pageResultMapperMethodName: "toPageResult",
       };
 
       return [
@@ -179,11 +198,15 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           const comparisonOperators = ["EQUALS", "NOT_EQUALS", "GREATER_THAN", "GREATER_THAN_OR_EQUALS", "LESS_THAN", "LESS_THAN_OR_EQUALS", "IN", "IS_NULL", "IS_NOT_NULL"];
           const stringOperators = ["EQUALS", "NOT_EQUALS", "CONTAINS", "STARTS_WITH", "ENDS_WITH", "IN", "IS_NULL", "IS_NOT_NULL"];
           const equalityOperators = ["EQUALS", "NOT_EQUALS", "IN", "IS_NULL", "IS_NOT_NULL"];
-          const operators = (attribute.type === "decimal" || attribute.type === "int32" || attribute.type === "int64" || attribute.type === "date" || attribute.type === "datetime"
-            ? comparisonOperators
-            : attribute.type === "string"
-              ? stringOperators
-              : equalityOperators).map((operator) => ({
+          let operatorsForType: string[];
+          if (attribute.type === "decimal" || attribute.type === "int32" || attribute.type === "int64" || attribute.type === "date" || attribute.type === "datetime") {
+            operatorsForType = comparisonOperators;
+          } else if (attribute.type === "string") {
+            operatorsForType = stringOperators;
+          } else {
+            operatorsForType = equalityOperators;
+          }
+          const operators = operatorsForType.map((operator) => ({
             operator,
             method: ({
               EQUALS: "eq",

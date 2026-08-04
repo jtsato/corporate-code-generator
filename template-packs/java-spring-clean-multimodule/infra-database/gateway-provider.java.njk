@@ -39,4 +39,21 @@ public class {{ className }} implements {{ gatewayType }} {
 {% endif %}            .map({{ mapperType }}::{{ mapperToDomainMethodName }})
             .toList();
     }
+
+    @Override
+    public {{ pageResultType }}<{{ entityType }}> {{ findPageMethodName }}({{ pageRequestType }} {{ pageRequestParameterName }}) {
+        Objects.requireNonNull({{ pageRequestParameterName }}, "{{ pageRequestParameterName }}");
+
+        {{ pageableType }} {{ pageableVariableName }} = {{ pageRequestMapperType }}.{{ pageRequestMapperMethodName }}(
+            {{ pageRequestParameterName }},
+            Map.of()
+        );
+
+        {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}({{ pageableVariableName }});
+
+        return {{ pageResultMapperType }}.{{ pageResultMapperMethodName }}(
+            {{ pageVariableName }},
+            {{ mapperType }}::{{ mapperToDomainMethodName }}
+        );
+    }
 }

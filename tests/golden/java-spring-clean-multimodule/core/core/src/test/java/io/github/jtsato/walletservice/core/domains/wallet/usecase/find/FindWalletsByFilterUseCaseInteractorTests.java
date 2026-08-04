@@ -9,6 +9,8 @@ import io.github.jtsato.walletservice.core.common.exception.ValidationException;
 import io.github.jtsato.walletservice.core.common.filter.FilterCondition;
 import io.github.jtsato.walletservice.core.common.filter.FilterExpression;
 import io.github.jtsato.walletservice.core.common.filter.FilterGroup;
+import io.github.jtsato.walletservice.core.common.paging.PageRequest;
+import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
 import java.util.ArrayList;
@@ -33,6 +35,11 @@ class FindWalletsByFilterUseCaseInteractorTests {
             findByFilterCallCount++;
             received = filterExpression;
             return result;
+        }
+
+        @Override
+        public PageResult<Wallet> findPage(PageRequest pageRequest) {
+            return null;
         }
     }
 
