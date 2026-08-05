@@ -32,7 +32,7 @@ class RestSortParserTests {
 
     @Test void shouldRejectInvalidSorts() {
         assertKey(() -> RestSortParser.parse(List.of(), null), "common.rest.sort.definition.required", "definition");
-        assertKey(() -> RestSortParser.parse(List.of((String) null), DEFINITION), "common.rest.sort.required", "sort");
+        assertKey(() -> RestSortParser.parse(java.util.Arrays.asList((String) null), DEFINITION), "common.rest.sort.required", "sort");
         assertKey(() -> RestSortParser.parse(List.of(" "), DEFINITION), "common.rest.sort.required", "sort");
         assertKey(() -> RestSortParser.parse(List.of("amount"), DEFINITION), "common.rest.sort.format.invalid", "sort");
         assertKey(() -> RestSortParser.parse(List.of("amount:desc:extra"), DEFINITION), "common.rest.sort.format.invalid", "sort");

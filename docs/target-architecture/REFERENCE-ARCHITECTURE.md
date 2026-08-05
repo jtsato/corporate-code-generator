@@ -237,6 +237,14 @@ template-specific; it does not require the Core to know Maven module layout.
 > `mvn compile`. Maven absence skips by default and fails only when
 > `CODEGEN_REQUIRE_MAVEN_SMOKE=true`.
 
+> **GENERATOR DECISION** `smoke:maven-reactor:java-multimodule` generates the
+> complete profile and runs `mvn test` with no `-Dtest` filter across the
+> whole generated reactor. It is complementary to the feature-focused Maven
+> smokes, not a replacement: it exists to catch cross-cutting failures and
+> tests left outside every `-Dtest` pattern, which the focused smokes cannot
+> see by construction. It follows the same Maven availability policy as the
+> compile smoke.
+
 > **GENERATOR DECISION** `smoke:spring-context:java-multimodule` generates the
 > complete profile and runs only `*ApplicationTests` to load the generated
 > Spring context. `smoke:http:java-multimodule` separately runs only
