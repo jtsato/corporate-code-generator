@@ -41,6 +41,9 @@ class {{ className }} {
         public {{ entityType }} {{ gatewayFindByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
             return null;
         }
+
+        @Override
+        public {{ entityType }} create({{ entityType }} entity) { return null; }
     }
 
     @Test

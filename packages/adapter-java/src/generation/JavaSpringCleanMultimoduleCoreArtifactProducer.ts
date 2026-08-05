@@ -4,9 +4,14 @@ import type {
   TemplateInvocation,
 } from "@corporate-code-generator/core";
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
+import type { JavaCreateCommandTemplateModel } from "../model/JavaCreateCommandTemplateModel.js";
+import type { JavaCreateUseCaseInteractorTemplateModel } from "../model/JavaCreateUseCaseInteractorTemplateModel.js";
+import type { JavaCreateUseCaseInteractorTestTemplateModel } from "../model/JavaCreateUseCaseInteractorTestTemplateModel.js";
+import type { JavaCreateUseCaseTemplateModel } from "../model/JavaCreateUseCaseTemplateModel.js";
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
+import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { createJavaEntityTemplateModel } from "../transformers/createJavaEntityTemplateModel.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
@@ -39,6 +44,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const byFilterPageInteractorType = `${byFilterPageUseCaseType}Interactor`;
       const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
       const byIdInteractorType = `${byIdUseCaseType}Interactor`;
+      const createCommandType = `Create${entityType}Command`;
+      const createUseCaseType = `Create${entityType}UseCase`;
+      const createInteractorType = `${createUseCaseType}Interactor`;
       const domainPackage = `${namespace}.core.domains.${domainName}`;
       const filterPackage = `${namespace}.core.common.filter`;
       const pagingPackage = `${namespace}.core.common.paging`;
@@ -155,6 +163,105 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       for (const attribute of entity.attributes) {
         byIdInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
       }
+      const createCommandImports = new JavaImportCollector();
+      createCommandImports.add(`${exceptionPackage}.FieldViolation`);
+      createCommandImports.add(`${exceptionPackage}.ValidationException`);
+      for (const attribute of entity.attributes) {
+        createCommandImports.add(this.typeResolver.resolve(attribute.type).import);
+      }
+      const createUseCaseImports = new JavaImportCollector();
+      createUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      createUseCaseImports.add(`${domainPackage}.usecase.create.${createCommandType}`);
+      const createInteractorImports = new JavaImportCollector();
+      createInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      createInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      createInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      createInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      createInteractorImports.add(`${domainPackage}.usecase.create.${createCommandType}`);
+      createInteractorImports.add("java.util.List");
+      const createInteractorTestImports = new JavaImportCollector();
+      createInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      createInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      createInteractorTestImports.add(`${pagingPackage}.PageRequest`);
+      createInteractorTestImports.add(`${pagingPackage}.PageResult`);
+      createInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      createInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      createInteractorTestImports.add(`${domainPackage}.usecase.create.${createCommandType}`);
+      createInteractorTestImports.add("java.util.List");
+      createInteractorTestImports.add("org.junit.jupiter.api.Test");
+      for (const attribute of entity.attributes) {
+        createInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
+      }
+      const createCommandFields = entity.attributes.map((attribute) => {
+        const required = attribute.required
+          ? {
+              requiredMessageKey: attribute.identifier ? "common.identifier.required" : `${domainName}.${attribute.name}.required`,
+              requiredDefaultMessage: attribute.identifier ? "Identifier is required." : `${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)} is required.`,
+            }
+          : {};
+        return {
+          name: attribute.name,
+          type: this.typeResolver.resolve(attribute.type).name,
+          ...required,
+        };
+      });
+      const createCommandModel: JavaCreateCommandTemplateModel = {
+        packageName: `${domainPackage}.usecase.create`,
+        imports: createCommandImports.values(),
+        className: createCommandType,
+        fields: createCommandFields,
+      };
+      const createUseCaseModel: JavaCreateUseCaseTemplateModel = {
+        packageName: `${domainPackage}.usecase.create`,
+        imports: createUseCaseImports.values(),
+        interfaceName: createUseCaseType,
+        commandType: createCommandType,
+        entityType,
+        executeMethodName: "execute",
+      };
+      const createInteractorModel: JavaCreateUseCaseInteractorTemplateModel = {
+        packageName: `${domainPackage}.usecase.create`,
+        imports: createInteractorImports.values(),
+        className: createInteractorType,
+        interfaceName: createUseCaseType,
+        commandType: createCommandType,
+        gatewayType,
+        gatewayFieldName: `${domainName}Gateway`,
+        entityType,
+        entityConstructorArguments: entity.attributes.map((attribute) => `command.${attribute.name}()`),
+        executeMethodName: "execute",
+        gatewayCreateMethodName: "create",
+        commandRequiredMessageKey: "common.command.required",
+        commandRequiredDefaultMessage: "Command is required.",
+      };
+      const fixtureArguments = entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
+      const requiredFields = entity.attributes.filter((attribute) => attribute.required).map((attribute) => ({
+        fieldName: attribute.name,
+        messageKey: attribute.identifier ? "common.identifier.required" : `${domainName}.${attribute.name}.required`,
+        testMethodSuffix: toJavaTypeName(attribute.name),
+        nullArguments: entity.attributes.map((candidate, index) => candidate === attribute ? "null" : fixtureArguments[index]!),
+      }));
+      const createInteractorTestModel: JavaCreateUseCaseInteractorTestTemplateModel = {
+        packageName: `${domainPackage}.usecase.create`,
+        imports: createInteractorTestImports.values(),
+        className: `${createInteractorType}Tests`,
+        interactorType: createInteractorType,
+        fakeGatewayType: `Fake${gatewayType}`,
+        gatewayType,
+        entityType,
+        commandType: createCommandType,
+        identifierType: identifierType.name,
+        entityConstructorArguments: fixtureArguments,
+        commandArguments: fixtureArguments,
+        fieldAssertions: entity.attributes.map((attribute, index) => ({
+          accessorName: `get${toJavaTypeName(attribute.name)}`,
+          expectedExpression: fixtureArguments[index]!,
+        })),
+        requiredFields,
+        executeMethodName: "execute",
+        gatewayCreateMethodName: "create",
+        commandRequiredMessageKey: "common.command.required",
+      };
       const outputVariables = {
         packagePath: namespace.replaceAll(".", "/"),
         domainName,
@@ -190,8 +297,30 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             identifierType: identifierType.name,
             identifierParameterName: identifier.name,
             findByIdMethodName: "findById",
+            createMethodName: "create",
+            createParameterName: domainName,
           },
           outputVariables: { ...outputVariables, className: gatewayType },
+        },
+        {
+          templateId: "core-create-command",
+          model: createCommandModel,
+          outputVariables: { ...outputVariables, className: createCommandType },
+        },
+        {
+          templateId: "core-create-usecase",
+          model: createUseCaseModel,
+          outputVariables: { ...outputVariables, className: createUseCaseType },
+        },
+        {
+          templateId: "core-create-usecase-interactor",
+          model: createInteractorModel,
+          outputVariables: { ...outputVariables, className: createInteractorType },
+        },
+        {
+          templateId: "core-create-usecase-interactor-test",
+          model: createInteractorTestModel,
+          outputVariables: { ...outputVariables, className: createInteractorTestModel.className },
         },
         {
           templateId: "core-find-usecase",
@@ -278,6 +407,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             gatewayFindByFilterPageMethodName: "findByFilterPage",
             gatewayFindByIdMethodName: "findById",
             filterExpressionType: "FilterExpression",
+            gatewayCreateMethodName: "create",
             filterExpressionParameterName: "filterExpression",
             pageRequestType: "PageRequest",
             pageRequestParameterName: "pageRequest",
@@ -487,6 +617,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       { templateId: "core-field-violation", model: { packageName, className: "FieldViolation" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "FieldViolation" } },
       { templateId: "core-validation-exception", model: { packageName, className: "ValidationException", parentClassName: "ApplicationException", fieldViolationClassName: "FieldViolation" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ValidationException" } },
       { templateId: "core-not-found-exception", model: { packageName, className: "NotFoundException", parentClassName: "ApplicationException" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "NotFoundException" } },
+      { templateId: "core-conflict-exception", model: { packageName, className: "ConflictException", parentClassName: "ApplicationException" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ConflictException" } },
       { templateId: "core-self-validating", model: { packageName: `${namespace}.core.common.validation`, exceptionPackage: packageName }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "SelfValidating" } },
       ...["SortDirection", "SortOrder", "PageRequest", "PageResult"].map((className) => ({ templateId: `core-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`, model: { packageName: pagingPackageName, exceptionPackage: packageName, className }, outputVariables: { ...pagingVariables, className } })),
       ...request.application.entities.filter((entity) => entity.attributes.some((attribute) => attribute.required)).map((entity) => { const domainName = toJavaPackageSegment(entity.name); return { templateId: "core-domain-validation-test", model: { packageName: `${namespace}.core.domains.${domainName}.model`, exceptionPackage: packageName, className: `${entity.name}ValidationTests`, entityType: entity.name, nullArguments: entity.attributes, requiredFieldNames: entity.attributes.filter((attribute) => attribute.required).map((attribute) => attribute.name).sort((left, right) => left.localeCompare(right)) }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entity.name}ValidationTests` } }; }),

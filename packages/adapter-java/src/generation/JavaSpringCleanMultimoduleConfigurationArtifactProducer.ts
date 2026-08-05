@@ -16,6 +16,7 @@ import type { JavaArchUnitTestTemplateModel } from "../model/JavaArchUnitTestTem
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
 import type { JavaFindByIdPersistenceTestTemplateModel } from "../model/JavaFindByIdPersistenceTestTemplateModel.js";
+import type { JavaCreatePersistenceTestTemplateModel } from "../model/JavaCreatePersistenceTestTemplateModel.js";
 import type { JavaHttpFindByIdTestTemplateModel } from "../model/JavaHttpFindByIdTestTemplateModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
@@ -72,15 +73,21 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       { key: "common.error.invalid-request", value: "Invalid request." },
       { key: "common.error.not-found", value: "Resource not found." },
       { key: "common.error.internal-server-error", value: "Internal server error." },
+      { key: "common.command.required", value: "Command is required." },
       { key: "common.identifier.required", value: "Identifier is required." },
+      { key: "wallet.balance.required", value: "Balance is required." },
       { key: "wallet.not-found", value: "Wallet was not found." },
+      { key: "wallet.already-exists", value: "Wallet already exists." },
     ];
     const portugueseMessages = [
+      { key: "common.command.required", value: "Comando é obrigatório." },
+      { key: "wallet.balance.required", value: "Saldo é obrigatório." },
       { key: "common.error.invalid-request", value: "Requisição inválida." },
       { key: "common.error.not-found", value: "Recurso não encontrado." },
       { key: "common.error.internal-server-error", value: "Erro interno do servidor." },
       { key: "common.identifier.required", value: "Identificador é obrigatório." },
       { key: "wallet.not-found", value: "Carteira não encontrada." },
+      { key: "wallet.already-exists", value: "Carteira já existe." },
     ];
 
     return [
@@ -98,6 +105,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const pageUseCaseType = `Find${toJavaPluralTypeName(entityType)}PageUseCase`;
         const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
         const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
+        const createUseCaseType = `Create${entityType}UseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
@@ -110,6 +118,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${pageUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
@@ -139,6 +149,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           byFilterPageUseCaseBeanMethodName: `find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`,
           byFilterPageUseCaseType,
           byFilterPageUseCaseImplementationType: `${byFilterPageUseCaseType}Interactor`,
+          createUseCaseBeanMethodName: `create${entityType}UseCase`,
+          createUseCaseType,
+          createUseCaseImplementationType: `${createUseCaseType}Interactor`,
         };
 
         return {
@@ -378,6 +391,60 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         };
         return {
           templateId: "configuration-find-by-id-persistence-test",
+          model: persistenceModel,
+          outputVariables: { ...outputVariables, className: persistenceModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const identifier = entity.attributes.find((attribute) => attribute.identifier);
+        if (identifier === undefined) throw new Error(`Cannot generate create persistence test for entity '${entity.name}' without an identifier.`);
+        const useCaseType = `Create${entityType}UseCase`;
+        const commandType = `Create${entityType}Command`;
+        const imports = new JavaImportCollector();
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${commandType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${useCaseType}`);
+        imports.add(`${namespace}.core.common.exception.ConflictException`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add("org.junit.jupiter.api.AfterEach");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.beans.factory.annotation.Autowired");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.test.context.ActiveProfiles");
+        const fixtures = entity.attributes.map((attribute, index) => {
+          const javaType = this.typeResolver.resolve(attribute.type);
+          imports.add(javaType.import);
+          return {
+            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+            type: javaType.name,
+            javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+            accessorName: `get${toJavaTypeName(attribute.name)}`,
+          };
+        });
+        const persistenceModel: JavaCreatePersistenceTestTemplateModel = {
+          packageName: namespace,
+          imports: imports.values(),
+          className: `${entityType}CreatePersistenceTests`,
+          activeProfile: "test",
+          useCaseType,
+          useCaseFieldName: toJavaFieldName(useCaseType),
+          commandType,
+          commandArguments: fixtures.map((fixture) => fixture.constantName),
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          identifierType: this.typeResolver.resolve(identifier.type).name,
+          identifierExpression: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          conflictExceptionType: "ConflictException",
+          conflictMessageKey: `${domainName}.already-exists`,
+          conflictDefaultMessage: `${entityType} already exists.`,
+          conflictCommandArguments: entity.attributes.map((attribute, index) => attribute.identifier
+            ? toJavaConstantName(`${entity.name}_${attribute.name}`)
+            : this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression),
+          fixtures,
+        };
+        return {
+          templateId: "configuration-create-persistence-test",
           model: persistenceModel,
           outputVariables: { ...outputVariables, className: persistenceModel.className },
         };

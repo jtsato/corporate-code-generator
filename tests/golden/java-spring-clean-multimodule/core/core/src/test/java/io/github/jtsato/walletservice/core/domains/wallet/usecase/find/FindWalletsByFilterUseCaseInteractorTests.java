@@ -52,6 +52,9 @@ class FindWalletsByFilterUseCaseInteractorTests {
         public Wallet findById(UUID id) {
             return null;
         }
+
+        @Override
+        public Wallet create(Wallet entity) { return null; }
     }
 
     @Test

@@ -30,6 +30,9 @@ class {{ className }} {
             received = {{ identifierParameterName }};
             return result;
         }
+
+        @Override
+        public {{ entityType }} create({{ entityType }} entity) { return null; }
     }
 
     @Test

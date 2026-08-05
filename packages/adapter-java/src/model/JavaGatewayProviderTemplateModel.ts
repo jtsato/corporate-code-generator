@@ -45,4 +45,13 @@ export interface JavaGatewayProviderTemplateModel {
     readonly domainName: string;
     readonly persistenceName: string;
   }[];
+  readonly createMethodName: string;
+  readonly createParameterName: string;
+  readonly repositorySaveMethodName: string;
+  readonly mapperToEntityMethodName: string;
+  readonly identifierAccessorName: string;
+  readonly repositoryExistsByIdMethodName: string;
+  readonly conflictExceptionType: string;
+  readonly conflictMessageKey: string;
+  readonly conflictDefaultMessage: string;
 }

@@ -1,6 +1,6 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 104 artifacts in the full profile: build 6, Core 37, entrypoints-rest 54, Infra 55, and Configuration 104. The build+core selection emits 43 artifacts; build+configuration emits 104. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the REST Filter Contract Foundation, REST Sort Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, the REST filter runtime integration, paging runtime integration, filtered paging runtime integration, REST filtered paging runtime integration, REST sorting runtime integration, and find-by-id runtime integration. The generated Java CI uses Java 25 and `mvn -B clean verify`.
+`java-spring-clean-multimodule` now generates 110 artifacts in the full profile: build 6, Core 42, entrypoints-rest 59, Infra 60, and Configuration 110. The build+core selection emits 48 artifacts; build+configuration emits 110. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the REST Filter Contract Foundation, REST Sort Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, the REST filter runtime integration, paging runtime integration, filtered paging runtime integration, REST filtered paging runtime integration, REST sorting runtime integration, find-by-id runtime integration, and create runtime integration without HTTP exposure. The generated Java CI uses Java 25 and `mvn -B clean verify`.
 
 Querydsl filters run against the database through a dedicated filtered use case. The generated flow is `FilterExpression -> QuerydslFilterMapper -> ListQuerydslPredicateExecutor -> repository -> gateway -> Find<Entity>ByFilterUseCase`. `FilterExpression.empty()` falls back to `repository.findAll()`. Validate it with `npm run smoke:querydsl-filter-runtime:java-multimodule`.
 
@@ -15,6 +15,16 @@ REST filtered paging is exposed by `GET /wallets`, which always returns `WalletP
 REST sorting is exposed by the repeatable `sort=<field>:<direction>` parameter. Directions are strictly `asc` or `desc`; Wallet initially allows `id` and `balance`. Sorting combines with filters and paging, and its domain-to-persistence mapping is generated from entity attributes. Validate it with `npm run smoke:http-filter:java-multimodule`. See [ADR-041](docs/adr/ADR-041-rest-sorting-runtime-integration.md).
 
 Individual reads are exposed by `GET /wallets/{id}` through `FindWalletByIdUseCase`. Existing identifiers return `200`, unknown identifiers return `404`, and malformed UUID path values return `400`. Validate the complete generated path with `npm run smoke:find-by-id:java-multimodule`. See [ADR-042](docs/adr/ADR-042-find-by-id-runtime-and-rest-integration.md).
+
+Create runtime is available without HTTP through `CreateWalletUseCase`. The
+flow is `CreateWalletCommand -> CreateWalletUseCase -> WalletGateway.create ->
+WalletGatewayProvider -> WalletRepository.existsById/save ->
+WalletPersistenceMapper`. The command supplies the identifier, and duplicate
+IDs raise a Core `ConflictException` before save. Validate the Core and H2
+persistence path with `npm run smoke:create-runtime:java-multimodule`. POST,
+HTTP 409 mapping and concurrent conflict translation remain future work; see
+[ADR-043](docs/adr/ADR-043-create-runtime-integration.md) and
+[ADR-044](docs/adr/ADR-044-create-conflict-runtime-integration.md).
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 

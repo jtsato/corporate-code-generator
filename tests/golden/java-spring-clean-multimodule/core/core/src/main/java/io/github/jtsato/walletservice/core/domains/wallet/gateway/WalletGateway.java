@@ -17,4 +17,6 @@ public interface WalletGateway {
     PageResult<Wallet> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest);
 
     Wallet findById(UUID id);
+
+    Wallet create(Wallet wallet);
 }

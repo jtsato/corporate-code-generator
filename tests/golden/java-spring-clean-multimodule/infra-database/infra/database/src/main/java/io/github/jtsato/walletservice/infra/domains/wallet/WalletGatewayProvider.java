@@ -1,6 +1,7 @@
 package io.github.jtsato.walletservice.infra.domains.wallet;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import io.github.jtsato.walletservice.core.common.exception.ConflictException;
 import io.github.jtsato.walletservice.core.common.exception.NotFoundException;
 import io.github.jtsato.walletservice.core.common.filter.FilterExpression;
 import io.github.jtsato.walletservice.core.common.paging.PageRequest;
@@ -47,6 +48,23 @@ public class WalletGatewayProvider implements WalletGateway {
                 "wallet.not-found",
                 "Wallet was not found."
             ));
+    }
+
+    @Override
+    public Wallet create(Wallet wallet) {
+        Objects.requireNonNull(wallet, "wallet");
+
+        if (walletRepository.existsById(wallet.getId())) {
+            throw new ConflictException(
+                "wallet.already-exists",
+                "Wallet already exists."
+            );
+        }
+
+        WalletEntity entity = WalletPersistenceMapper.toEntity(wallet);
+        WalletEntity saved = walletRepository.save(entity);
+
+        return WalletPersistenceMapper.toDomain(saved);
     }
 
     @Override

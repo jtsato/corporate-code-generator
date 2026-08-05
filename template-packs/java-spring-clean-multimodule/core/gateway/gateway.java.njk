@@ -12,4 +12,6 @@ public interface {{ interfaceName }} {
     {{ pageResultType }}<{{ entityType }}> {{ findByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }});
 
     {{ entityType }} {{ findByIdMethodName }}({{ identifierType }} {{ identifierParameterName }});
+
+    {{ entityType }} {{ createMethodName }}({{ entityType }} {{ createParameterName }});
 }

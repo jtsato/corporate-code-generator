@@ -87,6 +87,10 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
           pageResultType: "PageResult",
         },
       },
+      { templateId: "core-create-command" },
+      { templateId: "core-create-usecase" },
+      { templateId: "core-create-usecase-interactor" },
+      { templateId: "core-create-usecase-interactor-test" },
       {
         templateId: "core-find-usecase",
         outputVariables: { className: "FindWalletsUseCase" },
@@ -314,6 +318,7 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       { templateId: "core-field-violation", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "FieldViolation" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "FieldViolation" } },
       { templateId: "core-validation-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "ValidationException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "ValidationException", parentClassName: "ApplicationException", fieldViolationClassName: "FieldViolation" } },
       { templateId: "core-not-found-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "NotFoundException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "NotFoundException", parentClassName: "ApplicationException" } },
+      { templateId: "core-conflict-exception", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "ConflictException" }, model: { packageName: "io.github.jtsato.walletservice.core.common.exception", className: "ConflictException", parentClassName: "ApplicationException" } },
       { templateId: "core-self-validating", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SelfValidating" }, model: { packageName: "io.github.jtsato.walletservice.core.common.validation", exceptionPackage: "io.github.jtsato.walletservice.core.common.exception" } },
       { templateId: "core-sort-direction", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SortDirection" }, model: { packageName: "io.github.jtsato.walletservice.core.common.paging" } },
       { templateId: "core-sort-order", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "SortOrder" }, model: { packageName: "io.github.jtsato.walletservice.core.common.paging" } },

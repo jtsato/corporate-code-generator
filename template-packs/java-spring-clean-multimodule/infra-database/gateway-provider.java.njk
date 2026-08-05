@@ -30,6 +30,23 @@ public class {{ className }} implements {{ gatewayType }} {
     }
 
     @Override
+    public {{ entityType }} {{ createMethodName }}({{ entityType }} {{ createParameterName }}) {
+        Objects.requireNonNull({{ createParameterName }}, "{{ createParameterName }}");
+
+        if ({{ repositoryFieldName }}.{{ repositoryExistsByIdMethodName }}({{ createParameterName }}.{{ identifierAccessorName }}())) {
+            throw new {{ conflictExceptionType }}(
+                "{{ conflictMessageKey }}",
+                "{{ conflictDefaultMessage }}"
+            );
+        }
+
+        {{ persistenceEntityType }} entity = {{ mapperType }}.{{ mapperToEntityMethodName }}({{ createParameterName }});
+        {{ persistenceEntityType }} saved = {{ repositoryFieldName }}.{{ repositorySaveMethodName }}(entity);
+
+        return {{ mapperType }}.{{ mapperToDomainMethodName }}(saved);
+    }
+
+    @Override
     public List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) {
         Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
 

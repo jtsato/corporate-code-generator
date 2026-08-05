@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the one hundred and four complete Maven reactor artifacts", async () => {
+  it("renders the one hundred and ten complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,11 +68,15 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(104);
+    expect(operations).toHaveLength(110);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/create/CreateWalletCommand.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/create/CreateWalletUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/create/CreateWalletUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/create/CreateWalletUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletByIdUseCase.java",
@@ -91,6 +95,7 @@ describe("Java multi-module generation", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/FieldViolation.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ValidationException.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/NotFoundException.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/common/exception/ConflictException.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/validation/SelfValidating.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/paging/SortDirection.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/common/paging/SortOrder.java",
@@ -164,6 +169,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletFindByIdPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletCreatePersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFindByIdTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFilterTests.java",

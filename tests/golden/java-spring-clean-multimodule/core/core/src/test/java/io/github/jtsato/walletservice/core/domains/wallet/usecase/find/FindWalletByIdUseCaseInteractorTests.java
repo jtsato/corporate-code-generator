@@ -39,6 +39,9 @@ class FindWalletByIdUseCaseInteractorTests {
             received = id;
             return result;
         }
+
+        @Override
+        public Wallet create(Wallet entity) { return null; }
     }
 
     @Test

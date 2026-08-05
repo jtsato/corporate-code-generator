@@ -34,6 +34,22 @@ templates:
     module: core
     template: core/gateway/gateway.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/gateway/{{ className }}.java
+  - id: core-create-command
+    module: core
+    template: core/usecase/create/command.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/create/{{ className }}.java
+  - id: core-create-usecase
+    module: core
+    template: core/usecase/create/usecase.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/create/{{ className }}.java
+  - id: core-create-usecase-interactor
+    module: core
+    template: core/usecase/create/interactor.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/create/{{ className }}.java
+  - id: core-create-usecase-interactor-test
+    module: core
+    template: core/usecase/create/interactor-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/create/{{ className }}.java
   - id: core-find-usecase
     module: core
     template: core/usecase/find/usecase.java.njk
@@ -103,6 +119,10 @@ templates:
     template: core/common/validation-exception.java.njk
     output: core/src/main/java/{{ packagePath }}/core/common/exception/{{ className }}.java
   - id: core-not-found-exception
+    module: core
+    template: core/common/simple-exception.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/exception/{{ className }}.java
+  - id: core-conflict-exception
     module: core
     template: core/common/simple-exception.java.njk
     output: core/src/main/java/{{ packagePath }}/core/common/exception/{{ className }}.java
@@ -401,6 +421,10 @@ templates:
   - id: configuration-find-by-id-persistence-test
     module: configuration
     template: configuration/find-by-id-persistence-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-create-persistence-test
+    module: configuration
+    template: configuration/create-persistence-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-find-by-id-test
     module: configuration

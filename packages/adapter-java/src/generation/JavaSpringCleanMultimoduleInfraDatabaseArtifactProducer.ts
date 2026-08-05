@@ -103,6 +103,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
       imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
       imports.add(`${namespace}.core.common.exception.NotFoundException`);
+      imports.add(`${namespace}.core.common.exception.ConflictException`);
       imports.add(identifierType.import);
       imports.add(`${namespace}.infra.domains.${domainName}.mapper.${mapperModel.className}`);
       imports.add(`${namespace}.infra.domains.${domainName}.repository.${repositoryModel.interfaceName}`);
@@ -168,6 +169,15 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         pageRequestMapperMethodName: "toPageable",
         pageResultMapperType: "SpringDataPageResultMapper",
         pageResultMapperMethodName: "toPageResult",
+        createMethodName: "create",
+        createParameterName: toJavaFieldName(entityType),
+        repositorySaveMethodName: "save",
+        mapperToEntityMethodName: "toEntity",
+        identifierAccessorName: `get${toJavaTypeName(identifiers[0]!.name)}`,
+        repositoryExistsByIdMethodName: "existsById",
+        conflictExceptionType: "ConflictException",
+        conflictMessageKey: `${toJavaPackageSegment(entity.name)}.already-exists`,
+        conflictDefaultMessage: `${entityType} already exists.`,
         sortPropertyMapping: entity.attributes.map((attribute) => ({
           domainName: attribute.name,
           persistenceName: toJavaFieldName(attribute.name),

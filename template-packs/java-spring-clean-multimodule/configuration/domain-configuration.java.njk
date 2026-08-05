@@ -33,4 +33,9 @@ public class {{ className }} {
     public {{ byFilterPageUseCaseType }} {{ byFilterPageUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
         return new {{ byFilterPageUseCaseImplementationType }}({{ gatewayParameterName }});
     }
+
+    @Bean
+    public {{ createUseCaseType }} {{ createUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ createUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
 }

@@ -2,7 +2,7 @@
 
 Configuration profiles and properties-driven CORS are implemented default capabilities of `java-spring-clean-multimodule`.
 
-Core self-validation is an implemented default capability: required attributes map to Jakarta Validation `@NotNull` and `SelfValidating<T>`. The Core is Jakarta-aware but Spring-free; provider dependencies remain runtime/test infrastructure. Its dedicated quality gate is `smoke:validation:java-multimodule`, while REST DTO validation remains future work. Find-by-id runtime integration is implemented through a Core use case, a Core gateway method, a persistence provider and a REST endpoint; writes remain future work.
+Core self-validation is an implemented default capability: required attributes map to Jakarta Validation `@NotNull` and `SelfValidating<T>`. The Core is Jakarta-aware but Spring-free; provider dependencies remain runtime/test infrastructure. Its dedicated quality gate is `smoke:validation:java-multimodule`, while REST DTO validation remains future work. Find-by-id runtime integration is implemented through a Core use case, a Core gateway method, a persistence provider and a REST endpoint. Create runtime integration is implemented through a Core command/use case, a Core gateway method, a persistence provider and H2 persistence tests; REST writes remain future work.
 
 Core Paging Common, Core Filter Common, the REST Filter Contract Foundation, the REST Sort Contract Foundation, the Spring Data Paging Adapter, the entity-aware Querydsl filter mapper foundation, the Querydsl filter runtime integration, the REST filter runtime integration, the paging runtime integration, the filtered paging runtime integration, the REST filtered paging runtime integration, REST sorting runtime integration, and the Generated Java CI Pipeline are implemented. REST Filter Contract is an `entrypoints-rest` default foundation: it parses lowercase REST aliases into the Core expression model using a per-entity public-to-domain field allowlist. REST Sort Contract parses strict repeatable `<field>:<direction>` expressions into allowlisted `SortOrder` values. Milestone 6.18 connects `filter`, `page`, and `size` to `Find<Entity>ByFilterPageUseCase` and returns a domain-specific page response with `items` and paging metadata. Milestone 6.19 adds `sort` and generated domain-to-persistence property mappings. The generic response design was replaced by the approved domain-specific fallback because Springdoc 3.0.3 emitted untyped generic items. OR/nested REST parsing, REST type conversion beyond string values, comma escaping, and advanced HTTP sorting remain future capabilities.
 
@@ -51,7 +51,7 @@ not require external infrastructure or undeclared domain intent.
 
 ### Baseline defaults
 
-The implemented `java-spring-clean-multimodule` profile baseline before Milestone 6.20 was 99 artifacts (build 6, Core 34, entrypoints-rest 51, Infra 52, Configuration 99). After Milestone 6.20 it is 104 artifacts (build 6, Core 37, entrypoints-rest 54, Infra 55, Configuration 104). The build+core selection is 43 artifacts and build+configuration is 104. Selection counts for `entrypoints-rest` and `infra-database` include Core transitively, since both declare `requires: [core]`. Its baseline capabilities are:
+The implemented `java-spring-clean-multimodule` profile baseline before Milestone 6.20 was 99 artifacts (build 6, Core 34, entrypoints-rest 51, Infra 52, Configuration 99). After Milestone 6.20 it was 104 artifacts (build 6, Core 37, entrypoints-rest 54, Infra 55, Configuration 104). After Milestone 6.21 it was 109 artifacts (build 6, Core 41, entrypoints-rest 58, Infra 59, Configuration 109). After Milestone 6.22 it is 110 artifacts (build 6, Core 42, entrypoints-rest 59, Infra 60, Configuration 110). The build+core selection is 48 artifacts and build+configuration is 110. Selection counts for `entrypoints-rest` and `infra-database` include Core transitively, since both declare `requires: [core]`. Its baseline capabilities are:
 
 - `archunit`;
 - `jacoco`;
@@ -67,6 +67,7 @@ The implemented `java-spring-clean-multimodule` profile baseline before Mileston
 - REST filter runtime integration (`filter` query parameter wired to the filtered use case and documented in OpenAPI).
 - paging runtime integration through a separate paginated use case (`Find<Entity>PageUseCase`, no HTTP exposure, no sorting).
 - individual read runtime integration through `Find<Entity>ByIdUseCase` and `GET /<entities>/{id}`.
+- create runtime integration through `Create<Entity>Command`, `Create<Entity>UseCase`, persistence conflict detection and `save`, without HTTP exposure.
 
 `archunit` is implemented as the default architecture guardrail of
 `java-spring-clean-multimodule`: it generates production-only architecture

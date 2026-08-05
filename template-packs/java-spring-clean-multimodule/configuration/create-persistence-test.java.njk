@@ -1,0 +1,51 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in fixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    @Autowired
+    private {{ useCaseType }} {{ useCaseFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldCreateAndPersist{{ className | replace("CreatePersistenceTests", "") }}() {
+        var result = {{ useCaseFieldName }}.execute(new {{ commandType }}(
+{% for argument in commandArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+{% for fixture in fixtures %}        assertThat(result.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}
+        var persisted = {{ repositoryFieldName }}.findById({{ identifierExpression }}).orElseThrow();
+{% for fixture in fixtures %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}    }
+
+    @Test
+    void shouldRejectDuplicate{{ className | replace("CreatePersistenceTests", "") }}WithoutOverwritingOriginal() {
+        {{ useCaseFieldName }}.execute(new {{ commandType }}(
+{% for argument in commandArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        var exception = org.junit.jupiter.api.Assertions.assertThrows({{ conflictExceptionType }}.class, () -> {{ useCaseFieldName }}.execute(new {{ commandType }}(
+{% for argument in conflictCommandArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        )));
+
+        assertThat(exception.getMessageKey()).isEqualTo("{{ conflictMessageKey }}");
+        assertThat(exception.getDefaultMessage()).isEqualTo("{{ conflictDefaultMessage }}");
+
+        var persisted = {{ repositoryFieldName }}.findById({{ identifierExpression }}).orElseThrow();
+{% for fixture in fixtures %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}        assertThat({{ repositoryFieldName }}.count()).isEqualTo(1);
+    }
+}
