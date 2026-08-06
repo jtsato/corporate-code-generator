@@ -97,6 +97,10 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       { templateId: "core-update-usecase" },
       { templateId: "core-update-usecase-interactor" },
       { templateId: "core-update-usecase-interactor-test" },
+      { templateId: "core-patch-command" },
+      { templateId: "core-patch-usecase" },
+      { templateId: "core-patch-usecase-interactor" },
+      { templateId: "core-patch-usecase-interactor-test" },
       {
         templateId: "core-delete-command",
         model: {
@@ -369,5 +373,107 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       { templateId: "core-filter-group-test", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "FilterGroupTests" }, model: { packageName: "io.github.jtsato.walletservice.core.common.filter", exceptionPackage: "io.github.jtsato.walletservice.core.common.exception", className: "FilterGroupTests", typeName: "FilterGroup" } },
       { templateId: "core-filter-expression-test", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "FilterExpressionTests" }, model: { packageName: "io.github.jtsato.walletservice.core.common.filter", exceptionPackage: "io.github.jtsato.walletservice.core.common.exception", className: "FilterExpressionTests", typeName: "FilterExpression" } },
     ]);
+
+    const patchCommandArtifact = artifacts.find((artifact) => artifact.templateId === "core-patch-command");
+    expect(patchCommandArtifact).toMatchObject({
+      outputVariables: {
+        packagePath: "io/github/jtsato/walletservice",
+        domainName: "wallet",
+        className: "PatchWalletCommand",
+      },
+      model: {
+        packageName: "io.github.jtsato.walletservice.core.domains.wallet.usecase.patch",
+        className: "PatchWalletCommand",
+        fields: [
+          {
+            name: "id",
+            type: "UUID",
+            requiredMessageKey: "common.identifier.required",
+            requiredDefaultMessage: "Identifier is required.",
+          },
+          {
+            name: "balance",
+            type: "BigDecimal",
+            requiredMessageKey: "wallet.balance.required",
+            requiredDefaultMessage: "Balance is required.",
+          },
+          {
+            name: "balanceProvided",
+            type: "boolean",
+          },
+        ],
+        atLeastOneFieldMessageKey: "common.patch.field.required",
+        atLeastOneFieldDefaultMessage: "At least one field must be provided.",
+      },
+    });
+
+    const patchInteractorArtifact = artifacts.find((artifact) => artifact.templateId === "core-patch-usecase-interactor");
+    expect(patchInteractorArtifact).toMatchObject({
+      outputVariables: {
+        packagePath: "io/github/jtsato/walletservice",
+        domainName: "wallet",
+        className: "PatchWalletUseCaseInteractor",
+      },
+      model: {
+        packageName: "io.github.jtsato.walletservice.core.domains.wallet.usecase.patch",
+        className: "PatchWalletUseCaseInteractor",
+        interfaceName: "PatchWalletUseCase",
+        commandType: "PatchWalletCommand",
+        gatewayType: "WalletGateway",
+        gatewayFieldName: "walletGateway",
+        entityType: "Wallet",
+        executeMethodName: "execute",
+        gatewayFindByIdMethodName: "findById",
+        gatewayUpdateMethodName: "update",
+        imports: [
+          "io.github.jtsato.walletservice.core.common.exception.FieldViolation",
+          "io.github.jtsato.walletservice.core.common.exception.ValidationException",
+          "io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway",
+          "io.github.jtsato.walletservice.core.domains.wallet.model.Wallet",
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletCommand",
+          "java.util.List",
+        ],
+      },
+    });
+  });
+
+  it("models explicit null and omitted optional PATCH fields separately", () => {
+    const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
+    const artifacts = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "schedule-service",
+        namespace: "io.github.jtsato.scheduleservice",
+        entities: [{
+          name: "Schedule",
+          attributes: [
+            { name: "id", type: "uuid", required: true, identifier: true },
+            { name: "label", type: "string", required: false, identifier: false },
+            { name: "status", type: "string", required: true, identifier: false },
+          ],
+        }],
+      },
+      profile: {
+        id: "java-spring-clean-multimodule",
+        version: "0.1.0",
+        technology: { language: "java", languageVersion: "25", framework: "spring-boot" },
+        architecture: { style: "clean-architecture" },
+        templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" },
+        modules: [{ id: "core", requires: [] }],
+      },
+      modules: [{ id: "core", requires: [] }],
+    });
+
+    const patchTestArtifact = artifacts.find((artifact) => artifact.templateId === "core-patch-usecase-interactor-test");
+    expect(patchTestArtifact?.model).toMatchObject({
+      hasOptionalNullScenario: true,
+      optionalNullFieldName: "Label",
+      hasOmittedFieldScenario: true,
+      omittedFieldName: "Label",
+    });
+    expect(patchTestArtifact?.model.optionalNullCommandArguments).toHaveLength(5);
+    expect(patchTestArtifact?.model.omittedCommandArguments).toHaveLength(5);
+    expect(patchTestArtifact?.model.optionalNullCommandArguments).toContain("null");
+    expect(patchTestArtifact?.model.omittedCommandArguments).toContain("false");
   });
 });

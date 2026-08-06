@@ -10,6 +10,7 @@ import io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteW
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteWalletUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase;
 import io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser;
 import io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus;
@@ -17,6 +18,7 @@ import io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser
 import io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter.WalletRestFilterDefinition;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.CreateWalletRequest;
+import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.PatchWalletRequest;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.UpdateWalletRequest;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.sort.WalletRestSortDefinition;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -35,6 +37,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -52,13 +55,15 @@ public class WalletController {
     private final FindWalletByIdUseCase findWalletByIdUseCase;
     private final CreateWalletUseCase createWalletUseCase;
     private final UpdateWalletUseCase updateWalletUseCase;
+    private final PatchWalletUseCase patchWalletUseCase;
     private final DeleteWalletUseCase deleteWalletUseCase;
 
-    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase, FindWalletByIdUseCase findWalletByIdUseCase, CreateWalletUseCase createWalletUseCase, UpdateWalletUseCase updateWalletUseCase, DeleteWalletUseCase deleteWalletUseCase) {
+    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase, FindWalletByIdUseCase findWalletByIdUseCase, CreateWalletUseCase createWalletUseCase, UpdateWalletUseCase updateWalletUseCase, PatchWalletUseCase patchWalletUseCase, DeleteWalletUseCase deleteWalletUseCase) {
         this.findWalletsByFilterPageUseCase = findWalletsByFilterPageUseCase;
         this.findWalletByIdUseCase = findWalletByIdUseCase;
         this.createWalletUseCase = createWalletUseCase;
         this.updateWalletUseCase = updateWalletUseCase;
+        this.patchWalletUseCase = patchWalletUseCase;
         this.deleteWalletUseCase = deleteWalletUseCase;
     }
 
@@ -120,6 +125,20 @@ public class WalletController {
     public WalletResponse update(@PathVariable UUID id, @RequestBody UpdateWalletRequest request) {
         Wallet updated = updateWalletUseCase.execute(request.toCommand(id));
         return WalletResponse.from(updated);
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Patch wallet", description = "Partially updates a wallet.")
+    @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Wallet patched", content = @Content(schema = @Schema(implementation = WalletResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "Wallet not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public WalletResponse patch(@PathVariable UUID id, @RequestBody PatchWalletRequest request) {
+        Wallet patched = patchWalletUseCase.execute(request.toCommand(id));
+        return WalletResponse.from(patched);
     }
 
     @PostMapping

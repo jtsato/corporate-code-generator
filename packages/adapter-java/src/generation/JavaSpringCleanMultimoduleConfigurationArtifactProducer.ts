@@ -21,6 +21,7 @@ import type { JavaUpdatePersistenceTestTemplateModel } from "../model/JavaUpdate
 import type { JavaDeletePersistenceTestTemplateModel } from "../model/JavaDeletePersistenceTestTemplateModel.js";
 import type { JavaHttpFindByIdTestTemplateModel } from "../model/JavaHttpFindByIdTestTemplateModel.js";
 import { createJavaHttpUpdateTestModel } from "../transformers/createJavaHttpUpdateTestModel.js";
+import { createJavaHttpPatchTestModel } from "../transformers/createJavaHttpPatchTestModel.js";
 import { createJavaHttpDeleteTestModel } from "../transformers/createJavaHttpDeleteTestModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
@@ -112,6 +113,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
         const createUseCaseType = `Create${entityType}UseCase`;
         const updateUseCaseType = `Update${entityType}UseCase`;
+        const patchUseCaseType = `Patch${entityType}UseCase`;
         const deleteUseCaseType = `Delete${entityType}UseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
@@ -129,6 +131,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.patch.${patchUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.patch.${patchUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
@@ -166,6 +170,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           updateUseCaseBeanMethodName: `update${entityType}UseCase`,
           updateUseCaseType,
           updateUseCaseImplementationType: `${updateUseCaseType}Interactor`,
+          patchUseCaseBeanMethodName: `patch${entityType}UseCase`,
+          patchUseCaseType,
+          patchUseCaseImplementationType: `${patchUseCaseType}Interactor`,
           deleteUseCaseBeanMethodName: `delete${entityType}UseCase`,
           deleteUseCaseType,
           deleteUseCaseImplementationType: `${deleteUseCaseType}Interactor`,
@@ -235,6 +242,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           createRequestSchemaName: `Create${toJavaTypeName(entity.name)}Request`,
           createResponseSchemaName: `${toJavaTypeName(entity.name)}Response`,
           updateRequestSchemaName: `Update${toJavaTypeName(entity.name)}Request`,
+          patchRequestSchemaName: `Patch${toJavaTypeName(entity.name)}Request`,
         };
         return { templateId: "configuration-openapi-smoke-test", model, outputVariables: { ...outputVariables, className: model.className } };
       }),
@@ -542,6 +550,19 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           templateId: "configuration-http-update-test",
           model: httpUpdateModel,
           outputVariables: { ...outputVariables, className: httpUpdateModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const httpPatchModel = createJavaHttpPatchTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+        return {
+          templateId: "configuration-http-patch-test",
+          model: httpPatchModel,
+          outputVariables: { ...outputVariables, className: httpPatchModel.className },
         };
       }),
       ...request.application.entities.map((entity) => {

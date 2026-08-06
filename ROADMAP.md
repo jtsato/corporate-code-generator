@@ -96,8 +96,9 @@ Allowed milestone statuses are: Done, In progress, Planned, Deferred, Superseded
 | 6.27 | REST Update Integration | Done | Exposed generated update runtime through PUT. | [ADR-048](docs/adr/ADR-048-rest-update-integration.md) |
 | 6.28 | Delete Runtime Integration | Done | Added generated delete command, use case, gateway, and persistence behavior. | [ADR-049](docs/adr/ADR-049-delete-runtime-integration.md) |
 | 6.29 | REST Delete Integration | Done | Exposed generated delete runtime through DELETE, returning 204/400/404/500 with non-idempotent repeated-delete semantics. | [ADR-050](docs/adr/ADR-050-rest-delete-integration.md) |
-| 6.30 | Golden Path Java 1.0 Release Readiness | Planned | Planned release-readiness audit without adding a new capability. | [Quality Gates](docs/project/QUALITY-GATES.md) |
+| 6.30 | Golden Path Java 1.0 Release Readiness | Done | Completed the release-readiness audit without adding a new capability. | [Current State](docs/project/CURRENT-STATE.md); [Quality Gates](docs/project/QUALITY-GATES.md) |
+| 6.31 | REST PATCH Integration | Done | Added partial update semantics with explicit presence tracking, HTTP exposure, OpenAPI documentation, and generated runtime tests. | [ADR-051](docs/adr/ADR-051-rest-patch-integration.md) |
 
 ## Future optional work
 
-Future work remains outside the current release unless explicitly approved: PATCH, soft delete, optimistic locking, auditing, ETag/If-Match, authentication and authorization, additional databases, additional stacks, deployment scaffolding, remote registries, and plugin systems.
+Future work remains outside the current release unless explicitly approved: soft delete, optimistic locking, auditing, ETag/If-Match, authentication and authorization, additional databases, additional stacks, deployment scaffolding, remote registries, and plugin systems.

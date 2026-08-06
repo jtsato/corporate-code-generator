@@ -1,0 +1,26 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public final class {{ className }} {
+{% for component in components %}    private {{ component.type }} {{ component.name }};
+    private boolean {{ component.name }}Provided;
+{% endfor %}
+    public {{ className }}() {
+    }
+
+{% for component in components %}    public {{ component.type }} {{ component.accessorName }}() {
+        return {{ component.name }};
+    }
+
+    public void {{ component.setterName }}({{ component.type }} {{ component.name }}) {
+        this.{{ component.name }} = {{ component.name }};
+        this.{{ component.name }}Provided = true;
+    }
+
+{% endfor %}    public {{ commandType }} toCommand({{ identifierType }} {{ identifierParameterName }}) {
+        return new {{ commandType }}(
+{% for argument in commandArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+    }
+}

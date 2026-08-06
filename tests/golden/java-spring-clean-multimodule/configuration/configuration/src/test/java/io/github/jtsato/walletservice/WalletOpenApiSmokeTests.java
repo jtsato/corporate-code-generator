@@ -149,6 +149,34 @@ class WalletOpenApiSmokeTests {
         assertThat(operation.path("responses").has("500")).isTrue();
     }
 
+    @Test void documentsThePatchOperation() throws Exception {
+        JsonNode document = document();
+        JsonNode operation = patchOperation(document);
+        JsonNode parameter = findParameter(operation.path("parameters"), "id");
+
+        assertThat(parameter.path("in").asText()).isEqualTo("path");
+        assertThat(parameter.path("required").asBoolean(false)).isTrue();
+        assertThat(parameter.path("schema").path("type").asText()).isEqualTo("string");
+        assertThat(parameter.path("schema").path("format").asText()).isEqualTo("uuid");
+
+        JsonNode requestBody = operation.path("requestBody");
+        assertThat(requestBody.isObject()).isTrue();
+        String requestReference = requestBody.path("content").path("application/json").path("schema").path("$ref").asText("");
+        assertThat(requestReference).contains("PatchWalletRequest");
+        JsonNode requestSchema = document.path("components").path("schemas").path("PatchWalletRequest");
+        assertThat(requestSchema.isObject()).isTrue();
+        assertThat(requestSchema.path("properties").has("id")).isFalse();
+        assertThat(requestSchema.path("properties").has("balance")).isTrue();
+
+        JsonNode response = operation.path("responses").path("200");
+        JsonNode content = response.path("content");
+        JsonNode media = content.has("application/json") ? content.path("application/json") : content.path("*/*");
+        assertThat(media.path("schema").path("$ref").asText("")).contains("WalletResponse");
+        assertThat(operation.path("responses").has("400")).isTrue();
+        assertThat(operation.path("responses").has("404")).isTrue();
+        assertThat(operation.path("responses").has("500")).isTrue();
+    }
+
     @Test void documentsTheDeleteOperation() throws Exception {
         JsonNode document = document();
         JsonNode operation = deleteOperation(document);
@@ -200,6 +228,12 @@ class WalletOpenApiSmokeTests {
         assertThat(document.path("paths").has("/wallets/{id}")).isTrue();
         assertThat(document.path("paths").path("/wallets/{id}").has("delete")).isTrue();
         return document.path("paths").path("/wallets/{id}").path("delete");
+    }
+
+    private JsonNode patchOperation(JsonNode document) {
+        assertThat(document.path("paths").has("/wallets/{id}")).isTrue();
+        assertThat(document.path("paths").path("/wallets/{id}").has("patch")).isTrue();
+        return document.path("paths").path("/wallets/{id}").path("patch");
     }
 
     private static JsonNode resolveSchema(JsonNode document, JsonNode schema) {

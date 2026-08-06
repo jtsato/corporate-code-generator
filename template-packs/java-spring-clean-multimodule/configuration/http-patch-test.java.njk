@@ -1,0 +1,95 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in fixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}{% for fixture in updatedFixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldPatchAndPersist{{ entityType | replace("Entity", "") }}() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        HttpResponse<String> response = patch("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ validPatchPayloadExpression }});
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode body = OBJECT_MAPPER.readTree(response.body());
+{% for fixture in fixtures %}        assertThat(body.path("{{ fixture.jsonName }}").asText()).isEqualTo(String.valueOf({% if fixture.updatedConstantName %}{{ fixture.updatedConstantName }}{% else %}{{ fixture.constantName }}{% endif %}));
+{% endfor %}        var persisted = {{ repositoryFieldName }}.findById({{ identifierConstantName }}).orElseThrow();
+{% for fixture in updatedFixtures %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}    }
+
+    @Test
+    void shouldRejectEmptyPatch() throws Exception {
+        assertThat(patch("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ emptyPatchPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+{% if hasRequiredNullScenario %}
+    @Test
+    void shouldRejectNullRequiredField() throws Exception {
+        assertThat(patch("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ requiredNullPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+{% endif %}{% if hasOptionalNullScenario %}
+    @Test
+    void shouldAcceptExplicitNullForOptionalField() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        assertThat(patch("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ optionalNullPayloadExpression }}).statusCode()).isEqualTo(200);
+    }
+{% endif %}{% if hasOmittedFieldScenario %}
+    @Test
+    void shouldPreserveOmitted{{ omittedFieldName }}() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        HttpResponse<String> response = patch("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ omittedPayloadExpression }});
+        assertThat(response.statusCode()).isEqualTo(200);
+        var persisted = {{ repositoryFieldName }}.findById({{ identifierConstantName }}).orElseThrow();
+        assertThat(persisted.{{ omittedAccessorName }}()).isEqualTo({{ omittedExpectedConstantName }});
+    }
+{% endif %}
+    @Test
+    void shouldReturnNotFoundForMissing{{ entityType | replace("Entity", "") }}() throws Exception {
+        assertThat(patch("{{ endpointPath }}/" + {{ missingIdentifierExpression }}, {{ validPatchPayloadExpression }}).statusCode()).isEqualTo(404);
+    }
+
+    @Test
+    void shouldRejectNullBody() throws Exception {
+        assertThat(patch("{{ endpointPath }}/" + {{ identifierConstantName }}, null).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidJson() throws Exception {
+        assertThat(patch("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ invalidJsonPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidPathIdentifier() throws Exception {
+        assertThat(patch("{{ endpointPath }}/not-a-uuid", {{ validPatchPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    private HttpResponse<String> patch(String path, String body) throws Exception {
+        HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+            .header("Content-Type", "application/json");
+        HttpRequest request = body == null
+            ? builder.method("PATCH", HttpRequest.BodyPublishers.noBody()).build()
+            : builder.method("PATCH", HttpRequest.BodyPublishers.ofString(body)).build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+}

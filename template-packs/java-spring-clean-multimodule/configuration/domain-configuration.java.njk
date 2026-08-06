@@ -45,6 +45,11 @@ public class {{ className }} {
     }
 
     @Bean
+    public {{ patchUseCaseType }} {{ patchUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ patchUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
+
+    @Bean
     public {{ deleteUseCaseType }} {{ deleteUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
         return new {{ deleteUseCaseImplementationType }}({{ gatewayParameterName }});
     }

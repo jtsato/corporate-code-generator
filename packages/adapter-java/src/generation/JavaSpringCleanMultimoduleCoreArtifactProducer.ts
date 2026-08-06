@@ -16,6 +16,10 @@ import type { JavaUpdateCommandTemplateModel } from "../model/JavaUpdateCommandT
 import type { JavaUpdateUseCaseInteractorTemplateModel } from "../model/JavaUpdateUseCaseInteractorTemplateModel.js";
 import type { JavaUpdateUseCaseInteractorTestTemplateModel } from "../model/JavaUpdateUseCaseInteractorTestTemplateModel.js";
 import type { JavaUpdateUseCaseTemplateModel } from "../model/JavaUpdateUseCaseTemplateModel.js";
+import type { JavaPatchCommandTemplateModel } from "../model/JavaPatchCommandTemplateModel.js";
+import type { JavaPatchUseCaseInteractorTemplateModel } from "../model/JavaPatchUseCaseInteractorTemplateModel.js";
+import type { JavaPatchUseCaseInteractorTestTemplateModel } from "../model/JavaPatchUseCaseInteractorTestTemplateModel.js";
+import type { JavaPatchUseCaseTemplateModel } from "../model/JavaPatchUseCaseTemplateModel.js";
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
@@ -58,6 +62,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const updateCommandType = `Update${entityType}Command`;
       const updateUseCaseType = `Update${entityType}UseCase`;
       const updateInteractorType = `${updateUseCaseType}Interactor`;
+      const patchCommandType = `Patch${entityType}Command`;
+      const patchUseCaseType = `Patch${entityType}UseCase`;
+      const patchInteractorType = `${patchUseCaseType}Interactor`;
       const deleteCommandType = `Delete${entityType}Command`;
       const deleteUseCaseType = `Delete${entityType}UseCase`;
       const deleteInteractorType = `${deleteUseCaseType}Interactor`;
@@ -235,6 +242,31 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       for (const attribute of entity.attributes) {
         updateInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
       }
+      const patchCommandImports = new JavaImportCollector();
+      patchCommandImports.add(`${exceptionPackage}.FieldViolation`);
+      patchCommandImports.add(`${exceptionPackage}.ValidationException`);
+      for (const attribute of entity.attributes) patchCommandImports.add(this.typeResolver.resolve(attribute.type).import);
+      const patchUseCaseImports = new JavaImportCollector();
+      patchUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      patchUseCaseImports.add(`${domainPackage}.usecase.patch.${patchCommandType}`);
+      const patchInteractorImports = new JavaImportCollector();
+      patchInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      patchInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      patchInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      patchInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      patchInteractorImports.add(`${domainPackage}.usecase.patch.${patchCommandType}`);
+      patchInteractorImports.add("java.util.List");
+      const patchInteractorTestImports = new JavaImportCollector();
+      patchInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      patchInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      patchInteractorTestImports.add(`${pagingPackage}.PageRequest`);
+      patchInteractorTestImports.add(`${pagingPackage}.PageResult`);
+      patchInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      patchInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      patchInteractorTestImports.add(`${domainPackage}.usecase.patch.${patchCommandType}`);
+      patchInteractorTestImports.add("java.util.List");
+      patchInteractorTestImports.add("org.junit.jupiter.api.Test");
+      for (const attribute of entity.attributes) patchInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
       const deleteCommandImports = new JavaImportCollector();
       deleteCommandImports.add(`${exceptionPackage}.FieldViolation`);
       deleteCommandImports.add(`${exceptionPackage}.ValidationException`);
@@ -378,6 +410,121 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         gatewayUpdateMethodName: "update",
         commandRequiredMessageKey: "common.command.required",
       };
+      const patchValueFields = entity.attributes.filter((attribute) => !attribute.identifier).map((attribute) => {
+        const javaType = this.typeResolver.resolve(attribute.type);
+        return {
+          name: attribute.name,
+          type: javaType.name,
+          ...(attribute.required ? {
+            requiredMessageKey: `${domainName}.${attribute.name}.required`,
+            requiredDefaultMessage: `${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)} is required.`,
+          } : {}),
+        };
+      });
+      if (patchValueFields.length === 0) {
+        throw new Error(`Cannot generate PATCH use case for entity '${entity.name}' without a non-identifier attribute.`);
+      }
+      const patchCommandFields = [
+        {
+          name: identifier.name,
+          type: identifierType.name,
+          requiredMessageKey: "common.identifier.required",
+          requiredDefaultMessage: "Identifier is required.",
+        },
+        ...patchValueFields.flatMap((field) => [field, { name: `${field.name}Provided`, type: "boolean" }]),
+      ];
+      const patchCommandModel: JavaPatchCommandTemplateModel = {
+        packageName: `${domainPackage}.usecase.patch`,
+        imports: patchCommandImports.values(),
+        className: patchCommandType,
+        fields: patchCommandFields,
+        valueFields: patchValueFields,
+        identifierFieldName: identifier.name,
+        atLeastOneFieldMessageKey: "common.patch.field.required",
+        atLeastOneFieldDefaultMessage: "At least one field must be provided.",
+      };
+      const patchUseCaseModel: JavaPatchUseCaseTemplateModel = {
+        packageName: `${domainPackage}.usecase.patch`,
+        imports: patchUseCaseImports.values(),
+        interfaceName: patchUseCaseType,
+        commandType: patchCommandType,
+        entityType,
+        executeMethodName: "execute",
+      };
+      const patchInteractorModel: JavaPatchUseCaseInteractorTemplateModel = {
+        packageName: `${domainPackage}.usecase.patch`,
+        imports: patchInteractorImports.values(),
+        className: patchInteractorType,
+        interfaceName: patchUseCaseType,
+        commandType: patchCommandType,
+        gatewayType,
+        gatewayFieldName: `${domainName}Gateway`,
+        entityType,
+        mergedEntityArguments: entity.attributes.map((attribute) => attribute.identifier
+          ? `command.${attribute.name}()`
+          : `command.${attribute.name}Provided() ? command.${attribute.name}() : current.get${toJavaTypeName(attribute.name)}()`),
+        executeMethodName: "execute",
+        gatewayFindByIdMethodName: "findById",
+        gatewayUpdateMethodName: "update",
+        commandRequiredMessageKey: "common.command.required",
+        commandRequiredDefaultMessage: "Command is required.",
+      };
+      const patchFixtureArguments = entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
+      const patchCommandArguments = entity.attributes.flatMap((attribute, index) => attribute.identifier ? [patchFixtureArguments[index]!] : [patchFixtureArguments[index]!, "true"]);
+      const patchUpdatedArguments = entity.attributes.flatMap((attribute, index) => attribute.identifier
+        ? [patchFixtureArguments[index]!]
+        : [this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression, "true"]);
+      const patchUpdatedAssertions = entity.attributes.map((attribute, index) => ({
+        accessorName: `get${toJavaTypeName(attribute.name)}`,
+        expectedExpression: attribute.identifier ? patchFixtureArguments[index]! : this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression,
+      }));
+      const optionalAttribute = entity.attributes.find((attribute) => !attribute.identifier && !attribute.required);
+      const patchOptionalNullArguments = optionalAttribute === undefined ? [] : entity.attributes.flatMap((attribute, index) => attribute.identifier
+        ? [patchFixtureArguments[index]!]
+        : attribute === optionalAttribute ? ["null", "true"] : [patchFixtureArguments[index]!, "true"]);
+      const omittedAttribute = entity.attributes.filter((attribute) => !attribute.identifier)[0];
+      const hasOmittedFieldScenario = entity.attributes.filter((attribute) => !attribute.identifier).length > 1;
+      const patchOmittedArguments = !hasOmittedFieldScenario || omittedAttribute === undefined ? [] : entity.attributes.flatMap((attribute, index) => attribute.identifier
+        ? [patchFixtureArguments[index]!]
+        : attribute === omittedAttribute ? ["null", "false"] : [patchFixtureArguments[index]!, "true"]);
+      const patchEmptyCommandArguments = entity.attributes.flatMap((attribute, index) => attribute.identifier ? [patchFixtureArguments[index]!] : ["null", "false"]);
+      const patchInteractorTestModel: JavaPatchUseCaseInteractorTestTemplateModel = {
+        packageName: `${domainPackage}.usecase.patch`,
+        imports: patchInteractorTestImports.values(),
+        className: `${patchInteractorType}Tests`,
+        interactorType: patchInteractorType,
+        fakeGatewayType: `Fake${gatewayType}`,
+        gatewayType,
+        entityType,
+        commandType: patchCommandType,
+        identifierType: identifierType.name,
+        currentEntityArguments: patchFixtureArguments,
+        commandArguments: patchCommandArguments,
+        updatedCommandArguments: patchUpdatedArguments,
+        fieldAssertions: entity.attributes.map((attribute, index) => ({ accessorName: `get${toJavaTypeName(attribute.name)}`, expectedExpression: patchFixtureArguments[index]! })),
+        updatedFieldAssertions: patchUpdatedAssertions,
+        requiredFields: entity.attributes.filter((attribute) => attribute.required).map((attribute, index) => ({
+          fieldName: attribute.name,
+          messageKey: attribute.identifier ? "common.identifier.required" : `${domainName}.${attribute.name}.required`,
+          testMethodSuffix: toJavaTypeName(attribute.name),
+          nullArguments: entity.attributes.flatMap((candidate, candidateIndex) => candidate === attribute
+            ? ["null", ...(candidate.identifier ? [] : ["true"])]
+            : candidate.identifier ? [patchFixtureArguments[candidateIndex]!] : [patchFixtureArguments[candidateIndex]!, "true"]),
+        })),
+        emptyCommandArguments: patchEmptyCommandArguments,
+        executeMethodName: "execute",
+        gatewayFindByIdMethodName: "findById",
+        gatewayUpdateMethodName: "update",
+        commandRequiredMessageKey: "common.command.required",
+        atLeastOneFieldMessageKey: "common.patch.field.required",
+        hasOptionalNullScenario: optionalAttribute !== undefined,
+        optionalNullFieldName: optionalAttribute === undefined ? "Field" : toJavaTypeName(optionalAttribute.name),
+        optionalNullCommandArguments: patchOptionalNullArguments,
+        hasOmittedFieldScenario,
+        omittedFieldName: omittedAttribute === undefined ? "Field" : toJavaTypeName(omittedAttribute.name),
+        omittedExpectedExpression: omittedAttribute === undefined ? "null" : patchFixtureArguments[entity.attributes.indexOf(omittedAttribute)]!,
+        omittedCommandArguments: patchOmittedArguments,
+      };
       const deleteCommandModel: JavaDeleteCommandTemplateModel = {
         packageName: `${domainPackage}.usecase.delete`,
         imports: deleteCommandImports.values(),
@@ -514,6 +661,26 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           templateId: "core-update-usecase-interactor-test",
           model: updateInteractorTestModel,
           outputVariables: { ...outputVariables, className: updateInteractorTestModel.className },
+        },
+        {
+          templateId: "core-patch-command",
+          model: patchCommandModel,
+          outputVariables: { ...outputVariables, className: patchCommandType },
+        },
+        {
+          templateId: "core-patch-usecase",
+          model: patchUseCaseModel,
+          outputVariables: { ...outputVariables, className: patchUseCaseType },
+        },
+        {
+          templateId: "core-patch-usecase-interactor",
+          model: patchInteractorModel,
+          outputVariables: { ...outputVariables, className: patchInteractorType },
+        },
+        {
+          templateId: "core-patch-usecase-interactor-test",
+          model: patchInteractorTestModel,
+          outputVariables: { ...outputVariables, className: patchInteractorTestModel.className },
         },
         {
           templateId: "core-delete-command",

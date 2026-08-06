@@ -1,0 +1,83 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+class {{ className }} {
+    private static final class {{ fakeGatewayType }} implements {{ gatewayType }} {
+        private {{ entityType }} current;
+        private {{ entityType }} received;
+        private {{ entityType }} result;
+        private int findByIdCallCount;
+        private int updateCallCount;
+
+        @Override public List<{{ entityType }}> findAll() { return List.of(); }
+        @Override public List<{{ entityType }}> findByFilter(FilterExpression filterExpression) { return List.of(); }
+        @Override public PageResult<{{ entityType }}> findPage(PageRequest pageRequest) { return null; }
+        @Override public PageResult<{{ entityType }}> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) { return null; }
+        @Override public {{ entityType }} findById({{ identifierType }} id) { findByIdCallCount++; return current; }
+        @Override public {{ entityType }} create({{ entityType }} entity) { return null; }
+        @Override public {{ entityType }} update({{ entityType }} entity) { updateCallCount++; received = entity; return result; }
+        @Override public void deleteById({{ identifierType }} id) { }
+    }
+
+    @Test
+    void shouldRejectNullCommand() {
+        var gateway = new {{ fakeGatewayType }}();
+        var exception = assertThrows(ValidationException.class, () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null));
+        assertEquals("command", exception.getFields().getFirst().name());
+        assertEquals("{{ commandRequiredMessageKey }}", exception.getFields().getFirst().messageKey());
+        assertEquals(0, gateway.findByIdCallCount);
+        assertEquals(0, gateway.updateCallCount);
+    }
+
+    @Test
+    void shouldRejectEmptyPatch() {
+        var exception = assertThrows(ValidationException.class, () -> new {{ commandType }}({{ emptyCommandArguments | join(", ") }}));
+        assertEquals("command", exception.getFields().getFirst().name());
+        assertEquals("{{ atLeastOneFieldMessageKey }}", exception.getFields().getFirst().messageKey());
+    }
+
+{% for requiredField in requiredFields %}    @Test
+    void shouldRejectNull{{ requiredField.testMethodSuffix }}WhenProvided() {
+        var exception = assertThrows(ValidationException.class, () -> new {{ commandType }}({{ requiredField.nullArguments | join(", ") }}));
+        assertEquals("{{ requiredField.fieldName }}", exception.getFields().getFirst().name());
+        assertEquals("{{ requiredField.messageKey }}", exception.getFields().getFirst().messageKey());
+    }
+{% endfor %}
+    @Test
+    void shouldFindMergeAndUpdate() {
+        var gateway = new {{ fakeGatewayType }}();
+        gateway.current = new {{ entityType }}(
+{% for argument in currentEntityArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+        gateway.result = new {{ entityType }}(
+{% for argument in currentEntityArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(new {{ commandType }}({{ updatedCommandArguments | join(", ") }}));
+{% for assertion in updatedFieldAssertions %}        assertEquals({{ assertion.expectedExpression }}, gateway.received.{{ assertion.accessorName }}());
+{% endfor %}        assertSame(gateway.result, result);
+        assertEquals(1, gateway.findByIdCallCount);
+        assertEquals(1, gateway.updateCallCount);
+    }
+{% if hasOptionalNullScenario %}
+    @Test
+    void shouldAcceptNull{{ optionalNullFieldName }}WhenOptional() {
+        new {{ commandType }}({{ optionalNullCommandArguments | join(", ") }});
+    }
+{% endif %}{% if hasOmittedFieldScenario %}
+    @Test
+    void shouldPreserveOmitted{{ omittedFieldName }}() {
+        var gateway = new {{ fakeGatewayType }}();
+        gateway.current = new {{ entityType }}(
+{% for argument in currentEntityArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+        gateway.result = gateway.current;
+        new {{ interactorType }}(gateway).{{ executeMethodName }}(new {{ commandType }}({{ omittedCommandArguments | join(", ") }}));
+        assertEquals({{ omittedExpectedExpression }}, gateway.received.get{{ omittedFieldName }}());
+    }
+{% endif %}
+}

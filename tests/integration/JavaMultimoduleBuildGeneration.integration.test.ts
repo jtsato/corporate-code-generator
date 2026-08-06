@@ -68,7 +68,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(125);
+    expect(operations).toHaveLength(131);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
@@ -81,6 +81,10 @@ describe("Java multi-module generation", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/update/UpdateWalletUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/update/UpdateWalletUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/update/UpdateWalletUseCaseInteractorTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/patch/PatchWalletCommand.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/patch/PatchWalletUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/patch/PatchWalletUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/patch/PatchWalletUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletCommand.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCaseInteractor.java",
@@ -125,6 +129,7 @@ describe("Java multi-module generation", () => {
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/CreateWalletRequest.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/UpdateWalletRequest.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/PatchWalletRequest.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterOperator.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterFieldDefinition.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterDefinition.java",
@@ -183,6 +188,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFindByIdTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpCreateTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpUpdateTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPatchTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpDeleteTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFilterTests.java",
@@ -196,6 +202,9 @@ describe("Java multi-module generation", () => {
     expect(controller?.content).toContain('@PutMapping("/{id}")');
     expect(controller?.content).toContain("UpdateWalletRequest request");
     expect(controller?.content).toContain("return WalletResponse.from(updated);");
+    expect(controller?.content).toContain('@PatchMapping("/{id}")');
+    expect(controller?.content).toContain("PatchWalletRequest request");
+    expect(controller?.content).toContain("return WalletResponse.from(patched);");
     expect(controller?.content).toContain('@DeleteMapping("/{id}")');
     expect(controller?.content).toContain("new DeleteWalletCommand(id)");
     expect(controller?.content).toContain("return ResponseEntity.noContent().build();");

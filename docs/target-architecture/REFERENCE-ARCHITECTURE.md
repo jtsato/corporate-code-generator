@@ -75,9 +75,17 @@ Relevant decisions: [ADR-043](../adr/ADR-043-create-runtime-integration.md), [AD
 
 `PUT /wallets/{id}` is a full replacement update. The identifier comes from the path, not the body. The generated request DTO converts to `Update<Entity>Command`, delegates to `Update<Entity>UseCase`, and returns the updated response DTO.
 
-Missing identifiers map to not found. Invalid JSON, invalid body values, null values for required fields, and malformed path identifiers map to bad request. Partial updates, PATCH, ETags, conditional requests, and optimistic locking are not part of the current generated behavior.
+Missing identifiers map to not found. Invalid JSON, invalid body values, null values for required fields, and malformed path identifiers map to bad request. Partial updates are exposed through `PATCH /wallets/{id}` in the Java multi-module profile; its mutable request setters distinguish omitted fields from explicit `null`. ETags, conditional requests, and optimistic locking are not part of the current generated behavior.
 
 Relevant decisions: [ADR-047](../adr/ADR-047-update-runtime-integration.md) and [ADR-048](../adr/ADR-048-rest-update-integration.md).
+
+The PATCH interactor loads the current entity, merges only supplied fields, and
+calls the existing update gateway operation. Required supplied-null and empty
+patches are rejected, while optional supplied-null clears the field. It returns
+`200 OK` with the updated response DTO; the single-module profile remains
+unchanged.
+
+Relevant decision: [ADR-051](../adr/ADR-051-rest-patch-integration.md).
 
 ### Delete
 
@@ -165,7 +173,7 @@ Relevant decision: [ADR-032](../adr/ADR-032-generated-java-ci-pipeline.md).
 
 ## Limitations
 
-- PATCH, partial update, soft delete, bulk/cascade delete, idempotent delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
+- Soft delete, bulk/cascade delete, idempotent delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
 - Relationship modeling is not part of the current Application Model baseline.
 - Advanced persistence options such as additional databases, entity graphs, Testcontainers, MapStruct, and P6Spy require explicit future decisions.
 - Partial module selections may not produce independently runnable applications unless a specific quality gate validates that selection.

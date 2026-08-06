@@ -15,6 +15,8 @@ import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalle
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsPageUseCaseInteractor;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsUseCaseInteractor;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletUseCase;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletUseCaseInteractor;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCaseInteractor;
 import io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository;
@@ -62,6 +64,11 @@ public class WalletConfiguration {
     @Bean
     public UpdateWalletUseCase updateWalletUseCase(WalletGateway walletGateway) {
         return new UpdateWalletUseCaseInteractor(walletGateway);
+    }
+
+    @Bean
+    public PatchWalletUseCase patchWalletUseCase(WalletGateway walletGateway) {
+        return new PatchWalletUseCaseInteractor(walletGateway);
     }
 
     @Bean

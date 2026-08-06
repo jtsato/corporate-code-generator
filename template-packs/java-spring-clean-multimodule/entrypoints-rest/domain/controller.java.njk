@@ -11,13 +11,15 @@ public class {{ className }} {
     private final {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }};
     private final {{ createUseCaseType }} {{ createUseCaseFieldName }};
     private final {{ updateUseCaseType }} {{ updateUseCaseFieldName }};
+    private final {{ patchUseCaseType }} {{ patchUseCaseFieldName }};
     private final {{ deleteUseCaseType }} {{ deleteUseCaseFieldName }};
 
-    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}, {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }}, {{ createUseCaseType }} {{ createUseCaseFieldName }}, {{ updateUseCaseType }} {{ updateUseCaseFieldName }}, {{ deleteUseCaseType }} {{ deleteUseCaseFieldName }}) {
+    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}, {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }}, {{ createUseCaseType }} {{ createUseCaseFieldName }}, {{ updateUseCaseType }} {{ updateUseCaseFieldName }}, {{ patchUseCaseType }} {{ patchUseCaseFieldName }}, {{ deleteUseCaseType }} {{ deleteUseCaseFieldName }}) {
         this.{{ useCaseFieldName }} = {{ useCaseFieldName }};
         this.{{ byIdUseCaseFieldName }} = {{ byIdUseCaseFieldName }};
         this.{{ createUseCaseFieldName }} = {{ createUseCaseFieldName }};
         this.{{ updateUseCaseFieldName }} = {{ updateUseCaseFieldName }};
+        this.{{ patchUseCaseFieldName }} = {{ patchUseCaseFieldName }};
         this.{{ deleteUseCaseFieldName }} = {{ deleteUseCaseFieldName }};
     }
 
@@ -79,6 +81,20 @@ public class {{ className }} {
     public {{ responseClassName }} {{ updateMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}, @RequestBody {{ updateRequestType }} request) {
         {{ domainClassName }} updated = {{ updateUseCaseFieldName }}.{{ updateUseCaseExecuteMethodName }}(request.toCommand({{ identifierParameterName }}));
         return {{ responseClassName }}.{{ responseFactoryMethodName }}(updated);
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "{{ patchOperationSummary }}", description = "{{ patchOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "{{ patchResponseStatus }}", description = "{{ domainClassName }} patched", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public {{ responseClassName }} {{ patchMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}, @RequestBody {{ patchRequestType }} request) {
+        {{ domainClassName }} patched = {{ patchUseCaseFieldName }}.{{ patchUseCaseExecuteMethodName }}(request.toCommand({{ identifierParameterName }}));
+        return {{ responseClassName }}.{{ responseFactoryMethodName }}(patched);
     }
 
     @PostMapping

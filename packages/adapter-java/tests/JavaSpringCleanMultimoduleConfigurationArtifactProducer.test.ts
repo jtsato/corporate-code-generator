@@ -28,7 +28,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
       "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-architecture-test",
-      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-http-create-test", "configuration-http-update-test", "configuration-http-delete-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test", "configuration-update-persistence-test", "configuration-delete-persistence-test",
+      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-http-create-test", "configuration-http-update-test", "configuration-http-patch-test", "configuration-http-delete-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test", "configuration-update-persistence-test", "configuration-delete-persistence-test",
     ]);
     /* Detailed legacy expectations retained below for fixture reference.
     expect(artifacts).toMatchObject([{
@@ -212,11 +212,31 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-update-test")).toMatchObject({
       model: { className: "WalletHttpUpdateTests", endpointPath: "/wallets", entityType: "WalletEntity", repositoryType: "WalletRepository" },
     });
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-patch-test")).toMatchObject({
+      model: {
+        className: "WalletHttpPatchTests",
+        validPatchPayloadExpression: "\"{\\\"balance\\\":124.45}\"",
+        emptyPatchPayloadExpression: "\"{}\"",
+        hasRequiredNullScenario: false,
+        hasOptionalNullScenario: true,
+      },
+    });
     expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-delete-test")).toMatchObject({
       model: { className: "WalletHttpDeleteTests", endpointPath: "/wallets", repositoryType: "WalletRepository", persistenceEntityType: "WalletEntity" },
     });
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-domain-wiring")).toMatchObject({
+      model: {
+        patchUseCaseBeanMethodName: "patchWalletUseCase",
+        patchUseCaseType: "PatchWalletUseCase",
+        patchUseCaseImplementationType: "PatchWalletUseCaseInteractor",
+        imports: expect.arrayContaining([
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletUseCase",
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletUseCaseInteractor",
+        ]),
+      },
+    });
     expect(artifacts.find((artifact) => artifact.templateId === "configuration-openapi-smoke-test")).toMatchObject({
-      model: { updateRequestSchemaName: "UpdateWalletRequest" },
+      model: { updateRequestSchemaName: "UpdateWalletRequest", patchRequestSchemaName: "PatchWalletRequest" },
     });
   });
 
@@ -265,6 +285,15 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
           "SCHEDULE_PROCESSED_AT",
         ],
           expectedItemsBodyExpression: "\"[{\\\"id\\\":\\\"11111111-1111-1111-1111-111111111111\\\",\\\"label\\\":\\\"sample\\\",\\\"alternateLabel\\\":\\\"sample-2\\\",\\\"scheduledOn\\\":\\\"2026-01-15\\\",\\\"processedAt\\\":\\\"2026-01-15T10:30:00Z\\\"}]\"",
+      },
+    });
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-patch-test")).toMatchObject({
+      model: {
+        className: "ScheduleHttpPatchTests",
+        hasOptionalNullScenario: true,
+        hasOmittedFieldScenario: true,
+        omittedFieldName: "label",
+        omittedAccessorName: "getLabel",
       },
     });
   });

@@ -66,6 +66,22 @@ templates:
     module: core
     template: core/usecase/update/interactor-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/update/{{ className }}.java
+  - id: core-patch-command
+    module: core
+    template: core/usecase/patch/command.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/patch/{{ className }}.java
+  - id: core-patch-usecase
+    module: core
+    template: core/usecase/patch/usecase.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/patch/{{ className }}.java
+  - id: core-patch-usecase-interactor
+    module: core
+    template: core/usecase/patch/interactor.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/patch/{{ className }}.java
+  - id: core-patch-usecase-interactor-test
+    module: core
+    template: core/usecase/patch/interactor-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/patch/{{ className }}.java
   - id: core-delete-command
     module: core
     template: core/usecase/delete/command.java.njk
@@ -241,6 +257,10 @@ templates:
   - id: entrypoints-rest-domain-update-request
     module: entrypoints-rest
     template: entrypoints-rest/domain/update-request.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/request/{{ className }}.java
+  - id: entrypoints-rest-domain-patch-request
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/patch-request.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/request/{{ className }}.java
   - id: entrypoints-rest-response-status
     module: entrypoints-rest
@@ -477,6 +497,10 @@ templates:
   - id: configuration-http-update-test
     module: configuration
     template: configuration/http-update-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-patch-test
+    module: configuration
+    template: configuration/http-patch-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-delete-test
     module: configuration

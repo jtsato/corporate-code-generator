@@ -62,6 +62,7 @@ Conceptually, baseline capabilities include:
 - find-by-id runtime and REST integration;
 - create runtime and REST integration;
 - update runtime and REST integration;
+- partial update (PATCH) runtime and REST integration;
 - delete runtime and REST integration.
 
 ## Explicit opt-in or future capabilities
@@ -80,7 +81,6 @@ The following require explicit future profile selection, environment configurati
 - JPA Entity Graph;
 - MapStruct;
 - P6Spy;
-- PATCH;
 - soft delete;
 - optimistic locking;
 - auditing;
@@ -238,7 +238,7 @@ Future schema work must validate incompatible combinations, such as a provider o
 | Java Clean Architecture single-module | Supported | Current measured facts are in Current State. |
 | Java Clean Architecture multi-module | Supported | Current measured facts are in Current State. |
 | REST read/filter/page/sort | Supported in Java multi-module | See Generated Java Reference Architecture. |
-| REST create/update | Supported in Java multi-module | Full replacement update only. |
+| REST create/update/partial update | Supported in Java multi-module | PUT is full replacement; PATCH tracks supplied fields and explicit null. |
 | Delete runtime and REST integration | Supported in Java multi-module | Physical delete only; repeated delete on the same identifier returns not found rather than being idempotent. |
 | Security | Planned/future | Requires explicit model/profile decisions. |
 | Deployment/IaC | Planned/future | Not implied by current Java Golden Path. |

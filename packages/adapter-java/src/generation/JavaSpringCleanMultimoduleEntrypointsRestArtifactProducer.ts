@@ -7,6 +7,7 @@ import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaDelegatingRestControllerTemplateModel } from "../model/JavaDelegatingRestControllerTemplateModel.js";
 import type { JavaCreateRestRequestTemplateModel } from "../model/JavaCreateRestRequestTemplateModel.js";
 import type { JavaUpdateRestRequestTemplateModel } from "../model/JavaUpdateRestRequestTemplateModel.js";
+import type { JavaPatchRestRequestTemplateModel } from "../model/JavaPatchRestRequestTemplateModel.js";
 import type { JavaFactoryRestResponseTemplateModel } from "../model/JavaFactoryRestResponseTemplateModel.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
@@ -46,6 +47,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const createRequestType = `Create${entityType}Request`;
       const updateUseCaseType = `Update${entityType}UseCase`;
       const updateRequestType = `Update${entityType}Request`;
+      const patchUseCaseType = `Patch${entityType}UseCase`;
+      const patchRequestType = `Patch${entityType}Request`;
       const deleteUseCaseType = `Delete${entityType}UseCase`;
       const deleteCommandType = `Delete${entityType}Command`;
       const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
@@ -64,6 +67,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${createRequestType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${updateRequestType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.patch.${patchUseCaseType}`);
+      controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${patchRequestType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteCommandType}`);
       controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
@@ -85,6 +90,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PostMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PutMapping");
+      controllerImports.add("org.springframework.web.bind.annotation.PatchMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PathVariable");
       controllerImports.add("org.springframework.web.bind.annotation.RequestBody");
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
@@ -163,7 +169,15 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         updateRequestType,
         updateMethodName: "update",
         updateOperationSummary: `Update ${entityType.toLowerCase()}`,
-        updateOperationDescription: `Updates a ${entityType.toLowerCase()}.`,
+      updateOperationDescription: `Updates a ${entityType.toLowerCase()}.`,
+        patchUseCaseType,
+        patchUseCaseFieldName: toJavaFieldName(patchUseCaseType),
+        patchUseCaseExecuteMethodName: "execute",
+        patchRequestType,
+        patchMethodName: "patch",
+        patchOperationSummary: `Patch ${entityType.toLowerCase()}`,
+        patchOperationDescription: `Partially updates a ${entityType.toLowerCase()}.`,
+        patchResponseStatus: "200",
         deleteUseCaseType,
         deleteUseCaseFieldName: toJavaFieldName(deleteUseCaseType),
         deleteUseCaseExecuteMethodName: "execute",
@@ -205,6 +219,11 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
           templateId: "entrypoints-rest-domain-update-request",
           model: createUpdateRequestModel(entity.attributes, identifier, namespace, domainName, entityType, this.typeResolver),
           outputVariables: { ...variables, domainName, className: updateRequestType },
+        },
+        {
+          templateId: "entrypoints-rest-domain-patch-request",
+          model: createPatchRequestModel(entity.attributes, identifier, namespace, domainName, entityType, this.typeResolver),
+          outputVariables: { ...variables, domainName, className: patchRequestType },
         },
       ];
     });
@@ -311,5 +330,38 @@ function createUpdateRequestModel(
     commandType,
     commandPackageName: `${namespace}.core.domains.${domainName}.usecase.update`,
     commandArguments: [identifier.name, ...components.map((component) => component.name)],
+  };
+}
+
+function createPatchRequestModel(
+  attributes: readonly { readonly name: string; readonly type: Parameters<JavaTypeResolver["resolve"]>[0]; readonly identifier?: boolean }[],
+  identifier: { readonly name: string; readonly type: Parameters<JavaTypeResolver["resolve"]>[0] },
+  namespace: string,
+  domainName: string,
+  entityType: string,
+  typeResolver: JavaTypeResolver,
+): JavaPatchRestRequestTemplateModel {
+  const commandType = `Patch${entityType}Command`;
+  const imports = new JavaImportCollector();
+  imports.add(`${namespace}.core.domains.${domainName}.usecase.patch.${commandType}`);
+  const components = attributes
+    .filter((attribute) => !attribute.identifier)
+    .map((attribute) => {
+      const type = typeResolver.resolve(attribute.type);
+      imports.add(type.import);
+      return { name: attribute.name, type: type.name, accessorName: `get${toJavaTypeName(attribute.name)}`, setterName: `set${toJavaTypeName(attribute.name)}` };
+    });
+  const identifierType = typeResolver.resolve(identifier.type);
+  imports.add(identifierType.import);
+  return {
+    packageName: `${namespace}.entrypoint.rest.domains.${domainName}.request`,
+    imports: imports.values(),
+    className: `Patch${entityType}Request`,
+    components,
+    identifierType: identifierType.name,
+    identifierParameterName: identifier.name,
+    commandType,
+    commandPackageName: `${namespace}.core.domains.${domainName}.usecase.patch`,
+    commandArguments: [identifier.name, ...components.flatMap((component) => [component.name, `${component.name}Provided`])],
   };
 }
