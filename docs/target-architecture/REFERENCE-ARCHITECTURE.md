@@ -79,13 +79,22 @@ Missing identifiers map to not found. Invalid JSON, invalid body values, null va
 
 Relevant decisions: [ADR-047](../adr/ADR-047-update-runtime-integration.md) and [ADR-048](../adr/ADR-048-rest-update-integration.md).
 
-### Delete runtime
+### Delete
 
-The Core/JPA delete runtime is implemented without REST exposure. `Delete<Entity>Command` delegates to `Delete<Entity>UseCase`, which calls the gateway. The persistence provider checks existence before `deleteById`. Missing and repeated identifiers raise the generated not-found contract.
+The Core/JPA delete runtime is implemented and exposed over HTTP. `Delete<Entity>Command` delegates to `Delete<Entity>UseCase`, which calls the gateway. The persistence provider checks existence before `deleteById`. Missing and repeated identifiers raise the generated not-found contract.
 
-REST delete is planned separately and must not be inferred from the runtime alone.
+`DELETE /wallets/{id}` receives the typed path identifier, constructs `Delete<Entity>Command(id)` inline in the controller, and delegates to `Delete<Entity>UseCase.execute(...)`. There is no request DTO because an empty body has no representation.
 
-Relevant decision: [ADR-049](../adr/ADR-049-delete-runtime-integration.md).
+| Condition | Status | Body |
+| --- | --- | --- |
+| Identifier exists, row deleted | 204 No Content | empty |
+| Identifier absent (never existed, or already deleted) | 404 Not Found | `ResponseStatus` |
+| Path value not a valid identifier | 400 Bad Request | `ResponseStatus` |
+| Unexpected failure | 500 Internal Server Error | `ResponseStatus` |
+
+Delete is **not** idempotent: a repeated `DELETE` on the same identifier returns 404 rather than 204, because the persistence provider maps a missing identifier to the generated not-found contract. This is a deliberate consequence of reusing the accepted delete runtime rather than a defect.
+
+Relevant decisions: [ADR-049](../adr/ADR-049-delete-runtime-integration.md) and [ADR-050](../adr/ADR-050-rest-delete-integration.md).
 
 ## REST contracts
 
@@ -156,8 +165,7 @@ Relevant decision: [ADR-032](../adr/ADR-032-generated-java-ci-pipeline.md).
 
 ## Limitations
 
-- REST delete is planned and is not currently exposed by the generated REST layer.
-- PATCH, partial update, soft delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
+- PATCH, partial update, soft delete, bulk/cascade delete, idempotent delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
 - Relationship modeling is not part of the current Application Model baseline.
 - Advanced persistence options such as additional databases, entity graphs, Testcontainers, MapStruct, and P6Spy require explicit future decisions.
 - Partial module selections may not produce independently runnable applications unless a specific quality gate validates that selection.

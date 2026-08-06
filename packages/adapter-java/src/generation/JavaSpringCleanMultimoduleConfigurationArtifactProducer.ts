@@ -21,6 +21,7 @@ import type { JavaUpdatePersistenceTestTemplateModel } from "../model/JavaUpdate
 import type { JavaDeletePersistenceTestTemplateModel } from "../model/JavaDeletePersistenceTestTemplateModel.js";
 import type { JavaHttpFindByIdTestTemplateModel } from "../model/JavaHttpFindByIdTestTemplateModel.js";
 import { createJavaHttpUpdateTestModel } from "../transformers/createJavaHttpUpdateTestModel.js";
+import { createJavaHttpDeleteTestModel } from "../transformers/createJavaHttpDeleteTestModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
 import { toJavaConstantName } from "../naming/JavaConstantName.js";
@@ -541,6 +542,19 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           templateId: "configuration-http-update-test",
           model: httpUpdateModel,
           outputVariables: { ...outputVariables, className: httpUpdateModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const httpDeleteModel = createJavaHttpDeleteTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+        return {
+          templateId: "configuration-http-delete-test",
+          model: httpDeleteModel,
+          outputVariables: { ...outputVariables, className: httpDeleteModel.className },
         };
       }),
       ...request.application.entities.map((entity) => {

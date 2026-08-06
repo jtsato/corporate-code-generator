@@ -24,7 +24,7 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the one hundred and twenty-four complete Maven reactor artifacts", async () => {
+  it("renders the one hundred and twenty-five complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,7 +68,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(124);
+    expect(operations).toHaveLength(125);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
@@ -183,6 +183,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFindByIdTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpCreateTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpUpdateTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpDeleteTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFilterTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletPagingPersistenceTests.java",
@@ -195,6 +196,9 @@ describe("Java multi-module generation", () => {
     expect(controller?.content).toContain('@PutMapping("/{id}")');
     expect(controller?.content).toContain("UpdateWalletRequest request");
     expect(controller?.content).toContain("return WalletResponse.from(updated);");
+    expect(controller?.content).toContain('@DeleteMapping("/{id}")');
+    expect(controller?.content).toContain("new DeleteWalletCommand(id)");
+    expect(controller?.content).toContain("return ResponseEntity.noContent().build();");
     for (const operation of operations) {
       const goldenModule = goldenModuleFor(operation.targetPath);
       const golden = await readFile(resolve(

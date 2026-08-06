@@ -6,6 +6,8 @@ import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.common.paging.SortOrder;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.create.CreateWalletUseCase;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteWalletCommand;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteWalletUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase;
@@ -31,6 +33,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,12 +52,14 @@ public class WalletController {
     private final FindWalletByIdUseCase findWalletByIdUseCase;
     private final CreateWalletUseCase createWalletUseCase;
     private final UpdateWalletUseCase updateWalletUseCase;
+    private final DeleteWalletUseCase deleteWalletUseCase;
 
-    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase, FindWalletByIdUseCase findWalletByIdUseCase, CreateWalletUseCase createWalletUseCase, UpdateWalletUseCase updateWalletUseCase) {
+    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase, FindWalletByIdUseCase findWalletByIdUseCase, CreateWalletUseCase createWalletUseCase, UpdateWalletUseCase updateWalletUseCase, DeleteWalletUseCase deleteWalletUseCase) {
         this.findWalletsByFilterPageUseCase = findWalletsByFilterPageUseCase;
         this.findWalletByIdUseCase = findWalletByIdUseCase;
         this.createWalletUseCase = createWalletUseCase;
         this.updateWalletUseCase = updateWalletUseCase;
+        this.deleteWalletUseCase = deleteWalletUseCase;
     }
 
     @GetMapping
@@ -130,5 +135,19 @@ public class WalletController {
         return ResponseEntity
             .created(URI.create("/wallets/" + created.getId()))
             .body(WalletResponse.from(created));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete wallet", description = "Deletes a wallet.")
+    @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Wallet deleted"),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "Wallet not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        deleteWalletUseCase.execute(new DeleteWalletCommand(id));
+        return ResponseEntity.noContent().build();
     }
 }

@@ -171,6 +171,7 @@ describe("Java multi-module profile foundation", () => {
       "configuration-http-find-by-id-test",
       "configuration-http-create-test",
       "configuration-http-update-test",
+      "configuration-http-delete-test",
       "configuration-http-filter-test",
       "configuration-paging-persistence-test",
       "configuration-querydsl-filter-paging-persistence-test",

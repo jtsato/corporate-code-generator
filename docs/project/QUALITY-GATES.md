@@ -52,6 +52,7 @@ npm run smoke:http-create:java-multimodule
 npm run smoke:http-update:java-multimodule
 npm run smoke:update-runtime:java-multimodule
 npm run smoke:delete-runtime:java-multimodule
+npm run smoke:http-delete:java-multimodule
 npm run smoke:maven-reactor:java-multimodule
 ```
 

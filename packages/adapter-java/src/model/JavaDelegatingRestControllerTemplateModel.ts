@@ -65,4 +65,12 @@ export interface JavaDelegatingRestControllerTemplateModel {
   readonly updateMethodName: string;
   readonly updateOperationSummary: string;
   readonly updateOperationDescription: string;
+  readonly deleteUseCaseType: string;
+  readonly deleteUseCaseFieldName: string;
+  readonly deleteUseCaseExecuteMethodName: string;
+  readonly deleteCommandType: string;
+  readonly deleteMethodName: string;
+  readonly deleteOperationSummary: string;
+  readonly deleteOperationDescription: string;
+  readonly deleteResponseStatus: string;
 }

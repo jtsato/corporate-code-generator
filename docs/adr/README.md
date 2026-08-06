@@ -47,3 +47,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [047](ADR-047-update-runtime-integration.md) | Update Runtime Integration | Accepted. | Not recorded | Not recorded | Not recorded |
 | [048](ADR-048-rest-update-integration.md) | REST Update Integration | Accepted. | Milestone 6.26 | Not recorded | Not recorded |
 | [049](ADR-049-delete-runtime-integration.md) | Delete Runtime Integration | Accepted - Milestone 6.28. | Milestone 6.28 | Not recorded | Not recorded |
+| [050](ADR-050-rest-delete-integration.md) | REST Delete Integration | Accepted — Milestone 6.29. | Milestone 6.29 | Not recorded | Not recorded |

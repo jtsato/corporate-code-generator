@@ -149,6 +149,22 @@ class WalletOpenApiSmokeTests {
         assertThat(operation.path("responses").has("500")).isTrue();
     }
 
+    @Test void documentsTheDeleteOperation() throws Exception {
+        JsonNode document = document();
+        JsonNode operation = deleteOperation(document);
+        JsonNode parameter = findParameter(operation.path("parameters"), "id");
+
+        assertThat(parameter.path("in").asText()).isEqualTo("path");
+        assertThat(parameter.path("required").asBoolean(false)).isTrue();
+        assertThat(parameter.path("schema").path("type").asText()).isEqualTo("string");
+        assertThat(parameter.path("schema").path("format").asText()).isEqualTo("uuid");
+
+        assertThat(operation.path("responses").has("204")).isTrue();
+        assertThat(operation.path("responses").has("400")).isTrue();
+        assertThat(operation.path("responses").has("404")).isTrue();
+        assertThat(operation.path("responses").has("500")).isTrue();
+    }
+
     private JsonNode document() throws Exception {
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/v3/api-docs")).GET().build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -178,6 +194,12 @@ class WalletOpenApiSmokeTests {
         assertThat(document.path("paths").has("/wallets/{id}")).isTrue();
         assertThat(document.path("paths").path("/wallets/{id}").has("put")).isTrue();
         return document.path("paths").path("/wallets/{id}").path("put");
+    }
+
+    private JsonNode deleteOperation(JsonNode document) {
+        assertThat(document.path("paths").has("/wallets/{id}")).isTrue();
+        assertThat(document.path("paths").path("/wallets/{id}").has("delete")).isTrue();
+        return document.path("paths").path("/wallets/{id}").path("delete");
     }
 
     private static JsonNode resolveSchema(JsonNode document, JsonNode schema) {

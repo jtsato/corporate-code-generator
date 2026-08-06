@@ -478,6 +478,10 @@ templates:
     module: configuration
     template: configuration/http-update-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-delete-test
+    module: configuration
+    template: configuration/http-delete-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-filter-test
     module: configuration
     template: configuration/http-filter-test.java.njk

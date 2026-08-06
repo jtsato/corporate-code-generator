@@ -1,7 +1,7 @@
 # Current State
 
 Verification date: 2026-08-06
-Baseline commit: `0e7493848d647473e371e7effe4d0589fcf73664`
+Baseline commit: `f9ce5490690511b3bacb89a20e22e4ca0074813e` (Milestone 6.29 changes measured against this commit are uncommitted at verification time; update this hash after the Milestone 6.29 commit lands)
 
 This document centralizes current measured facts. Architecture intent and future work are documented separately in the [Solution Specification](../SOLUTION-SPECIFICATION.md), [Generated Java Reference Architecture](../target-architecture/REFERENCE-ARCHITECTURE.md), [Capability Taxonomy](../target-architecture/CAPABILITY-TAXONOMY.md), and [Roadmap](../../ROADMAP.md).
 
@@ -46,14 +46,14 @@ Multi-module dependencies:
 | --- | ---: |
 | `java-spring-clean --module domain` | 1 CREATE |
 | `java-spring-clean` full profile | 6 CREATE |
-| `java-spring-clean-multimodule` full profile | 124 CREATE |
+| `java-spring-clean-multimodule` full profile | 125 CREATE |
 | `java-spring-clean-multimodule --module build` | 6 CREATE |
 | `java-spring-clean-multimodule --module core` | 50 CREATE |
 | `java-spring-clean-multimodule --module entrypoints-rest` | 69 CREATE |
 | `java-spring-clean-multimodule --module infra-database` | 68 CREATE |
-| `java-spring-clean-multimodule --module configuration` | 124 CREATE |
+| `java-spring-clean-multimodule --module configuration` | 125 CREATE |
 | `java-spring-clean-multimodule --module build --module core` | 56 CREATE |
-| `java-spring-clean-multimodule --module build --module configuration` | 124 CREATE |
+| `java-spring-clean-multimodule --module build --module configuration` | 125 CREATE |
 
 The `entrypoints-rest` and `infra-database` selections include `core` transitively. The `configuration` selection includes all required modules transitively.
 
@@ -63,9 +63,9 @@ Measured and documented implemented capabilities in the current Java multi-modul
 
 - Maven reactor build structure.
 - Core domain model, use cases, commands, ports, paging, filters, sorting model, and self-validation.
-- REST entrypoints for collection reads, filtered paging, sorting, find-by-id, create, and full replacement update.
+- REST entrypoints for collection reads, filtered paging, sorting, find-by-id, create, full replacement update, and delete.
 - Database infrastructure with Spring Data JPA, H2 test support, persistence mappers, Querydsl predicates, paging adapters, and filter mapping.
-- Runtime create, update, and physical delete behavior through Core and JPA.
+- Runtime create, update, and physical delete behavior through Core and JPA, with delete exposed over REST as a non-idempotent operation.
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
 
 Current documented REST surface:
@@ -76,7 +76,7 @@ Current documented REST surface:
 | Individual read | `GET /wallets/{id}` | Implemented |
 | Create | `POST /wallets` | Implemented |
 | Full replacement update | `PUT /wallets/{id}` | Implemented |
-| Delete over REST | `DELETE /wallets/{id}` | Planned |
+| Delete over REST | `DELETE /wallets/{id}` | Implemented |
 
 ### Scripts, tests, and smokes
 
@@ -88,11 +88,11 @@ The root `package.json` declares:
 - `test:coverage`;
 - `test:watch`;
 - `mutation`;
-- 29 smoke scripts.
+- 30 smoke scripts.
 
 The repository contains:
 
-- 30 files under `tests/smoke`;
+- 31 files under `tests/smoke`;
 - 4 files under `tests/integration`;
 - 3 GitHub workflow files under `.github/workflows`.
 
@@ -105,16 +105,22 @@ Measured/documented CI state:
 - `mutation-testing.yml` runs scheduled or manual mutation testing.
 - The generated Java CI uses Java 25 and `mvn -B clean verify`.
 
-## Documentation Refactor Validation
+## Milestone 6.29 Validation
 
-Run context: main workspace, documentation-only refactor; date: 2026-08-06.
+Run context: main workspace, generated Java runtime behavior change (REST Delete Integration); date: 2026-08-06.
 
 - `npm run typecheck` - passed, exit 0.
 - `npm run build` - passed, exit 0.
 - `npm test` - passed, 44 test files and 145 tests.
+- `npm run test:coverage` - passed, exit 0; Statements 90.03%, Branches 71.22%, Functions 96.73%, Lines 91.14%.
 - `git diff HEAD --check` - passed, exit 0.
+- All 10 dry-run selections re-measured and matched expected counts (see table above).
+- `npm run smoke` and `npm run smoke:java-multimodule` - passed.
 
-Maven smokes were not run because the change is documentation-only.
+Maven smokes were run with `CODEGEN_REQUIRE_MAVEN_SMOKE=true` (Maven 3.9.9, OpenJDK 25):
+
+- `smoke:http-delete:java-multimodule`, `smoke:delete-runtime:java-multimodule`, `smoke:http-update:java-multimodule`, `smoke:http-create:java-multimodule`, `smoke:find-by-id:java-multimodule`, `smoke:openapi:java-multimodule`, `smoke:archunit:java-multimodule`, `smoke:spring-context:java-multimodule`, `smoke:maven-reactor:java-multimodule` - all passed.
+- Full generated Maven reactor (`mvn -B test`) - BUILD SUCCESS across all five modules; `WalletHttpDeleteTests` 5/5 and `WalletOpenApiSmokeTests` 8/8 confirmed via surefire XML.
 
 ## Documented facts
 
@@ -132,7 +138,6 @@ The following facts are documented in ADRs and target-architecture docs and are 
 
 ## Limitations
 
-- Delete runtime is implemented, but REST delete exposure is planned.
 - Profiles, template packs, and modules are resolved from local repository paths.
 - The output root must exist before physical generation.
 - There is no overwrite, skip, merge, rollback, remote registry, or plugin marketplace.

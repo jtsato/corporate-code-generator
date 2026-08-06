@@ -1,0 +1,85 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in fixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldDeleteExisting{{ entityType | replace("Entity", "") }}() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        HttpResponse<String> response = delete("{{ endpointPath }}/" + {{ identifierConstantName }});
+
+        assertThat(response.statusCode()).isEqualTo(204);
+        assertThat(response.body()).isEmpty();
+        assertThat({{ repositoryFieldName }}.findById({{ identifierConstantName }})).isEmpty();
+    }
+
+    @Test
+    void shouldReturnNotFoundAfterDeleteOnSubsequentGet() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        assertThat(delete("{{ endpointPath }}/" + {{ identifierConstantName }}).statusCode()).isEqualTo(204);
+
+        HttpResponse<String> response = get("{{ endpointPath }}/" + {{ identifierConstantName }});
+
+        assertThat(response.statusCode()).isEqualTo(404);
+    }
+
+    @Test
+    void shouldReturnNotFoundForMissing{{ entityType | replace("Entity", "") }}() throws Exception {
+        HttpResponse<String> response = delete("{{ endpointPath }}/" + {{ missingIdentifierExpression }});
+
+        assertThat(response.statusCode()).isEqualTo(404);
+        JsonNode body = OBJECT_MAPPER.readTree(response.body());
+        assertThat(body.path("code").asInt()).isEqualTo(404);
+    }
+
+    @Test
+    void shouldReturnNotFoundOnRepeatedDelete() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        assertThat(delete("{{ endpointPath }}/" + {{ identifierConstantName }}).statusCode()).isEqualTo(204);
+
+        HttpResponse<String> response = delete("{{ endpointPath }}/" + {{ identifierConstantName }});
+
+        assertThat(response.statusCode()).isEqualTo(404);
+    }
+
+    @Test
+    void shouldRejectInvalidPathIdentifier() throws Exception {
+        assertThat(delete("{{ endpointPath }}/not-a-uuid").statusCode()).isEqualTo(400);
+    }
+
+    private HttpResponse<String> delete(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).DELETE().build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> get(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+}

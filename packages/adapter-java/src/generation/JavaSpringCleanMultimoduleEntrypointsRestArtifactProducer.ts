@@ -46,6 +46,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const createRequestType = `Create${entityType}Request`;
       const updateUseCaseType = `Update${entityType}UseCase`;
       const updateRequestType = `Update${entityType}Request`;
+      const deleteUseCaseType = `Delete${entityType}UseCase`;
+      const deleteCommandType = `Delete${entityType}Command`;
       const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
       if (identifiers.length !== 1) {
         throw new Error(`Cannot generate find-by-id controller for entity '${entity.name}' without exactly one identifier attribute.`);
@@ -62,6 +64,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${createRequestType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${updateRequestType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteCommandType}`);
       controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
       controllerImports.add(`${namespace}.core.common.paging.PageResult`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -77,6 +81,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add("java.util.List");
       controllerImports.add(identifierType.import);
       controllerImports.add("org.springframework.http.ResponseEntity");
+      controllerImports.add("org.springframework.web.bind.annotation.DeleteMapping");
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PostMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PutMapping");
@@ -159,6 +164,14 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         updateMethodName: "update",
         updateOperationSummary: `Update ${entityType.toLowerCase()}`,
         updateOperationDescription: `Updates a ${entityType.toLowerCase()}.`,
+        deleteUseCaseType,
+        deleteUseCaseFieldName: toJavaFieldName(deleteUseCaseType),
+        deleteUseCaseExecuteMethodName: "execute",
+        deleteCommandType,
+        deleteMethodName: "delete",
+        deleteOperationSummary: `Delete ${entityType.toLowerCase()}`,
+        deleteOperationDescription: `Deletes a ${entityType.toLowerCase()}.`,
+        deleteResponseStatus: "204",
       };
       const responseImports = new JavaImportCollector();
       responseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);

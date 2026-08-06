@@ -11,12 +11,14 @@ public class {{ className }} {
     private final {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }};
     private final {{ createUseCaseType }} {{ createUseCaseFieldName }};
     private final {{ updateUseCaseType }} {{ updateUseCaseFieldName }};
+    private final {{ deleteUseCaseType }} {{ deleteUseCaseFieldName }};
 
-    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}, {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }}, {{ createUseCaseType }} {{ createUseCaseFieldName }}, {{ updateUseCaseType }} {{ updateUseCaseFieldName }}) {
+    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}, {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }}, {{ createUseCaseType }} {{ createUseCaseFieldName }}, {{ updateUseCaseType }} {{ updateUseCaseFieldName }}, {{ deleteUseCaseType }} {{ deleteUseCaseFieldName }}) {
         this.{{ useCaseFieldName }} = {{ useCaseFieldName }};
         this.{{ byIdUseCaseFieldName }} = {{ byIdUseCaseFieldName }};
         this.{{ createUseCaseFieldName }} = {{ createUseCaseFieldName }};
         this.{{ updateUseCaseFieldName }} = {{ updateUseCaseFieldName }};
+        this.{{ deleteUseCaseFieldName }} = {{ deleteUseCaseFieldName }};
     }
 
     @GetMapping
@@ -92,5 +94,19 @@ public class {{ className }} {
         return ResponseEntity
             .created(URI.create("{{ requestMapping }}/" + created.{{ identifierAccessorName }}()))
             .body({{ responseClassName }}.{{ responseFactoryMethodName }}(created));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "{{ deleteOperationSummary }}", description = "{{ deleteOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "{{ deleteResponseStatus }}", description = "{{ domainClassName }} deleted"),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public ResponseEntity<Void> {{ deleteMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}) {
+        {{ deleteUseCaseFieldName }}.{{ deleteUseCaseExecuteMethodName }}(new {{ deleteCommandType }}({{ identifierParameterName }}));
+        return ResponseEntity.noContent().build();
     }
 }

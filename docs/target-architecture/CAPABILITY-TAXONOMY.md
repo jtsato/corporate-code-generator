@@ -62,7 +62,7 @@ Conceptually, baseline capabilities include:
 - find-by-id runtime and REST integration;
 - create runtime and REST integration;
 - update runtime and REST integration;
-- delete runtime without REST exposure.
+- delete runtime and REST integration.
 
 ## Explicit opt-in or future capabilities
 
@@ -239,7 +239,7 @@ Future schema work must validate incompatible combinations, such as a provider o
 | Java Clean Architecture multi-module | Supported | Current measured facts are in Current State. |
 | REST read/filter/page/sort | Supported in Java multi-module | See Generated Java Reference Architecture. |
 | REST create/update | Supported in Java multi-module | Full replacement update only. |
-| Delete runtime | Supported in Java multi-module | REST delete remains planned. |
+| Delete runtime and REST integration | Supported in Java multi-module | Physical delete only; repeated delete on the same identifier returns not found rather than being idempotent. |
 | Security | Planned/future | Requires explicit model/profile decisions. |
 | Deployment/IaC | Planned/future | Not implied by current Java Golden Path. |
 | Additional languages/stacks | Planned/future | Must preserve technology-agnostic Core/model boundaries. |
