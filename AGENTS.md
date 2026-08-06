@@ -558,3 +558,199 @@ Application Model
 Generated Application
 
 The deterministic generation pipeline must remain fully functional without access to any AI service.
+
+## Package manager
+
+Use npm. Evidence: `package.json` defines workspaces and the repository contains `package-lock.json`. Do not switch package managers or install dependencies without explicit authorization.
+
+## Development commands
+
+- There is no dedicated application development server script.
+- Use `npm run test:watch` for an interactive test-development loop.
+- After `npm run build`, execute the CLI with `node packages/cli/dist/index.js <command>`.
+
+## Build commands
+
+- `npm run build`: TypeScript project build.
+- `npm run typecheck`: TypeScript validation.
+- `npm run clean`: clean TypeScript build outputs.
+
+## Test commands
+
+- `npm test`: Vitest suite excluding the Maven-dependent smoke tests listed in `package.json`.
+- `npm run test:coverage`: Vitest with V8 coverage.
+- `vitest run tests/integration`: integration tests, when a focused integration run is needed.
+- `npm run smoke`: build plus CLI smoke test.
+- `npm run smoke:*`: focused smoke tests; some Java/Maven scenarios require an appropriate JDK/Maven installation and may be skipped by their own policy.
+
+## Lint and formatting
+
+No ESLint, Prettier, or other lint/format scripts or configuration were found in `package.json` or the repository analysis. Do not invent commands or claim these gates passed; preserve the existing formatting and TypeScript conventions.
+
+## Architecture conventions
+
+Keep the dependency direction `CLI -> Core`, with adapters and template/file-writer implementations depending on core contracts. Keep semantic model and core technology-agnostic. Put technology mapping in adapters, generation decisions in rules/transformers, representation in templates, and filesystem mutation behind the File Plan/File Writer. Templates must not make generation decisions, resolve semantic types or interpret relationships.
+
+## Coding conventions
+
+Use strict TypeScript, explicit contracts, small cohesive components, pure deterministic transformations and immutable data where practical. Prefer existing abstractions and local patterns. Add or update focused tests for behavior changes. Do not introduce speculative framework or plugin abstractions.
+
+## Multi-agent workflow
+
+For non-trivial development tasks, the principal agent must:
+
+1. Analyze the task.
+2. Produce a plan.
+3. Define objective acceptance criteria.
+4. Delegate implementation to `developer_a`.
+5. Delegate navigation/review to `developer_b`.
+6. Avoid simultaneous edits to the same file.
+7. Wait for delegated agents to finish.
+8. Consolidate the changes.
+9. Delegate validation to `qa_engineer`.
+10. Correct rejected issues and repeat validation.
+11. Present the consolidated report.
+
+The principal agent must explicitly use the agents named `tech_lead`, `developer_a`, `developer_b` and `qa_engineer`. Every delegation states objective, context, allowed/prohibited files, acceptance criteria, validation commands and expected result.
+
+## Pair-programming workflow
+
+`developer_a` starts as driver and `developer_b` starts as navigator. Roles may be inverted between subtasks. The driver implements; the navigator reviews reasoning, risks, regressions and edge cases. Only one agent may edit a given file at a time. The navigator must not silently overwrite the driver's code. Divergences go to `tech_lead`. Pair programming does not replace independent QA validation.
+
+## Quality gates
+
+The relevant available gates are typecheck, build, Vitest tests, coverage when requested, integration tests and applicable smoke tests. Lint, formatting and E2E are unavailable unless the repository gains explicit tooling. A generated project should additionally be validated with its native toolchain when the selected smoke test requires it.
+
+## Safety and repository boundaries
+
+- Modify only files authorized by the task; this repository's agent configuration is limited to `.codex/` and `AGENTS.md` unless the user explicitly expands scope.
+- Do not make unrelated refactors, install dependencies, remove tests, weaken assertions or hide failures.
+- Do not use `--force`, `--no-verify` or equivalents.
+- Do not commit, push, merge, rebase or create pull requests without explicit request.
+- Do not access, reveal or modify secrets or print sensitive environment variables.
+- Do not modify files outside the repository, global machine configuration, or execute destructive commands/delete data.
+- Do not use network access without explicit need.
+- Preserve existing user changes and prefer small, incremental, reversible edits.
+- Do not claim success without executed validations and evidence.
+
+## Definition of done
+
+A development task is complete only when requirements and acceptance criteria are verified, conventions are followed, relevant tests pass, available typecheck/build gates pass, the full diff is reviewed, no out-of-scope changes exist, `qa_engineer` returns `APPROVED`, residual risks are documented and the consolidated report is presented.
+
+## Multi-agent configuration validation
+
+The native team consists of exactly these four files:
+
+```text
+.codex/
+├── config.toml
+└── agents/
+    ├── tech-lead.toml
+    ├── developer-a.toml
+    ├── developer-b.toml
+    └── qa-engineer.toml
+```
+
+After configuration changes, validate TOML syntax, required fields, unique agent names, descriptions, enabled agents and concurrency capacity. Review the complete diff, list created/modified files, confirm no application files changed, and do not start a development task as part of configuration setup.
+
+---
+
+# Codex Multi-Agent Operating Guide
+
+## Project overview
+
+Corporate Code Generator is a deterministic, model-driven scaffolding platform. It transforms an application model, a corporate Golden Path profile, versioned rules, and templates into generated application artifacts. AI is not a runtime dependency of generation.
+
+## Technology stack
+
+- Node.js `>=22`.
+- TypeScript with strict compiler settings and project references.
+- npm workspaces.
+- Vitest for unit, integration, smoke, and runtime-oriented tests.
+- Nunjucks for template rendering.
+- AJV for schema validation.
+- The primary generated Golden Path is Java, Spring Boot, Maven multi-module, and Clean Architecture.
+
+## Repository structure
+
+- `packages/core`: technology-agnostic model, validation, planning, profiles, modules, and generation contracts.
+- `packages/adapter-java`: Java technology adapter, transformers, template models, and Java Golden Path artifact producers.
+- `packages/template-engine-nunjucks`: Nunjucks template engine adapter.
+- `packages/file-writer-node`: Node.js filesystem writer.
+- `packages/cli`: command-line interface.
+- `profiles`: Golden Path profiles.
+- `template-packs`: versioned artifact templates.
+- `examples`: input application models.
+- `tests/integration`: complete generation-flow tests.
+- `tests/smoke`: generated-application and CLI smoke tests.
+- `tests/golden`: expected generated artifacts.
+
+## Package manager
+
+Use npm. The root `package.json` declares `packages/*` as workspaces and `package-lock.json` is present. Do not introduce pnpm, Yarn, or Bun configuration.
+
+## Development commands
+
+- `npm test`: run the default Vitest suite while excluding the long-running smoke suites listed in the script.
+- `npm run test:watch`: run Vitest in watch mode.
+- `npm test -- tests/integration/<file>.test.ts`: run a focused integration test using the existing test script.
+- `npm run smoke`: build and run the CLI smoke test.
+- `npm run smoke:java-multimodule`: build and run the Java multi-module smoke suite.
+- Use the specific `smoke:*` scripts in `package.json` for Maven, paging, filtering, persistence, HTTP, OpenAPI, Spring context, CORS, error handling, and related checks.
+
+## Build commands
+
+- `npm run build`: build all TypeScript project references.
+- `npm run typecheck`: validate all TypeScript project references.
+- `npm run clean`: clean TypeScript build outputs.
+
+## Test commands
+
+Vitest is the test framework. Use `npm test` for the default suite, focused file arguments for targeted work, and the declared `smoke:*` scripts for generated Java application checks. Use `npm run test:coverage` when coverage evidence is required. There is no separate end-to-end script; smoke tests are the closest declared repository-level validation and must not be mislabeled as a missing E2E tool.
+
+## Lint and formatting
+
+No lint or formatting script is declared in the root or workspace package manifests inspected during configuration. Do not invent or install a lint/formatter tool. Use `git diff --check`, TypeScript validation, tests, and the established source formatting as available checks.
+
+## Architecture conventions
+
+Maintain the dependency direction `CLI -> Core`, with technology adapters and template-engine adapters depending on Core contracts. Keep the Core technology-agnostic. Keep semantic types in the model/IR, make generation decisions in Rules, resolve technology types in adapters, prepare render-ready template models, keep templates representational, and create/validate the complete File Plan before filesystem mutation. Generation must be deterministic and independent of LLMs, current time, randomness, undeclared environment state, and mutable external state.
+
+## Coding conventions
+
+Use strict TypeScript, explicit contracts, immutable data where practical, small components, constructor or explicit-parameter dependency injection, pure deterministic transformations, and domain-specific types. Avoid hidden global state, generic behavior-heavy utility modules, speculative abstractions, monolithic orchestration classes, and unrelated refactors. Changes to generated artifacts require corresponding regression or Golden Test coverage.
+
+## Multi-agent workflow
+
+For non-trivial development tasks, the primary agent must explicitly use `tech_lead`, `developer_a`, `developer_b`, and `qa_engineer` by name:
+
+1. Analyze the task and repository.
+2. Produce a plan and objective acceptance criteria.
+3. Delegate implementation to `developer_a`.
+4. Delegate navigation/review to `developer_b`.
+5. Avoid simultaneous edits to the same file and wait for delegated work.
+6. Consolidate and review the complete diff.
+7. Delegate independent validation to `qa_engineer`.
+8. Address rejected findings, rerun validation, and present a consolidated report.
+
+The `tech_lead` coordinates the process, assigns temporary file ownership, chooses driver/navigator roles, and declares completion only after QA approval and evidence-backed validation.
+
+## Pair-programming workflow
+
+`developer_a` starts as driver and `developer_b` starts as navigator. The roles may be inverted between subtasks. The driver implements within the delegated scope. The navigator reviews reasoning, risks, edge cases, and tests without silently overwriting the driver's code. Only one agent may edit a given file at a time. Divergences go to `tech_lead`. Pair programming does not replace independent QA.
+
+## Quality gates
+
+A task is ready only when requirements and acceptance criteria are verified, the diff is reviewed, relevant tests pass, TypeScript validation passes, build passes when applicable, available lint/format checks pass when declared, generated output is validated with the native toolchain when applicable, no out-of-scope files changed, and `qa_engineer` reports `APPROVED`. Unavailable checks must be documented rather than assumed.
+
+## Safety and repository boundaries
+
+All agents must modify only authorized files, avoid scope expansion and unrelated refactors, avoid dependency installation without authorization, preserve and strengthen tests, and never hide failures. Do not use `--force`, `--no-verify`, or equivalent bypasses. Do not commit, push, merge, rebase, or create pull requests without explicit authorization. Do not access, reveal, or modify secrets; print no sensitive environment variables. Do not modify files outside the repository, change global machine configuration, execute destructive commands, delete data, or use network access without explicit need. Prefer small, incremental, reversible changes and reuse existing code and patterns.
+
+## Multi-agent concurrency rules
+
+Read-only analysis and independent tests may run in parallel. Two agents may not edit the same file simultaneously. Dependent writes are sequential. `tech_lead` owns temporary file assignment and must wait for delegated results before consolidation. If a conflict risk exists, use sequential execution.
+
+## Definition of done
+
+A task is complete only after requirements are met, acceptance criteria are evidenced, conventions are followed, relevant tests pass, lint/format checks pass when available, build and typecheck pass when relevant, the full diff is reviewed, no out-of-scope changes exist, QA returns `APPROVED`, residual risks and limitations are documented, and the final report is presented.

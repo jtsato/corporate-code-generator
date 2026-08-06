@@ -135,4 +135,17 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
       { templateId: "entrypoints-rest-domain-sort-definition", model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.sort", fields: [{ publicName: "id", domainName: "id" }, { publicName: "balance", domainName: "balance" }] } }, { templateId: "entrypoints-rest-domain-sort-definition-test" },
     ]);
   });
+
+  it("derives the create Location accessor from a non-id identifier attribute", () => {
+    const producer = new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer();
+    const artifacts = producer.produce({
+      application: { schemaVersion: "1.0", name: "catalog-service", namespace: "example.catalog", entities: [
+        { name: "Product", attributes: [{ name: "code", type: "string", identifier: true }, { name: "name", type: "string", identifier: false }] },
+      ] },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "entrypoints-rest", requires: [] }],
+    });
+
+    expect(artifacts[0]?.model).toMatchObject({ identifierAccessorName: "getCode" });
+  });
 });

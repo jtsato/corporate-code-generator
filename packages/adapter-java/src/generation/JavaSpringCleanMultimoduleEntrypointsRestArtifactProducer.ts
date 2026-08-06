@@ -107,6 +107,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         byIdUseCaseFieldName: toJavaFieldName(byIdUseCaseType),
         identifierType: identifierType.name,
         identifierParameterName: identifier.name,
+        identifierAccessorName: `get${toJavaTypeName(identifier.name)}`,
         findByIdMethodName: "findById",
         findByIdOperationSummary: `Find ${entityType.toLowerCase()} by id`,
         findByIdOperationDescription: `Returns a ${entityType.toLowerCase()} by its identifier.`,
