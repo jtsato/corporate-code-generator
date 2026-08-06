@@ -46,6 +46,9 @@ class UpdateWalletUseCaseInteractorTests {
             received = entity;
             return result;
         }
+
+        @Override
+        public void deleteById(UUID id) { }
     }
 
     @Test

@@ -147,6 +147,9 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         pageResultMapperMethodName: "toPageResult",
         updateMethodName: "update",
         updateParameterName: "wallet",
+        deleteMethodName: "deleteById",
+        deleteParameterName: "id",
+        repositoryDeleteByIdMethodName: "deleteById",
         sortPropertyMapping: [{ domainName: "id", persistenceName: "id" }, { domainName: "balance", persistenceName: "balance" }],
       },
       outputVariables: {

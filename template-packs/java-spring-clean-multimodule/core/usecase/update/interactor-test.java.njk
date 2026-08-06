@@ -36,6 +36,9 @@ class {{ className }} {
             received = entity;
             return result;
         }
+
+        @Override
+        public void deleteById({{ identifierType }} id) { }
     }
 
     @Test

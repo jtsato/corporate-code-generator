@@ -58,6 +58,9 @@ class FindWalletsByFilterUseCaseInteractorTests {
 
         @Override
         public Wallet update(Wallet entity) { return null; }
+
+        @Override
+        public void deleteById(UUID id) { }
     }
 
     @Test

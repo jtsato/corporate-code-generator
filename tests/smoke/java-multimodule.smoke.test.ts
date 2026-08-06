@@ -43,6 +43,10 @@ describe("Java multi-module CLI smoke test", () => {
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/update/UpdateWalletUseCase.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/update/UpdateWalletUseCaseInteractor.java",
         "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/update/UpdateWalletUseCaseInteractorTests.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletCommand.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCase.java",
+        "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCaseInteractor.java",
+        "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCaseInteractorTests.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletByIdUseCase.java",
@@ -120,6 +124,7 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletPagingPersistenceTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPagingPersistenceTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/WalletUpdatePersistenceTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/WalletDeletePersistenceTests.java",
       ]) {
         const [generated, golden] = await Promise.all([
           readFile(join(outputRoot, ...targetPath.split("/")), "utf8"),

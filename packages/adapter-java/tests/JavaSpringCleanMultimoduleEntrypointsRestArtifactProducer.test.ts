@@ -13,7 +13,7 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
     });
     expect(producer.profileId).toBe("java-spring-clean-multimodule");
     expect(producer.moduleId).toBe("entrypoints-rest");
-    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-domain-create-request", "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test", "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-common-sort-field-definition", "entrypoints-rest-common-sort-definition", "entrypoints-rest-common-sort-parser", "entrypoints-rest-common-sort-parser-test", "entrypoints-rest-domain-sort-definition", "entrypoints-rest-domain-sort-definition-test", "entrypoints-rest-response-status", "entrypoints-rest-page-response"]);
+    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-domain-create-request", "entrypoints-rest-domain-update-request", "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test", "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-common-sort-field-definition", "entrypoints-rest-common-sort-definition", "entrypoints-rest-common-sort-parser", "entrypoints-rest-common-sort-parser-test", "entrypoints-rest-domain-sort-definition", "entrypoints-rest-domain-sort-definition-test", "entrypoints-rest-response-status", "entrypoints-rest-page-response"]);
     expect(artifacts.slice(0, 3)).toMatchObject([
       {
         outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletController" },
@@ -55,6 +55,13 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           createOperationSummary: "Create wallet",
           createOperationDescription: "Creates a wallet.",
           createResponseStatus: "201",
+          updateUseCaseType: "UpdateWalletUseCase",
+          updateUseCaseFieldName: "updateWalletUseCase",
+          updateUseCaseExecuteMethodName: "execute",
+          updateRequestType: "UpdateWalletRequest",
+          updateMethodName: "update",
+          updateOperationSummary: "Update wallet",
+          updateOperationDescription: "Updates a wallet.",
           imports: [
           "io.github.jtsato.walletservice.core.common.filter.FilterExpression",
           "io.github.jtsato.walletservice.core.common.paging.PageRequest",
@@ -64,12 +71,14 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.create.CreateWalletUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase",
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase",
           "io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser",
           "io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus",
           "io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser",
           "io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter.WalletRestFilterDefinition",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.CreateWalletRequest",
+          "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.UpdateWalletRequest",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.sort.WalletRestSortDefinition",
           "io.swagger.v3.oas.annotations.enums.ParameterIn",
           "io.swagger.v3.oas.annotations.headers.Header",
@@ -87,7 +96,8 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
             "org.springframework.http.ResponseEntity",
             "org.springframework.web.bind.annotation.GetMapping",
             "org.springframework.web.bind.annotation.PathVariable",
-            "org.springframework.web.bind.annotation.PostMapping",
+          "org.springframework.web.bind.annotation.PostMapping",
+          "org.springframework.web.bind.annotation.PutMapping",
             "org.springframework.web.bind.annotation.RequestBody",
             "org.springframework.web.bind.annotation.RequestMapping",
             "org.springframework.web.bind.annotation.RequestParam",
@@ -127,7 +137,22 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
         },
       },
     ]);
-    expect(artifacts.slice(3, -2)).toMatchObject([
+    expect(artifacts.find((artifact) => artifact.templateId === "entrypoints-rest-domain-update-request")).toMatchObject({
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "UpdateWalletRequest" },
+      model: {
+        packageName: "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request",
+        recordName: "UpdateWalletRequest",
+        commandType: "UpdateWalletCommand",
+        components: [{ name: "balance", type: "BigDecimal" }],
+        commandArguments: ["id", "balance"],
+        imports: expect.arrayContaining([
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletCommand",
+          "java.math.BigDecimal",
+          "java.util.UUID",
+        ]),
+      },
+    });
+    expect(artifacts.slice(4, -2)).toMatchObject([
       { templateId: "entrypoints-rest-filter-operator", model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.common.filter", coreFilterPackage: "io.github.jtsato.walletservice.core.common.filter" } },
       { templateId: "entrypoints-rest-filter-field-definition" }, { templateId: "entrypoints-rest-filter-definition" }, { templateId: "entrypoints-rest-filter-parser" }, { templateId: "entrypoints-rest-filter-parser-test" },
       { templateId: "entrypoints-rest-domain-filter-definition", model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter" } }, { templateId: "entrypoints-rest-domain-filter-definition-test" },

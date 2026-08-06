@@ -85,6 +85,8 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
           pageRequestType: "PageRequest",
           pageRequestParameterName: "pageRequest",
           pageResultType: "PageResult",
+          deleteMethodName: "deleteById",
+          deleteParameterName: "id",
         },
       },
       { templateId: "core-create-command" },
@@ -95,6 +97,32 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       { templateId: "core-update-usecase" },
       { templateId: "core-update-usecase-interactor" },
       { templateId: "core-update-usecase-interactor-test" },
+      {
+        templateId: "core-delete-command",
+        model: {
+          className: "DeleteWalletCommand",
+          fields: [{ name: "id", type: "UUID", requiredMessageKey: "common.identifier.required", requiredDefaultMessage: "Identifier is required." }],
+        },
+      },
+      {
+        templateId: "core-delete-usecase",
+        model: { interfaceName: "DeleteWalletUseCase", commandType: "DeleteWalletCommand", executeMethodName: "execute" },
+      },
+      {
+        templateId: "core-delete-usecase-interactor",
+        model: {
+          className: "DeleteWalletUseCaseInteractor",
+          interfaceName: "DeleteWalletUseCase",
+          commandType: "DeleteWalletCommand",
+          gatewayType: "WalletGateway",
+          gatewayFieldName: "walletGateway",
+          executeMethodName: "execute",
+          gatewayDeleteMethodName: "deleteById",
+          commandRequiredMessageKey: "common.command.required",
+          commandRequiredDefaultMessage: "Command is required.",
+        },
+      },
+      { templateId: "core-delete-usecase-interactor-test", model: { className: "DeleteWalletUseCaseInteractorTests", deleteCallCountFieldName: "deleteCallCount", receivedIdFieldName: "receivedId" } },
       {
         templateId: "core-find-usecase",
         outputVariables: { className: "FindWalletsUseCase" },

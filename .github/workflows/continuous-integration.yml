@@ -192,6 +192,16 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: HTTP update smoke Java multi-module
+        run: npm run smoke:http-update:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
+      - name: Delete runtime smoke Java multi-module
+        run: npm run smoke:delete-runtime:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
       - name: Maven reactor smoke Java multi-module
         run: npm run smoke:maven-reactor:java-multimodule
         env:

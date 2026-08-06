@@ -85,6 +85,20 @@ public class WalletGatewayProvider implements WalletGateway {
     }
 
     @Override
+    public void deleteById(UUID id) {
+        Objects.requireNonNull(id, "id");
+
+        if (!walletRepository.existsById(id)) {
+            throw new NotFoundException(
+                "wallet.not-found",
+                "Wallet was not found."
+            );
+        }
+
+        walletRepository.deleteById(id);
+    }
+
+    @Override
     public List<Wallet> findByFilter(FilterExpression filterExpression) {
         Objects.requireNonNull(filterExpression, "filterExpression");
 

@@ -1,6 +1,6 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 117 artifacts in the full profile: build 6, Core 46, entrypoints-rest 64, Infra 64, and Configuration 117. The build+core selection emits 52 artifacts; build+configuration emits 117. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the REST Filter Contract Foundation, REST Sort Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, the REST filter runtime integration, paging runtime integration, filtered paging runtime integration, REST filtered paging runtime integration, REST sorting runtime integration, find-by-id runtime integration, create runtime integration, REST create integration, and update runtime integration. The generated Java CI uses Java 25 and `mvn -B clean verify`.
+`java-spring-clean-multimodule` now generates 124 artifacts in the full profile: build 6, Core 50, entrypoints-rest 69, Infra 68, and Configuration 124. The build+core selection emits 56 artifacts; build+configuration emits 124. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the REST Filter Contract Foundation, REST Sort Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, the REST filter runtime integration, paging runtime integration, filtered paging runtime integration, REST filtered paging runtime integration, REST sorting runtime integration, find-by-id runtime integration, create runtime integration, REST create integration, update runtime integration, REST update integration, and physical delete runtime integration through Core and JPA. The generated Java CI uses Java 25 and `mvn -B clean verify`.
 
 Querydsl filters run against the database through a dedicated filtered use case. The generated flow is `FilterExpression -> QuerydslFilterMapper -> ListQuerydslPredicateExecutor -> repository -> gateway -> Find<Entity>ByFilterUseCase`. `FilterExpression.empty()` falls back to `repository.findAll()`. Validate it with `npm run smoke:querydsl-filter-runtime:java-multimodule`.
 
@@ -36,9 +36,22 @@ WalletGatewayProvider -> WalletRepository.existsById/save ->
 WalletPersistenceMapper`. Existing IDs are updated and the persisted balance
 changes; missing IDs raise a Core `NotFoundException` (`wallet.not-found`)
 and never create a new row. Validate the Core and H2 persistence path with
-`npm run smoke:update-runtime:java-multimodule`. REST update
-(`PUT`/`PATCH /wallets/{id}`) remains a future capability. See
-[ADR-047](docs/adr/ADR-047-update-runtime-integration.md).
+`npm run smoke:update-runtime:java-multimodule`. REST update is exposed as a
+full replacement `PUT /wallets/{id}`: existing IDs return `200` with the
+updated `WalletResponse`, while invalid requests and missing IDs return `400`
+and `404`. Validate the complete generated path with
+`npm run smoke:http-update:java-multimodule`. See
+[ADR-047](docs/adr/ADR-047-update-runtime-integration.md) and
+[ADR-048](docs/adr/ADR-048-rest-update-integration.md).
+
+Delete runtime is available without HTTP through `DeleteWalletUseCase`. The
+flow is `DeleteWalletCommand -> DeleteWalletUseCase -> WalletGateway.deleteById
+-> WalletGatewayProvider -> WalletRepository.existsById/deleteById`. Existing
+IDs are deleted, while missing and repeated IDs raise `NotFoundException` with
+the stable `wallet.not-found` contract. Validate the Core and H2 persistence
+path with `npm run smoke:delete-runtime:java-multimodule`. DELETE REST and
+OpenAPI exposure remain intentionally out of scope. See
+[ADR-049](docs/adr/ADR-049-delete-runtime-integration.md).
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 

@@ -1,0 +1,107 @@
+import type { Entity } from "@corporate-code-generator/core";
+import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
+import { JavaImportCollector } from "../model/JavaImportCollector.js";
+import type { JavaHttpUpdateTestTemplateModel, JavaHttpUpdateTestFixture } from "../model/JavaHttpUpdateTestTemplateModel.js";
+import { toJavaConstantName } from "../naming/JavaConstantName.js";
+import { toJavaFieldName } from "../naming/JavaFieldName.js";
+import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
+import { toJavaTypeName } from "../naming/JavaTypeName.js";
+import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
+import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
+
+export function createJavaHttpUpdateTestModel(
+  entity: Entity,
+  namespace: string,
+  typeResolver: JavaTypeResolver = new JavaTypeResolver(),
+  fixtureResolver: JavaTestFixtureValueResolver = new JavaTestFixtureValueResolver(),
+): JavaHttpUpdateTestTemplateModel {
+  const domainName = toJavaPackageSegment(entity.name);
+  const entityType = toJavaTypeName(entity.name);
+  const identifierIndex = entity.attributes.findIndex((attribute) => attribute.identifier);
+  const identifier = entity.attributes[identifierIndex];
+  if (identifier === undefined) throw new Error(`Cannot generate the HTTP update test for entity '${entity.name}' without an identifier.`);
+  const valueIndex = entity.attributes.findIndex((attribute) => !attribute.identifier);
+  const valueAttribute = entity.attributes[valueIndex];
+  if (valueAttribute === undefined) throw new Error(`Cannot generate the HTTP update test for entity '${entity.name}' without a non-identifier attribute.`);
+
+  const imports = new JavaImportCollector();
+  imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+  imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+  imports.add("com.fasterxml.jackson.databind.JsonNode");
+  imports.add("com.fasterxml.jackson.databind.ObjectMapper");
+  imports.add("java.net.URI");
+  imports.add("java.net.http.HttpClient");
+  imports.add("java.net.http.HttpRequest");
+  imports.add("java.net.http.HttpResponse");
+  imports.add("org.junit.jupiter.api.AfterEach");
+  imports.add("org.junit.jupiter.api.Test");
+  imports.add("org.springframework.beans.factory.annotation.Autowired");
+  imports.add("org.springframework.boot.test.context.SpringBootTest");
+  imports.add("org.springframework.boot.test.web.server.LocalServerPort");
+  imports.add("org.springframework.test.context.ActiveProfiles");
+
+  const occurrences = new Map<string, number>();
+  const fixtures = entity.attributes.map((attribute) => {
+    const occurrenceIndex = occurrences.get(attribute.type) ?? 0;
+    occurrences.set(attribute.type, occurrenceIndex + 1);
+    const javaType = typeResolver.resolve(attribute.type);
+    imports.add(javaType.import);
+    return {
+      constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+      type: javaType.name,
+      javaExpression: fixtureResolver.resolve(attribute.type, occurrenceIndex).javaExpression,
+      jsonLiteral: fixtureResolver.resolve(attribute.type, occurrenceIndex).jsonLiteral,
+      jsonName: attribute.name,
+      accessorName: `get${toJavaTypeName(attribute.name)}`,
+      updatedConstantName: attribute.identifier ? undefined : toJavaConstantName(`${entity.name}_updated_${attribute.name}`),
+    } satisfies JavaHttpUpdateTestFixture;
+  });
+
+  const updatedFixtures = entity.attributes.map((attribute, index) => {
+    if (attribute.identifier) return fixtures[index]!;
+    const javaType = typeResolver.resolve(attribute.type);
+    return {
+      constantName: toJavaConstantName(`${entity.name}_updated_${attribute.name}`),
+      type: javaType.name,
+      javaExpression: fixtureResolver.resolve(attribute.type, (occurrences.get(attribute.type) ?? 1)).javaExpression,
+      jsonLiteral: fixtureResolver.resolve(attribute.type, (occurrences.get(attribute.type) ?? 1)).jsonLiteral,
+      jsonName: attribute.name,
+      accessorName: `get${toJavaTypeName(attribute.name)}`,
+      updatedConstantName: toJavaConstantName(`${entity.name}_updated_${attribute.name}`),
+    } satisfies JavaHttpUpdateTestFixture;
+  });
+
+  const updatedValues = entity.attributes.map((attribute, index) => updatedFixtures[index]!.jsonLiteral);
+  const missingValueValues = entity.attributes
+    .filter((attribute) => !attribute.identifier && attribute !== valueAttribute)
+    .map((attribute) => updatedFixtures[entity.attributes.indexOf(attribute)]!.jsonLiteral);
+  const missingValueAttributes = entity.attributes.filter((attribute) => !attribute.identifier && attribute !== valueAttribute);
+
+  return {
+    packageName: namespace,
+    imports: imports.values(),
+    className: `${entityType}HttpUpdateTests`,
+    activeProfile: "test",
+    endpointPath: toRestCollectionPath(entity.name),
+    entityType: `${entityType}Entity`,
+    persistenceEntityType: `${entityType}Entity`,
+    repositoryType: `${entityType}Repository`,
+    repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+    identifierConstantName: fixtures[identifierIndex]!.constantName,
+    missingIdentifierExpression: fixtureResolver.resolve(identifier.type, (occurrences.get(identifier.type) ?? 1)).javaExpression,
+    entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+    validUpdatePayloadExpression: toJsonStringLiteral(entity.attributes.filter((attribute) => !attribute.identifier), updatedValues.filter((_, index) => entity.attributes[index]?.identifier !== true)),
+    missingValuePayloadExpression: toJsonStringLiteral(missingValueAttributes, missingValueValues),
+    invalidJsonPayloadExpression: JSON.stringify("{not-json"),
+    fixtures,
+    updatedFixtures: updatedFixtures.filter((fixture, index) => !entity.attributes[index]!.identifier),
+  };
+}
+
+function toJsonStringLiteral(
+  attributes: readonly { readonly name: string }[],
+  values: readonly string[],
+): string {
+  const fields = attributes.map((attribute, index) => `${JSON.stringify(attribute.name)}:${values[index]!}`);
+  return JSON.stringify(`{${fields.join(",")}}`);
+}

@@ -64,6 +64,20 @@ public class {{ className }} implements {{ gatewayType }} {
     }
 
     @Override
+    public void {{ deleteMethodName }}({{ identifierType }} {{ deleteParameterName }}) {
+        Objects.requireNonNull({{ deleteParameterName }}, "{{ deleteParameterName }}");
+
+        if (!{{ repositoryFieldName }}.{{ repositoryExistsByIdMethodName }}({{ deleteParameterName }})) {
+            throw new {{ notFoundExceptionType }}(
+                "{{ notFoundMessageKey }}",
+                "{{ notFoundDefaultMessage }}"
+            );
+        }
+
+        {{ repositoryFieldName }}.{{ repositoryDeleteByIdMethodName }}({{ deleteParameterName }});
+    }
+
+    @Override
     public List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) {
         Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
 

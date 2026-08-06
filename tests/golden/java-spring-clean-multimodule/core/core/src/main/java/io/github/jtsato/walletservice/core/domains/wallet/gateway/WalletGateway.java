@@ -21,4 +21,6 @@ public interface WalletGateway {
     Wallet create(Wallet wallet);
 
     Wallet update(Wallet wallet);
+
+    void deleteById(UUID id);
 }

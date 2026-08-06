@@ -1,0 +1,76 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+class {{ className }} {
+    private static final class {{ fakeGatewayType }} implements {{ gatewayType }} {
+        private int {{ deleteCallCountFieldName }};
+        private {{ identifierType }} {{ receivedIdFieldName }};
+
+        @Override
+        public List<{{ entityType }}> findAll() { return List.of(); }
+
+        @Override
+        public List<{{ entityType }}> findByFilter(FilterExpression filterExpression) { return List.of(); }
+
+        @Override
+        public PageResult<{{ entityType }}> findPage(PageRequest pageRequest) { return null; }
+
+        @Override
+        public PageResult<{{ entityType }}> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) { return null; }
+
+        @Override
+        public {{ entityType }} findById({{ identifierType }} id) { return null; }
+
+        @Override
+        public {{ entityType }} create({{ entityType }} entity) { return null; }
+
+        @Override
+        public {{ entityType }} update({{ entityType }} entity) { return null; }
+
+        @Override
+        public void {{ gatewayDeleteMethodName }}({{ identifierType }} id) {
+            {{ deleteCallCountFieldName }}++;
+            {{ receivedIdFieldName }} = id;
+        }
+    }
+
+    @Test
+    void shouldRejectNullCommand() {
+        var gateway = new {{ fakeGatewayType }}();
+
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null)
+        );
+
+        assertEquals("command", exception.getFields().getFirst().name());
+        assertEquals("{{ commandRequiredMessageKey }}", exception.getFields().getFirst().messageKey());
+        assertEquals(0, gateway.{{ deleteCallCountFieldName }});
+    }
+
+    @Test
+    void shouldRejectNullIdentifierInCommand() {
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ commandType }}(null)
+        );
+
+        assertEquals("id", exception.getFields().getFirst().name());
+        assertEquals("{{ identifierRequiredMessageKey }}", exception.getFields().getFirst().messageKey());
+    }
+
+    @Test
+    void shouldDelegateIdentifierExactlyOnce() {
+        var gateway = new {{ fakeGatewayType }}();
+        var id = {{ identifierValueExpression }};
+
+        new {{ interactorType }}(gateway).{{ executeMethodName }}(new {{ commandType }}(id));
+
+        assertEquals(1, gateway.{{ deleteCallCountFieldName }});
+        assertEquals(id, gateway.{{ receivedIdFieldName }});
+    }
+}

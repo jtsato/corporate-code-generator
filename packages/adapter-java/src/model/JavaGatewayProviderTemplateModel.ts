@@ -56,4 +56,7 @@ export interface JavaGatewayProviderTemplateModel {
   readonly conflictDefaultMessage: string;
   readonly updateMethodName: string;
   readonly updateParameterName: string;
+  readonly deleteMethodName: string;
+  readonly deleteParameterName: string;
+  readonly repositoryDeleteByIdMethodName: string;
 }

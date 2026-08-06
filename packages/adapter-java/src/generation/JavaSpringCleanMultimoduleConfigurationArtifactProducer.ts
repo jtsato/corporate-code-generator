@@ -18,7 +18,9 @@ import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttp
 import type { JavaFindByIdPersistenceTestTemplateModel } from "../model/JavaFindByIdPersistenceTestTemplateModel.js";
 import type { JavaCreatePersistenceTestTemplateModel } from "../model/JavaCreatePersistenceTestTemplateModel.js";
 import type { JavaUpdatePersistenceTestTemplateModel } from "../model/JavaUpdatePersistenceTestTemplateModel.js";
+import type { JavaDeletePersistenceTestTemplateModel } from "../model/JavaDeletePersistenceTestTemplateModel.js";
 import type { JavaHttpFindByIdTestTemplateModel } from "../model/JavaHttpFindByIdTestTemplateModel.js";
+import { createJavaHttpUpdateTestModel } from "../transformers/createJavaHttpUpdateTestModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
 import { toJavaConstantName } from "../naming/JavaConstantName.js";
@@ -109,6 +111,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
         const createUseCaseType = `Create${entityType}UseCase`;
         const updateUseCaseType = `Update${entityType}UseCase`;
+        const deleteUseCaseType = `Delete${entityType}UseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
@@ -125,6 +128,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
@@ -160,6 +165,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           updateUseCaseBeanMethodName: `update${entityType}UseCase`,
           updateUseCaseType,
           updateUseCaseImplementationType: `${updateUseCaseType}Interactor`,
+          deleteUseCaseBeanMethodName: `delete${entityType}UseCase`,
+          deleteUseCaseType,
+          deleteUseCaseImplementationType: `${deleteUseCaseType}Interactor`,
         };
 
         return {
@@ -225,6 +233,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           itemResponseSchemaName: `${toJavaTypeName(entity.name)}Response`,
           createRequestSchemaName: `Create${toJavaTypeName(entity.name)}Request`,
           createResponseSchemaName: `${toJavaTypeName(entity.name)}Response`,
+          updateRequestSchemaName: `Update${toJavaTypeName(entity.name)}Request`,
         };
         return { templateId: "configuration-openapi-smoke-test", model, outputVariables: { ...outputVariables, className: model.className } };
       }),
@@ -522,6 +531,19 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         };
       }),
       ...request.application.entities.map((entity) => {
+        const httpUpdateModel = createJavaHttpUpdateTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+        return {
+          templateId: "configuration-http-update-test",
+          model: httpUpdateModel,
+          outputVariables: { ...outputVariables, className: httpUpdateModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
         const filterPersistenceModel = createJavaQuerydslFilterPersistenceTestModel(
           entity,
           namespace,
@@ -664,6 +686,61 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         };
         return {
           templateId: "configuration-update-persistence-test",
+          model: persistenceModel,
+          outputVariables: { ...outputVariables, className: persistenceModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const identifier = entity.attributes.find((attribute) => attribute.identifier);
+        if (identifier === undefined) throw new Error(`Cannot generate delete persistence test for entity '${entity.name}' without an identifier.`);
+        const useCaseType = `Delete${entityType}UseCase`;
+        const commandType = `Delete${entityType}Command`;
+        const imports = new JavaImportCollector();
+        imports.add(`${namespace}.core.common.exception.NotFoundException`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${commandType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${useCaseType}`);
+        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add("org.junit.jupiter.api.AfterEach");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.beans.factory.annotation.Autowired");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.test.context.ActiveProfiles");
+        const occurrenceCounts = new Map<string, number>();
+        const fixtures = entity.attributes.map((attribute) => {
+          const occurrenceIndex = occurrenceCounts.get(attribute.type) ?? 0;
+          occurrenceCounts.set(attribute.type, occurrenceIndex + 1);
+          const javaType = this.typeResolver.resolve(attribute.type);
+          imports.add(javaType.import);
+          return {
+            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+            type: javaType.name,
+            javaExpression: this.fixtureResolver.resolve(attribute.type, occurrenceIndex).javaExpression,
+          };
+        });
+        const persistenceModel: JavaDeletePersistenceTestTemplateModel = {
+          packageName: namespace,
+          imports: imports.values(),
+          className: `${entityType}DeletePersistenceTests`,
+          activeProfile: "test",
+          useCaseType,
+          useCaseFieldName: toJavaFieldName(useCaseType),
+          commandType,
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          persistenceEntityType: `${entityType}Entity`,
+          declaredFixtures: fixtures,
+          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          identifierExpression: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
+          notFoundExceptionType: "NotFoundException",
+          notFoundMessageKey: `${domainName}.not-found`,
+          notFoundDefaultMessage: `${entityType} was not found.`,
+        };
+        return {
+          templateId: "configuration-delete-persistence-test",
           model: persistenceModel,
           outputVariables: { ...outputVariables, className: persistenceModel.className },
         };

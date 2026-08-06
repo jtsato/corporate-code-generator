@@ -29,4 +29,7 @@ export interface JavaDomainConfigurationTemplateModel {
   readonly updateUseCaseBeanMethodName: string;
   readonly updateUseCaseType: string;
   readonly updateUseCaseImplementationType: string;
+  readonly deleteUseCaseBeanMethodName: string;
+  readonly deleteUseCaseType: string;
+  readonly deleteUseCaseImplementationType: string;
 }

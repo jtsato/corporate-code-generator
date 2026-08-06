@@ -3,6 +3,8 @@ package io.github.jtsato.walletservice.configuration.domains.wallet;
 import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.create.CreateWalletUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.create.CreateWalletUseCaseInteractor;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteWalletUseCase;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteWalletUseCaseInteractor;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCaseInteractor;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase;
@@ -60,5 +62,10 @@ public class WalletConfiguration {
     @Bean
     public UpdateWalletUseCase updateWalletUseCase(WalletGateway walletGateway) {
         return new UpdateWalletUseCaseInteractor(walletGateway);
+    }
+
+    @Bean
+    public DeleteWalletUseCase deleteWalletUseCase(WalletGateway walletGateway) {
+        return new DeleteWalletUseCaseInteractor(walletGateway);
     }
 }

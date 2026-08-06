@@ -8,6 +8,10 @@ import type { JavaCreateCommandTemplateModel } from "../model/JavaCreateCommandT
 import type { JavaCreateUseCaseInteractorTemplateModel } from "../model/JavaCreateUseCaseInteractorTemplateModel.js";
 import type { JavaCreateUseCaseInteractorTestTemplateModel } from "../model/JavaCreateUseCaseInteractorTestTemplateModel.js";
 import type { JavaCreateUseCaseTemplateModel } from "../model/JavaCreateUseCaseTemplateModel.js";
+import type { JavaDeleteCommandTemplateModel } from "../model/JavaDeleteCommandTemplateModel.js";
+import type { JavaDeleteUseCaseInteractorTemplateModel } from "../model/JavaDeleteUseCaseInteractorTemplateModel.js";
+import type { JavaDeleteUseCaseInteractorTestTemplateModel } from "../model/JavaDeleteUseCaseInteractorTestTemplateModel.js";
+import type { JavaDeleteUseCaseTemplateModel } from "../model/JavaDeleteUseCaseTemplateModel.js";
 import type { JavaUpdateCommandTemplateModel } from "../model/JavaUpdateCommandTemplateModel.js";
 import type { JavaUpdateUseCaseInteractorTemplateModel } from "../model/JavaUpdateUseCaseInteractorTemplateModel.js";
 import type { JavaUpdateUseCaseInteractorTestTemplateModel } from "../model/JavaUpdateUseCaseInteractorTestTemplateModel.js";
@@ -54,6 +58,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const updateCommandType = `Update${entityType}Command`;
       const updateUseCaseType = `Update${entityType}UseCase`;
       const updateInteractorType = `${updateUseCaseType}Interactor`;
+      const deleteCommandType = `Delete${entityType}Command`;
+      const deleteUseCaseType = `Delete${entityType}UseCase`;
+      const deleteInteractorType = `${deleteUseCaseType}Interactor`;
       const domainPackage = `${namespace}.core.domains.${domainName}`;
       const filterPackage = `${namespace}.core.common.filter`;
       const pagingPackage = `${namespace}.core.common.paging`;
@@ -228,6 +235,29 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       for (const attribute of entity.attributes) {
         updateInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
       }
+      const deleteCommandImports = new JavaImportCollector();
+      deleteCommandImports.add(`${exceptionPackage}.FieldViolation`);
+      deleteCommandImports.add(`${exceptionPackage}.ValidationException`);
+      deleteCommandImports.add(identifierType.import);
+      const deleteUseCaseImports = new JavaImportCollector();
+      deleteUseCaseImports.add(`${domainPackage}.usecase.delete.${deleteCommandType}`);
+      const deleteInteractorImports = new JavaImportCollector();
+      deleteInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      deleteInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      deleteInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      deleteInteractorImports.add(`${domainPackage}.usecase.delete.${deleteCommandType}`);
+      deleteInteractorImports.add("java.util.List");
+      const deleteInteractorTestImports = new JavaImportCollector();
+      deleteInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      deleteInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      deleteInteractorTestImports.add(`${pagingPackage}.PageRequest`);
+      deleteInteractorTestImports.add(`${pagingPackage}.PageResult`);
+      deleteInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      deleteInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      deleteInteractorTestImports.add(`${domainPackage}.usecase.delete.${deleteCommandType}`);
+      deleteInteractorTestImports.add("java.util.List");
+      deleteInteractorTestImports.add("org.junit.jupiter.api.Test");
+      deleteInteractorTestImports.add(identifierType.import);
       const createCommandFields = entity.attributes.map((attribute) => {
         const required = attribute.required
           ? {
@@ -348,6 +378,59 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         gatewayUpdateMethodName: "update",
         commandRequiredMessageKey: "common.command.required",
       };
+      const deleteCommandModel: JavaDeleteCommandTemplateModel = {
+        packageName: `${domainPackage}.usecase.delete`,
+        imports: deleteCommandImports.values(),
+        className: deleteCommandType,
+        fields: [{
+          name: identifier.name,
+          type: identifierType.name,
+          requiredMessageKey: "common.identifier.required",
+          requiredDefaultMessage: "Identifier is required.",
+        }],
+      };
+      const deleteUseCaseModel: JavaDeleteUseCaseTemplateModel = {
+        packageName: `${domainPackage}.usecase.delete`,
+        imports: deleteUseCaseImports.values(),
+        interfaceName: deleteUseCaseType,
+        commandType: deleteCommandType,
+        executeMethodName: "execute",
+      };
+      const deleteInteractorModel: JavaDeleteUseCaseInteractorTemplateModel = {
+        packageName: `${domainPackage}.usecase.delete`,
+        imports: deleteInteractorImports.values(),
+        className: deleteInteractorType,
+        interfaceName: deleteUseCaseType,
+        commandType: deleteCommandType,
+        gatewayType,
+        gatewayFieldName: `${domainName}Gateway`,
+        executeMethodName: "execute",
+        gatewayDeleteMethodName: "deleteById",
+        identifierAccessorName: identifier.name,
+        commandRequiredMessageKey: "common.command.required",
+        commandRequiredDefaultMessage: "Command is required.",
+      };
+      const deleteInteractorTestModel: JavaDeleteUseCaseInteractorTestTemplateModel = {
+        packageName: `${domainPackage}.usecase.delete`,
+        imports: deleteInteractorTestImports.values(),
+        className: `${deleteInteractorType}Tests`,
+        interactorType: deleteInteractorType,
+        fakeGatewayType: `Fake${gatewayType}`,
+        gatewayType,
+        entityType,
+        identifierType: identifierType.name,
+        identifierParameterName: identifier.name,
+        commandType: deleteCommandType,
+        executeMethodName: "execute",
+        gatewayDeleteMethodName: "deleteById",
+        commandRequiredMessageKey: "common.command.required",
+        commandRequiredDefaultMessage: "Command is required.",
+        identifierRequiredMessageKey: "common.identifier.required",
+        identifierRequiredDefaultMessage: "Identifier is required.",
+        identifierValueExpression: this.fixtureResolver.resolve(identifier.type, 0).javaExpression,
+        deleteCallCountFieldName: "deleteCallCount",
+        receivedIdFieldName: "receivedId",
+      };
       const outputVariables = {
         packagePath: namespace.replaceAll(".", "/"),
         domainName,
@@ -387,6 +470,8 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             createParameterName: domainName,
             updateMethodName: "update",
             updateParameterName: domainName,
+            deleteMethodName: "deleteById",
+            deleteParameterName: identifier.name,
           },
           outputVariables: { ...outputVariables, className: gatewayType },
         },
@@ -429,6 +514,26 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           templateId: "core-update-usecase-interactor-test",
           model: updateInteractorTestModel,
           outputVariables: { ...outputVariables, className: updateInteractorTestModel.className },
+        },
+        {
+          templateId: "core-delete-command",
+          model: deleteCommandModel,
+          outputVariables: { ...outputVariables, className: deleteCommandType },
+        },
+        {
+          templateId: "core-delete-usecase",
+          model: deleteUseCaseModel,
+          outputVariables: { ...outputVariables, className: deleteUseCaseType },
+        },
+        {
+          templateId: "core-delete-usecase-interactor",
+          model: deleteInteractorModel,
+          outputVariables: { ...outputVariables, className: deleteInteractorType },
+        },
+        {
+          templateId: "core-delete-usecase-interactor-test",
+          model: deleteInteractorTestModel,
+          outputVariables: { ...outputVariables, className: deleteInteractorTestModel.className },
         },
         {
           templateId: "core-find-usecase",

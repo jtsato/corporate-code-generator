@@ -6,6 +6,7 @@ import type {
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaDelegatingRestControllerTemplateModel } from "../model/JavaDelegatingRestControllerTemplateModel.js";
 import type { JavaCreateRestRequestTemplateModel } from "../model/JavaCreateRestRequestTemplateModel.js";
+import type { JavaUpdateRestRequestTemplateModel } from "../model/JavaUpdateRestRequestTemplateModel.js";
 import type { JavaFactoryRestResponseTemplateModel } from "../model/JavaFactoryRestResponseTemplateModel.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
@@ -43,6 +44,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
       const createUseCaseType = `Create${entityType}UseCase`;
       const createRequestType = `Create${entityType}Request`;
+      const updateUseCaseType = `Update${entityType}UseCase`;
+      const updateRequestType = `Update${entityType}Request`;
       const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
       if (identifiers.length !== 1) {
         throw new Error(`Cannot generate find-by-id controller for entity '${entity.name}' without exactly one identifier attribute.`);
@@ -57,6 +60,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byIdUseCaseType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${createRequestType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}`);
+      controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${updateRequestType}`);
       controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
       controllerImports.add(`${namespace}.core.common.paging.PageResult`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -74,6 +79,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add("org.springframework.http.ResponseEntity");
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PostMapping");
+      controllerImports.add("org.springframework.web.bind.annotation.PutMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PathVariable");
       controllerImports.add("org.springframework.web.bind.annotation.RequestBody");
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
@@ -146,6 +152,13 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         createOperationSummary: `Create ${entityType.toLowerCase()}`,
         createOperationDescription: `Creates a ${entityType.toLowerCase()}.`,
         createResponseStatus: "201",
+        updateUseCaseType,
+        updateUseCaseFieldName: toJavaFieldName(updateUseCaseType),
+        updateUseCaseExecuteMethodName: "execute",
+        updateRequestType,
+        updateMethodName: "update",
+        updateOperationSummary: `Update ${entityType.toLowerCase()}`,
+        updateOperationDescription: `Updates a ${entityType.toLowerCase()}.`,
       };
       const responseImports = new JavaImportCollector();
       responseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -174,6 +187,11 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
           templateId: "entrypoints-rest-domain-create-request",
           model: createRequestModel(entity.attributes, namespace, domainName, entityType, this.typeResolver),
           outputVariables: { ...variables, domainName, className: createRequestType },
+        },
+        {
+          templateId: "entrypoints-rest-domain-update-request",
+          model: createUpdateRequestModel(entity.attributes, identifier, namespace, domainName, entityType, this.typeResolver),
+          outputVariables: { ...variables, domainName, className: updateRequestType },
         },
       ];
     });
@@ -247,5 +265,38 @@ function createRequestModel(
     commandType,
     commandPackageName: `${namespace}.core.domains.${domainName}.usecase.create`,
     commandArguments: attributes.map((attribute) => attribute.name),
+  };
+}
+
+function createUpdateRequestModel(
+  attributes: readonly { readonly name: string; readonly type: Parameters<JavaTypeResolver["resolve"]>[0]; readonly identifier?: boolean }[],
+  identifier: { readonly name: string; readonly type: Parameters<JavaTypeResolver["resolve"]>[0] },
+  namespace: string,
+  domainName: string,
+  entityType: string,
+  typeResolver: JavaTypeResolver,
+): JavaUpdateRestRequestTemplateModel {
+  const commandType = `Update${entityType}Command`;
+  const imports = new JavaImportCollector();
+  imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${commandType}`);
+  const components = attributes
+    .filter((attribute) => !attribute.identifier)
+    .map((attribute) => {
+      const type = typeResolver.resolve(attribute.type);
+      imports.add(type.import);
+      return { name: attribute.name, type: type.name };
+    });
+  const identifierType = typeResolver.resolve(identifier.type);
+  imports.add(identifierType.import);
+  return {
+    packageName: `${namespace}.entrypoint.rest.domains.${domainName}.request`,
+    imports: imports.values(),
+    recordName: `Update${entityType}Request`,
+    components,
+    identifierType: identifierType.name,
+    identifierParameterName: identifier.name,
+    commandType,
+    commandPackageName: `${namespace}.core.domains.${domainName}.usecase.update`,
+    commandArguments: [identifier.name, ...components.map((component) => component.name)],
   };
 }

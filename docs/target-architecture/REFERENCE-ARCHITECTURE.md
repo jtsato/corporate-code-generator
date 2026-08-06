@@ -6,7 +6,7 @@ The multi-module Java configuration capability generates base, local, test, and 
 
 ## Core validation
 
-The multi-module Golden Path has 117 artifacts (build 6, Core 46, entrypoints-rest 64, Infra 64, and Configuration 117). Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include Core transitively; their own production remains 18 and 18. Its build module generates a minimal GitHub Actions Java CI workflow using Java 25, Maven cache, and `mvn -B clean verify`. Core Filter Common provides validated filter operators, conditions, groups, and expressions. The REST Filter Contract Foundation in `entrypoint.rest.common.filter`, with per-domain definitions in `entrypoint.rest.domains.<domain>.filter`, parses the HTTP contract into `FilterExpression`. The REST Sort Contract Foundation in `entrypoint.rest.common.sort`, with per-domain definitions in `entrypoint.rest.domains.<domain>.sort`, parses strict repeatable sort expressions into `SortOrder`. Infra also generates entity-aware Querydsl filter definitions and sort property mappings from each entity's actual attributes and Java types.
+The multi-module Golden Path has 124 artifacts (build 6, Core 50, entrypoints-rest 69, Infra 68, and Configuration 124). Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include Core transitively; their own production remains 19 and 18. Its build module generates a minimal GitHub Actions Java CI workflow using Java 25, Maven cache, and `mvn -B clean verify`. Core Filter Common provides validated filter operators, conditions, groups, and expressions. The REST Filter Contract Foundation in `entrypoint.rest.common.filter`, with per-domain definitions in `entrypoint.rest.domains.<domain>.filter`, parses the HTTP contract into `FilterExpression`. The REST Sort Contract Foundation in `entrypoint.rest.common.sort`, with per-domain definitions in `entrypoint.rest.domains.<domain>.sort`, parses strict repeatable sort expressions into `SortOrder`. Infra also generates entity-aware Querydsl filter definitions and sort property mappings from each entity's actual attributes and Java types.
 
 Querydsl filtering is wired to the persistence runtime. The generated flow is `FilterExpression -> QuerydslFilterMapper -> ListQuerydslPredicateExecutor -> repository -> gateway -> Find<Entity>ByFilterUseCase`. Each core gateway exposes `findByFilter(FilterExpression)` next to the untouched `findAll()`; each repository extends `ListQuerydslPredicateExecutor` alongside `JpaRepository`; the provider applies the predicate and falls back to `repository.findAll()` when the expression is empty. Null rejection lives in the interactor as a `ValidationException` keyed `common.filter.expression.required`, while the provider states only an `Objects.requireNonNull` precondition. Configuration registers the filtered use case as an explicit third bean, and `ArchitectureTests` forbids `com.querydsl..` inside `core..`. The executor choice was proven by Maven compile, Spring context, and H2 persistence gates rather than assumed; see [ADR-036](../adr/ADR-036-querydsl-filter-runtime-integration.md).
 
@@ -15,6 +15,7 @@ REST query parameters now reach the combined runtime: `HTTP query params -> Rest
 Individual reads are available through `GET /wallets/{id}`. `FindWalletByIdUseCase` validates a non-null identifier, delegates to the Core gateway, and keeps persistence absence outside the Core contract. The provider maps `JpaRepository.findById` absence to `NotFoundException`; `GlobalExceptionHandler` translates it to HTTP 404, while malformed UUID path values return HTTP 400. The endpoint is documented in OpenAPI and validated through the Core, H2 persistence, and real HTTP smoke paths; see [ADR-042](../adr/ADR-042-find-by-id-runtime-and-rest-integration.md).
 
 Update runtime integration adds `UpdateWalletCommand -> UpdateWalletUseCase -> WalletGateway.update -> WalletGatewayProvider -> WalletRepository.existsById/save -> WalletPersistenceMapper`, without HTTP exposure. The provider checks `existsById` before `save`; a missing identifier raises `NotFoundException` keyed `wallet.not-found` (the same key `findById` already uses) and never inserts a new row. Because `Wallet` is immutable, the interactor constructs a new instance from the command rather than mutating one in place. Validated through Core unit tests and an H2 persistence test; see [ADR-047](../adr/ADR-047-update-runtime-integration.md).
+Delete runtime integration adds `DeleteWalletCommand -> DeleteWalletUseCase -> WalletGateway.deleteById -> WalletGatewayProvider -> WalletRepository.existsById/deleteById`, without HTTP or OpenAPI exposure. The provider requires a non-null identifier, checks existence before calling `deleteById`, and maps missing or repeated IDs to `NotFoundException` keyed `wallet.not-found`. Validated through Core unit tests and an H2 persistence test; see [ADR-049](../adr/ADR-049-delete-runtime-integration.md).
 
 Create runtime and REST creation are implemented. `POST /<entities>` receives
 a generated `Create<Entity>Request`, converts it to `Create<Entity>Command`,
@@ -24,11 +25,23 @@ mapper. Successful creation returns HTTP 201, a relative `Location`, and the
 response DTO. Required values are validated in Core; malformed request bodies
 map to HTTP 400 and duplicate IDs map to HTTP 409. The database primary key
 remains the final physical barrier, and the `existsById` plus `save` sequence
-is not fully atomic under concurrency. PUT, PATCH, DELETE, server-side ID
+is not fully atomic under concurrency. PATCH, DELETE, server-side ID
 generation, and robust constraint translation remain future work. See
 [ADR-043](../adr/ADR-043-create-runtime-integration.md),
 [ADR-044](../adr/ADR-044-create-conflict-runtime-integration.md), and
 [ADR-046](../adr/ADR-046-rest-create-integration.md).
+
+REST update is implemented as a full replacement operation. `PUT
+/<entities>/{id}` receives a generated `Update<Entity>Request` without the
+identifier in its record components, adds the path identifier in
+`toCommand(id)`, delegates to the existing update use case, and returns the
+updated response DTO directly with HTTP 200. Existing records are updated in
+H2 and are observable through a subsequent GET; missing identifiers return
+404, malformed paths or bodies return 400, and unexpected failures remain 500.
+The generated OpenAPI smoke test documents only PUT, including the UUID path
+parameter, request schema, 200 response, and 400/404/500 responses. PATCH,
+HTTP DELETE, partial updates, optimistic locking, ETags, and conditional requests
+remain out of scope. See [ADR-048](../adr/ADR-048-rest-update-integration.md).
 
 ## Core paging
 

@@ -1,0 +1,7 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public interface {{ interfaceName }} {
+    void {{ executeMethodName }}({{ commandType }} command);
+}

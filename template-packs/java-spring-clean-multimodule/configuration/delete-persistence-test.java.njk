@@ -1,0 +1,59 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in declaredFixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    @Autowired
+    private {{ useCaseType }} {{ useCaseFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldDeleteExisting{{ className | replace("DeletePersistenceTests", "") }}() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        {{ useCaseFieldName }}.execute(new {{ commandType }}({{ identifierExpression }}));
+
+        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }})).isEmpty();
+    }
+
+    @Test
+    void shouldRejectMissing{{ className | replace("DeletePersistenceTests", "") }}() {
+        var exception = org.junit.jupiter.api.Assertions.assertThrows({{ notFoundExceptionType }}.class, () ->
+            {{ useCaseFieldName }}.execute(new {{ commandType }}({{ missingIdentifierExpression }}))
+        );
+
+        assertThat(exception.getMessageKey()).isEqualTo("{{ notFoundMessageKey }}");
+        assertThat(exception.getDefaultMessage()).isEqualTo("{{ notFoundDefaultMessage }}");
+        assertThat({{ repositoryFieldName }}.findById({{ missingIdentifierExpression }})).isEmpty();
+    }
+
+    @Test
+    void shouldRejectRepeated{{ className | replace("DeletePersistenceTests", "") }}Deletion() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        {{ useCaseFieldName }}.execute(new {{ commandType }}({{ identifierExpression }}));
+
+        var exception = org.junit.jupiter.api.Assertions.assertThrows({{ notFoundExceptionType }}.class, () ->
+            {{ useCaseFieldName }}.execute(new {{ commandType }}({{ identifierExpression }}))
+        );
+
+        assertThat(exception.getMessageKey()).isEqualTo("{{ notFoundMessageKey }}");
+        assertThat(exception.getDefaultMessage()).isEqualTo("{{ notFoundDefaultMessage }}");
+        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }})).isEmpty();
+    }
+}

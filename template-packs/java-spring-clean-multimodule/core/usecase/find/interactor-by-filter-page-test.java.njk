@@ -54,6 +54,9 @@ class {{ className }} {
 
         @Override
         public {{ entityType }} update({{ entityType }} entity) { return null; }
+
+        @Override
+        public void deleteById({{ identifierType }} id) { }
     }
 
     @Test

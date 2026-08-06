@@ -1,0 +1,13 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public record {{ recordName }}(
+{% for component in components %}    {{ component.type }} {{ component.name }}{% if not loop.last %},{% endif %}
+{% endfor %}) {
+    public {{ commandType }} toCommand({{ identifierType }} {{ identifierParameterName }}) {
+        return new {{ commandType }}(
+{% for argument in commandArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+    }
+}

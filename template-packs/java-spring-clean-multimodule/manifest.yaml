@@ -66,6 +66,22 @@ templates:
     module: core
     template: core/usecase/update/interactor-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/update/{{ className }}.java
+  - id: core-delete-command
+    module: core
+    template: core/usecase/delete/command.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/delete/{{ className }}.java
+  - id: core-delete-usecase
+    module: core
+    template: core/usecase/delete/usecase.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/delete/{{ className }}.java
+  - id: core-delete-usecase-interactor
+    module: core
+    template: core/usecase/delete/interactor.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/delete/{{ className }}.java
+  - id: core-delete-usecase-interactor-test
+    module: core
+    template: core/usecase/delete/interactor-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/delete/{{ className }}.java
   - id: core-find-usecase
     module: core
     template: core/usecase/find/usecase.java.njk
@@ -221,6 +237,10 @@ templates:
   - id: entrypoints-rest-domain-create-request
     module: entrypoints-rest
     template: entrypoints-rest/domain/create-request.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/request/{{ className }}.java
+  - id: entrypoints-rest-domain-update-request
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/update-request.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/request/{{ className }}.java
   - id: entrypoints-rest-response-status
     module: entrypoints-rest
@@ -454,6 +474,10 @@ templates:
     module: configuration
     template: configuration/http-create-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-update-test
+    module: configuration
+    template: configuration/http-update-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-filter-test
     module: configuration
     template: configuration/http-filter-test.java.njk
@@ -469,4 +493,8 @@ templates:
   - id: configuration-update-persistence-test
     module: configuration
     template: configuration/update-persistence-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-delete-persistence-test
+    module: configuration
+    template: configuration/delete-persistence-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java

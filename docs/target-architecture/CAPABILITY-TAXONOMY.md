@@ -51,7 +51,7 @@ not require external infrastructure or undeclared domain intent.
 
 ### Baseline defaults
 
-The implemented `java-spring-clean-multimodule` profile baseline before Milestone 6.20 was 99 artifacts (build 6, Core 34, entrypoints-rest 51, Infra 52, Configuration 99). After Milestone 6.20 it was 104 artifacts (build 6, Core 37, entrypoints-rest 54, Infra 55, Configuration 104). After Milestone 6.21 it was 109 artifacts (build 6, Core 41, entrypoints-rest 58, Infra 59, Configuration 109). After Milestone 6.22 it is 110 artifacts (build 6, Core 42, entrypoints-rest 59, Infra 60, Configuration 110). After Milestone 6.25 it is 112 artifacts (build 6, Core 42, entrypoints-rest 60, Infra 60, Configuration 112). After Milestone 6.26 it is 117 artifacts (build 6, Core 46, entrypoints-rest 64, Infra 64, Configuration 117). The build+core selection is 52 artifacts and build+configuration is 117. Selection counts for `entrypoints-rest` and `infra-database` include Core transitively, since both declare `requires: [core]`. Its baseline capabilities are:
+The implemented `java-spring-clean-multimodule` profile baseline before Milestone 6.20 was 99 artifacts (build 6, Core 34, entrypoints-rest 51, Infra 52, Configuration 99). After Milestone 6.20 it was 104 artifacts (build 6, Core 37, entrypoints-rest 54, Infra 55, Configuration 104). After Milestone 6.21 it was 109 artifacts (build 6, Core 41, entrypoints-rest 58, Infra 59, Configuration 109). After Milestone 6.22 it is 110 artifacts (build 6, Core 42, entrypoints-rest 59, Infra 60, Configuration 110). After Milestone 6.25 it is 112 artifacts (build 6, Core 42, entrypoints-rest 60, Infra 60, Configuration 112). After Milestone 6.26 it is 117 artifacts (build 6, Core 46, entrypoints-rest 64, Infra 64, Configuration 117). After Milestone 6.27 it is 119 artifacts (build 6, Core 46, entrypoints-rest 65, Infra 64, Configuration 119). After Milestone 6.28 it is 124 artifacts (build 6, Core 50, entrypoints-rest 69, Infra 68, Configuration 124). The build+core selection is 56 artifacts and build+configuration is 124. Selection counts for `entrypoints-rest` and `infra-database` include Core transitively, since both declare `requires: [core]`. Its baseline capabilities are:
 
 - `archunit`;
 - `jacoco`;
@@ -68,7 +68,9 @@ The implemented `java-spring-clean-multimodule` profile baseline before Mileston
 - paging runtime integration through a separate paginated use case (`Find<Entity>PageUseCase`, no HTTP exposure, no sorting).
 - individual read runtime integration through `Find<Entity>ByIdUseCase` and `GET /<entities>/{id}`.
 - create runtime integration through `Create<Entity>Command`, `Create<Entity>UseCase`, persistence conflict detection and `save`, plus REST create integration through `POST /<entities>`.
-- update runtime integration through `Update<Entity>Command`, `Update<Entity>UseCase`, and gateway `update(...)` with existence checking before `save` (no HTTP exposure yet).
+- update runtime integration through `Update<Entity>Command`, `Update<Entity>UseCase`, and gateway `update(...)` with existence checking before `save`;
+- physical delete runtime integration through `Delete<Entity>Command`, `Delete<Entity>UseCase`, and gateway `deleteById(...)` with existence checking before `deleteById`;
+- REST update integration through full replacement `PUT /<entities>/{id}` with generated request DTOs, direct 200 response DTOs, OpenAPI documentation, and real H2/JDK HTTP tests. PATCH, DELETE, partial updates, locking, ETags, and conditional requests remain future capabilities.
 
 `archunit` is implemented as the default architecture guardrail of
 `java-spring-clean-multimodule`: it generates production-only architecture

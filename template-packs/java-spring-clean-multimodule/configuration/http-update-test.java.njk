@@ -1,0 +1,92 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in fixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}{% for fixture in updatedFixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldUpdateAndPersist{{ entityType | replace("Entity", "") }}() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        HttpResponse<String> response = put("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ validUpdatePayloadExpression }});
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode body = OBJECT_MAPPER.readTree(response.body());
+{% for fixture in fixtures %}        assertThat(body.path("{{ fixture.jsonName }}").asText()).isEqualTo(String.valueOf({% if fixture.updatedConstantName %}{{ fixture.updatedConstantName }}{% else %}{{ fixture.constantName }}{% endif %}));
+{% endfor %}        var persisted = {{ repositoryFieldName }}.findById({{ identifierConstantName }}).orElseThrow();
+{% for fixture in updatedFixtures %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}    }
+
+    @Test
+    void shouldReturnUpdated{{ entityType | replace("Entity", "") }}WhenFetchedAfterUpdate() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        assertThat(put("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ validUpdatePayloadExpression }}).statusCode()).isEqualTo(200);
+
+        HttpResponse<String> response = get("{{ endpointPath }}/" + {{ identifierConstantName }});
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode body = OBJECT_MAPPER.readTree(response.body());
+{% for fixture in updatedFixtures %}        assertThat(body.path("{{ fixture.jsonName }}").asText()).isEqualTo(String.valueOf({{ fixture.constantName }}));
+{% endfor %}    }
+
+    @Test
+    void shouldReturnNotFoundForMissing{{ entityType | replace("Entity", "") }}() throws Exception {
+        assertThat(put("{{ endpointPath }}/" + {{ missingIdentifierExpression }}, {{ validUpdatePayloadExpression }}).statusCode()).isEqualTo(404);
+    }
+
+    @Test
+    void shouldRejectNullBody() throws Exception {
+        assertThat(put("{{ endpointPath }}/" + {{ identifierConstantName }}, null).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectMissingValue() throws Exception {
+        assertThat(put("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ missingValuePayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidJson() throws Exception {
+        assertThat(put("{{ endpointPath }}/" + {{ identifierConstantName }}, {{ invalidJsonPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidPathIdentifier() throws Exception {
+        assertThat(put("{{ endpointPath }}/not-a-uuid", {{ validUpdatePayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    private HttpResponse<String> put(String path, String body) throws Exception {
+        HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+            .header("Content-Type", "application/json");
+        HttpRequest request = body == null
+            ? builder.PUT(HttpRequest.BodyPublishers.noBody()).build()
+            : builder.PUT(HttpRequest.BodyPublishers.ofString(body)).build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> get(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+}

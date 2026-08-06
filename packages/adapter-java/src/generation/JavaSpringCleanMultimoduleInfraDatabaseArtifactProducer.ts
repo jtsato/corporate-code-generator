@@ -180,6 +180,9 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         conflictDefaultMessage: `${entityType} already exists.`,
         updateMethodName: "update",
         updateParameterName: toJavaFieldName(entityType),
+        deleteMethodName: "deleteById",
+        deleteParameterName: identifiers[0]!.name,
+        repositoryDeleteByIdMethodName: "deleteById",
         sortPropertyMapping: entity.attributes.map((attribute) => ({
           domainName: attribute.name,
           persistenceName: toJavaFieldName(attribute.name),

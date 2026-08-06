@@ -8,12 +8,14 @@ import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.create.CreateWalletUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase;
+import io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase;
 import io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser;
 import io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus;
 import io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser;
 import io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter.WalletRestFilterDefinition;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.CreateWalletRequest;
+import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.UpdateWalletRequest;
 import io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.sort.WalletRestSortDefinition;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -32,6 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -45,11 +48,13 @@ public class WalletController {
     private final FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase;
     private final FindWalletByIdUseCase findWalletByIdUseCase;
     private final CreateWalletUseCase createWalletUseCase;
+    private final UpdateWalletUseCase updateWalletUseCase;
 
-    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase, FindWalletByIdUseCase findWalletByIdUseCase, CreateWalletUseCase createWalletUseCase) {
+    public WalletController(FindWalletsByFilterPageUseCase findWalletsByFilterPageUseCase, FindWalletByIdUseCase findWalletByIdUseCase, CreateWalletUseCase createWalletUseCase, UpdateWalletUseCase updateWalletUseCase) {
         this.findWalletsByFilterPageUseCase = findWalletsByFilterPageUseCase;
         this.findWalletByIdUseCase = findWalletByIdUseCase;
         this.createWalletUseCase = createWalletUseCase;
+        this.updateWalletUseCase = updateWalletUseCase;
     }
 
     @GetMapping
@@ -96,6 +101,20 @@ public class WalletController {
     public WalletResponse findById(@PathVariable UUID id) {
         Wallet result = findWalletByIdUseCase.execute(id);
         return WalletResponse.from(result);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update wallet", description = "Updates a wallet.")
+    @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Wallet updated", content = @Content(schema = @Schema(implementation = WalletResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "Wallet not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public WalletResponse update(@PathVariable UUID id, @RequestBody UpdateWalletRequest request) {
+        Wallet updated = updateWalletUseCase.execute(request.toCommand(id));
+        return WalletResponse.from(updated);
     }
 
     @PostMapping
