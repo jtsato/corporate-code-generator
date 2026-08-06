@@ -754,3 +754,49 @@ Read-only analysis and independent tests may run in parallel. Two agents may not
 ## Definition of done
 
 A task is complete only after requirements are met, acceptance criteria are evidenced, conventions are followed, relevant tests pass, lint/format checks pass when available, build and typecheck pass when relevant, the full diff is reviewed, no out-of-scope changes exist, QA returns `APPROVED`, residual risks and limitations are documented, and the final report is presented.
+
+## Multi-Agent Workflow
+
+The primary Codex thread is the workflow coordinator.
+
+Project custom agents:
+
+- `tech_lead`: architecture, design, scope and final technical judgment;
+- `developer_a`: implementation and execution of approved changes;
+- `quality_assurance`: independent validation and quality-gate execution.
+
+Custom agents must not spawn or delegate to other agents.
+
+For a new milestone:
+
+1. the primary thread spawns `tech_lead`;
+2. it waits for the design and consolidates it with the user;
+3. after approval, it spawns `developer_a`;
+4. it waits for implementation and its evidence report;
+5. it spawns `quality_assurance`;
+6. it waits for the independent QA report;
+7. blocking QA findings return to `developer_a`;
+8. after remediation, QA validates again;
+9. `tech_lead` reviews the final evidence when an architectural or release
+   decision is required;
+10. the primary thread communicates the final result.
+
+Do not run `developer_a` and `quality_assurance` concurrently against the same
+working tree.
+
+The active parent permission mode must allow workspace writes before spawning
+`developer_a` or `quality_assurance`. Agent TOML defaults do not override a
+more restrictive live parent permission setting.
+
+Milestone completion does not imply target-release completion.
+
+A target release is complete only when its explicit Definition of Done is
+fully satisfied, all mandatory quality gates pass, documentation is current,
+and no required blocker remains.
+
+After target-release completion:
+
+- report the release as ready;
+- list future work only as optional;
+- do not automatically create another milestone;
+- wait for an explicit user request.
