@@ -14,7 +14,7 @@ public record {{ className }}(
                 "{{ field.requiredDefaultMessage }}"
             ));
         }
-{% endif %}{% endfor %}        if (!{% for field in valueFields %}{{ field.name }}Provided{% if not loop.last %} && {% endif %}{% endfor %}) {
+{% endif %}{% endfor %}        if (!({% for field in valueFields %}{{ field.name }}Provided{% if not loop.last %} || {% endif %}{% endfor %})) {
             fields.add(new FieldViolation(
                 "command",
                 "{{ atLeastOneFieldMessageKey }}",

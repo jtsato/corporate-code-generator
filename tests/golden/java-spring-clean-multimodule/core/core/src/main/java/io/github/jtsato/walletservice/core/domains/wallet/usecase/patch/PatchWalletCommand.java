@@ -19,7 +19,7 @@ public record PatchWalletCommand(
                 "Balance is required."
             ));
         }
-        if (!balanceProvided) {
+        if (!(balanceProvided)) {
             fields.add(new FieldViolation(
                 "command",
                 "common.patch.field.required",

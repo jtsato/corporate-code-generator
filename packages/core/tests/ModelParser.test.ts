@@ -16,6 +16,7 @@ describe("ModelParser", () => {
       entities: [
         {
           name: "Wallet",
+          uniqueGroups: [],
           attributes: [
             {
               name: "id",
@@ -46,6 +47,7 @@ describe("ModelParser", () => {
       entities: [
         {
           name: "Wallet",
+          uniqueGroups: [],
           attributes: [
             {
               name: "id",
@@ -97,6 +99,7 @@ describe("ModelParser", () => {
       identifier: false,
       unique: false,
     });
+    expect(model.entities[0]?.uniqueGroups).toEqual([]);
   });
 
   it("should parse unique attributes", () => {
@@ -116,5 +119,24 @@ describe("ModelParser", () => {
       identifier: false,
       unique: true,
     });
+  });
+
+  it("should parse composite unique groups", () => {
+    const document: ApplicationModelDocument = {
+      schemaVersion: "1.0",
+      application: { name: "wallet-service" },
+      entities: [{
+        name: "Wallet",
+        attributes: [
+          { name: "tenantId", type: "uuid" },
+          { name: "externalId", type: "string" },
+        ],
+        uniqueGroups: [["tenantId", "externalId"]],
+      }],
+    };
+
+    expect(new ModelParser().parse(document).entities[0]?.uniqueGroups).toEqual([
+      ["tenantId", "externalId"],
+    ]);
   });
 });

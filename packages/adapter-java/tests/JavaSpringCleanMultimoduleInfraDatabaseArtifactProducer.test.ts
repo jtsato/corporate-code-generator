@@ -32,7 +32,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       model: {
         packageName: "io.github.jtsato.walletservice.infra.domains.wallet.entity",
         imports: ["jakarta.persistence.Column", "jakarta.persistence.Entity", "jakarta.persistence.Id", "jakarta.persistence.Table", "java.math.BigDecimal", "java.time.Instant", "java.util.UUID"],
-        className: "WalletEntity", tableName: "wallet", deletionTimestampFieldName: "deletedAt", deletionTimestampColumnName: "deleted_at", deletionScopeFieldName: "deletionScope", deletionScopeColumnName: "deletion_scope", activeScopeConstantName: "ACTIVE_SCOPE", activeScopeValue: "ACTIVE", markDeletedMethodName: "markDeleted", isActiveMethodName: "isActive", uniqueConstraints: [],
+        className: "WalletEntity", tableName: "wallet", deletionTimestampFieldName: "deletedAt", deletionTimestampColumnName: "deleted_at", deletionTimestampGetterName: "getDeletedAt", deletionScopeFieldName: "deletionScope", deletionScopeColumnName: "deletion_scope", activeScopeConstantName: "ACTIVE_SCOPE", activeScopeValue: "ACTIVE", markDeletedMethodName: "markDeleted", restoreMethodName: "restore", isActiveMethodName: "isActive", uniqueConstraints: [],
         fields: [
           { name: "id", type: "UUID", columnName: "id", nullable: false, identifier: true },
           { name: "balance", type: "BigDecimal", columnName: "balance", nullable: false, identifier: false },
@@ -45,10 +45,10 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       templateId: "infra-database-persistence-mapper",
       model: {
         packageName: "io.github.jtsato.walletservice.infra.domains.wallet.mapper",
-        imports: ["io.github.jtsato.walletservice.core.domains.wallet.model.Wallet", "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity"],
+        imports: ["io.github.jtsato.walletservice.core.domains.wallet.model.Wallet", "io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone", "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity"],
         className: "WalletPersistenceMapper", constructorName: "WalletPersistenceMapper", domainType: "Wallet", entityType: "WalletEntity",
-        domainParameterName: "wallet", entityParameterName: "walletEntity", toEntityMethodName: "toEntity", toDomainMethodName: "toDomain",
-        toEntityArguments: ["wallet.getId()", "wallet.getBalance()"], toDomainArguments: ["walletEntity.getId()", "walletEntity.getBalance()"],
+        domainParameterName: "wallet", entityParameterName: "walletEntity", toEntityMethodName: "toEntity", toDomainMethodName: "toDomain", toTombstoneMethodName: "toTombstone", tombstoneType: "WalletTombstone",
+        toEntityArguments: ["wallet.getId()", "wallet.getBalance()"], toDomainArguments: ["walletEntity.getId()", "walletEntity.getBalance()"], toTombstoneArguments: ["walletEntity.getId()", "walletEntity.getBalance()", "walletEntity.getDeletedAt()"],
       },
       outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletPersistenceMapper" },
     }, {
@@ -81,6 +81,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
           "io.github.jtsato.walletservice.core.common.paging.PageResult",
           "io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway",
           "io.github.jtsato.walletservice.core.domains.wallet.model.Wallet",
+          "io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone",
           "io.github.jtsato.walletservice.infra.database.common.filter.QuerydslFilterMapper",
           "io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageRequestMapper",
           "io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageResultMapper",
@@ -96,6 +97,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
           "java.util.UUID",
           "org.springframework.data.domain.Page",
           "org.springframework.data.domain.Pageable",
+          "org.springframework.transaction.annotation.Transactional",
         ],
         className: "WalletGatewayProvider",
         conflictDefaultMessage: "Wallet already exists.",
@@ -111,6 +113,8 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         mapperType: "WalletPersistenceMapper",
         repositoryFindAllMethodName: "findAll",
         mapperToDomainMethodName: "toDomain",
+        mapperToTombstoneMethodName: "toTombstone",
+        tombstoneType: "WalletTombstone",
         mapperToEntityMethodName: "toEntity",
         createMethodName: "create",
         createParameterName: "wallet",
@@ -131,6 +135,10 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         filterDefinitionType: "WalletQuerydslFilterDefinition",
         filterDefinitionFactoryMethodName: "create",
         findByFilterPageMethodName: "findByFilterPage",
+        findDeletedByIdMethodName: "findDeletedById",
+        findDeletedByFilterPageMethodName: "findDeletedByFilterPage",
+        deletedPredicateMethodName: "deletedPredicate",
+        restoreMethodName: "restoreById",
         persistenceEntityType: "WalletEntity",
         persistenceEntitiesVariableName: "walletEntities",
         requiresIterableConversion: false,
@@ -155,9 +163,11 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         activeScopeConstantReference: "WalletEntity.ACTIVE_SCOPE",
         activePredicateMethodName: "activePredicate",
         uniqueChecks: [],
+        uniqueGroupChecks: [],
         identifierPersistenceFieldName: "id",
         persistenceEntityActiveMethodName: "isActive",
         persistenceEntityMarkDeletedMethodName: "markDeleted",
+        persistenceEntityRestoreMethodName: "restore",
         repositoryExistsMethodName: "exists",
         sortPropertyMapping: [{ domainName: "id", persistenceName: "id" }, { domainName: "balance", persistenceName: "balance" }],
       },
@@ -303,5 +313,70 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       uniqueChecks: [{ domainAccessorName: "getName", persistenceFieldName: "name" }],
       activeScopeConstantReference: "ProductEntity.ACTIVE_SCOPE",
     });
+  });
+
+  it("prepares active composite uniqueness metadata", () => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    const artifacts = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "catalog-service",
+        namespace: "example.catalog",
+        entities: [{ name: "Product", attributes: [
+          { name: "id", type: "uuid", identifier: true, required: true },
+          { name: "tenantId", type: "uuid", required: true },
+          { name: "externalId", type: "string", required: true },
+        ], uniqueGroups: [["tenantId", "externalId"]] }],
+      },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    });
+
+    const entity = artifacts.find((artifact) => artifact.templateId === "infra-database-persistence-entity");
+    expect(entity?.model).toMatchObject({
+      uniqueConstraints: [{
+        name: "uk_product_tenant_id_external_id_active_scope",
+        columnNames: ["tenant_id", "external_id", "deletion_scope"],
+      }],
+    });
+    const provider = artifacts.find((artifact) => artifact.templateId === "infra-database-gateway-provider");
+    expect(provider?.model).toMatchObject({
+      uniqueGroupChecks: [{
+        members: [
+          { domainAccessorName: "getTenantId", persistenceFieldName: "tenantId" },
+          { domainAccessorName: "getExternalId", persistenceFieldName: "externalId" },
+        ],
+      }],
+    });
+  });
+
+  it("prepares deleted-query and restore persistence metadata", () => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    const artifacts = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "catalog-service",
+        namespace: "example.catalog",
+        entities: [{ name: "Product", attributes: [
+          { name: "id", type: "uuid", identifier: true, required: true },
+          { name: "name", type: "string", required: true, unique: true },
+        ] }],
+      },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    });
+
+    expect(artifacts.find((artifact) => artifact.templateId === "infra-database-persistence-entity")?.model).toMatchObject({
+      restoreMethodName: "restore",
+    });
+    const provider = artifacts.find((artifact) => artifact.templateId === "infra-database-gateway-provider");
+    expect(provider?.model).toMatchObject({
+      findDeletedByIdMethodName: "findDeletedById",
+      findDeletedByFilterPageMethodName: "findDeletedByFilterPage",
+      deletedPredicateMethodName: "deletedPredicate",
+      restoreMethodName: "restoreById",
+      persistenceEntityRestoreMethodName: "restore",
+    });
+    expect((provider?.model as { imports: string[] }).imports).toContain("org.springframework.transaction.annotation.Transactional");
   });
 });

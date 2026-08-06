@@ -24,7 +24,42 @@ import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engin
 const rootDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 describe("Java multi-module generation", () => {
-  it("renders the one hundred and twenty-five complete Maven reactor artifacts", async () => {
+  it("renders composite active uniqueness constraints and conflict predicates", async () => {
+    const profile = await new ProfileResolver(resolve(rootDirectory, "profiles")).resolve("java-spring-clean-multimodule");
+    const modules = new ModuleResolver().resolveAll(profile.modules);
+    const resolvedPack = await new TemplatePackResolver(resolve(rootDirectory, "template-packs")).resolve(profile.templatePack);
+    const plan = await new GenerationPlanner(
+      new NunjucksTemplateEngine([resolvedPack.directory]),
+      new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer(),
+      resolvedPack.templatePack,
+    ).plan({
+      application: {
+        schemaVersion: "1.0",
+        name: "catalog-service",
+        namespace: "example.catalog",
+        entities: [{
+          name: "Product",
+          attributes: [
+            { name: "id", type: "uuid", required: true, identifier: true, unique: false },
+            { name: "tenantId", type: "uuid", required: true, identifier: false, unique: false },
+            { name: "externalId", type: "string", required: true, identifier: false, unique: false },
+          ],
+          uniqueGroups: [["tenantId", "externalId"]],
+        }],
+      },
+      profile,
+      modules,
+    });
+
+    const entity = plan.operations.find((operation) => operation.targetPath.endsWith("ProductEntity.java"));
+    const provider = plan.operations.find((operation) => operation.targetPath.endsWith("ProductGatewayProvider.java"));
+    expect(entity?.content).toContain('@UniqueConstraint(name = "uk_product_tenant_id_external_id_active_scope", columnNames = { "tenant_id", "external_id", "deletion_scope" })');
+    expect(provider?.content).toContain("product.getTenantId() != null && product.getExternalId() != null");
+    expect(provider?.content).toContain("ENTITY.tenantId.eq(product.getTenantId())");
+    expect(provider?.content).toContain("ENTITY.externalId.eq(product.getExternalId())");
+  });
+
+  it("renders the one hundred and forty-eight complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -68,10 +103,11 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(131);
+    expect(operations).toHaveLength(148);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/WalletTombstone.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/create/CreateWalletCommand.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/create/CreateWalletUseCase.java",
@@ -89,17 +125,27 @@ describe("Java multi-module generation", () => {
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/delete/DeleteWalletUseCaseInteractorTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/restore/RestoreWalletCommand.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/restore/RestoreWalletUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/restore/RestoreWalletUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/restore/RestoreWalletUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsUseCaseInteractor.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletByIdUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletByIdUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletByIdUseCaseInteractorTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindDeletedWalletByIdUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindDeletedWalletByIdUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindDeletedWalletByIdUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterPageUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterPageUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsByFilterPageUseCaseInteractorTests.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindDeletedWalletsByFilterPageUseCase.java",
+      "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindDeletedWalletsByFilterPageUseCaseInteractor.java",
+      "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindDeletedWalletsByFilterPageUseCaseInteractorTests.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCase.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractor.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/find/FindWalletsPageUseCaseInteractorTests.java",
@@ -130,6 +176,7 @@ describe("Java multi-module generation", () => {
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/CreateWalletRequest.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/UpdateWalletRequest.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/PatchWalletRequest.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletTombstoneResponse.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterOperator.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterFieldDefinition.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterDefinition.java",
@@ -145,6 +192,7 @@ describe("Java multi-module generation", () => {
       "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/sort/WalletRestSortDefinitionTests.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/ResponseStatus.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/WalletPageResponse.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/WalletTombstonePageResponse.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/entity/WalletEntity.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/mapper/WalletPersistenceMapper.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/repository/WalletRepository.java",
@@ -196,6 +244,10 @@ describe("Java multi-module generation", () => {
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPagingPersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletUpdatePersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/WalletDeletePersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletDeletedQueryPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletRestorePersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpDeletedQueryTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpRestoreTests.java",
     ]);
 
     const controller = operations.find((operation) => operation.targetPath.endsWith("/WalletController.java"));

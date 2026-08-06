@@ -25,6 +25,9 @@ public class {{ className }} {
         return {{ getter.fieldName }};
     }
 {% endfor %}
+    public Instant {{ deletionTimestampGetterName }}() {
+        return {{ deletionTimestampFieldName }};
+    }
     public boolean {{ isActiveMethodName }}() {
         return {{ deletionTimestampFieldName }} == null && {{ activeScopeConstantName }}.equals({{ deletionScopeFieldName }});
     }
@@ -32,6 +35,11 @@ public class {{ className }} {
     public void {{ markDeletedMethodName }}(String deletionScope) {
         this.{{ deletionTimestampFieldName }} = Instant.now();
         this.{{ deletionScopeFieldName }} = deletionScope;
+    }
+
+    public void {{ restoreMethodName }}() {
+        this.{{ deletionTimestampFieldName }} = null;
+        this.{{ deletionScopeFieldName }} = {{ activeScopeConstantName }};
     }
 
     public static final String {{ activeScopeConstantName }} = "{{ activeScopeValue }}";

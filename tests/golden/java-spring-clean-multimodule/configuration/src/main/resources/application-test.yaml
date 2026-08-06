@@ -1,0 +1,20 @@
+application:
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+    allowed-methods:
+      - GET
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers: []
+    allow-credentials: false
+    max-age: 3600
+
+logging:
+  level:
+    root: INFO
+
+springdoc:
+  swagger-ui:
+    enabled: true

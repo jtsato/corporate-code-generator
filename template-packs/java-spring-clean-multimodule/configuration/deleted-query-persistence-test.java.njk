@@ -1,0 +1,51 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in declaredFixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    @Autowired
+    private {{ deleteUseCaseType }} {{ deleteUseCaseFieldName }};
+
+    @Autowired
+    private {{ deletedByIdUseCaseType }} {{ deletedByIdUseCaseFieldName }};
+
+    @Autowired
+    private {{ deletedByFilterPageUseCaseType }} {{ deletedByFilterPageUseCaseFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldQueryDeletedWalletsOnly() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        {{ deleteUseCaseFieldName }}.execute(new {{ deleteCommandType }}({{ identifierExpression }}));
+
+        var tombstone = {{ deletedByIdUseCaseFieldName }}.execute({{ identifierExpression }});
+        assertThat(tombstone.getDeletedAt()).isNotNull();
+        assertThat({{ deletedByFilterPageUseCaseFieldName }}.execute(FilterExpression.empty(), {{ pageRequestExpression }}).items())
+            .extracting({{ tombstoneType }}::getId)
+            .containsExactly({{ identifierExpression }});
+    }
+
+    @Test
+    void shouldHideDeletedWalletFromTheNormalPhysicalLookupContract() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        {{ deleteUseCaseFieldName }}.execute(new {{ deleteCommandType }}({{ identifierExpression }}));
+
+        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }})).hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
+    }
+}

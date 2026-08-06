@@ -53,4 +53,19 @@ public class {{ className }} {
     public {{ deleteUseCaseType }} {{ deleteUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
         return new {{ deleteUseCaseImplementationType }}({{ gatewayParameterName }});
     }
+
+    @Bean
+    public {{ deletedByIdUseCaseType }} {{ deletedByIdUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ deletedByIdUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
+
+    @Bean
+    public {{ deletedByFilterPageUseCaseType }} {{ deletedByFilterPageUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ deletedByFilterPageUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
+
+    @Bean
+    public {{ restoreUseCaseType }} {{ restoreUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ restoreUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
 }

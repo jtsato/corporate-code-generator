@@ -21,7 +21,8 @@ export function createJavaHttpCreateTestModel(
   if (identifier === undefined) throw new Error(`Cannot generate the HTTP create test for entity '${entity.name}' without an identifier.`);
   const valueAttribute = entity.attributes.find((attribute) => !attribute.identifier);
   if (valueAttribute === undefined) throw new Error(`Cannot generate the HTTP create test for entity '${entity.name}' without a non-identifier attribute.`);
-  const hasUniqueAttribute = entity.attributes.some((attribute) => attribute.unique === true);
+  const hasUniqueAttribute = entity.attributes.some((attribute) => attribute.unique === true)
+    || (entity.uniqueGroups?.length ?? 0) > 0;
 
   const imports = new JavaImportCollector();
   imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);

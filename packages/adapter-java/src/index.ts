@@ -157,6 +157,7 @@ export { toJavaTypeName } from "./naming/JavaTypeName.js";
 export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
 export { toJavaDatabaseTableName } from "./naming/JavaDatabaseTableName.js";
 export { toJavaDatabaseColumnName } from "./naming/JavaDatabaseColumnName.js";
+export { toJavaDatabaseUniqueConstraintName } from "./naming/JavaDatabaseConstraintName.js";
 export { toJavaFieldName } from "./naming/JavaFieldName.js";
 export { toJavaConstantName } from "./naming/JavaConstantName.js";
 export { toJavaPluralTypeName } from "./naming/JavaPluralTypeName.js";

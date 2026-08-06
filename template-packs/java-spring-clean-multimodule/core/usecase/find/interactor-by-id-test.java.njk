@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class {{ className }} {
     private static final class {{ fakeGatewayType }} implements {{ gatewayType }} {
         private {{ identifierType }} received;
-        private {{ entityType }} result;
+        private {% if deletedUseCase %}{{ entityType }}Tombstone{% else %}{{ entityType }}{% endif %} result;
         private int findByIdCallCount;
 
         @Override
@@ -25,11 +25,21 @@ class {{ className }} {
         public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }}) { return null; }
 
         @Override
-        public {{ entityType }} {{ gatewayFindByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
+        public {% if deletedUseCase %}{{ entityType }}Tombstone{% else %}{{ entityType }}{% endif %} {{ gatewayFindByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
             findByIdCallCount++;
             received = {{ identifierParameterName }};
             return result;
         }
+
+{% if deletedUseCase %}        @Override
+        public {{ entityType }} findById({{ identifierType }} {{ identifierParameterName }}) { return null; }
+{% endif %}
+
+        @Override
+{% if not deletedUseCase %}        public {{ entityType }}Tombstone findDeletedById({{ identifierType }} {{ identifierParameterName }}) { return null; }
+
+        @Override
+{% endif %}        public {{ pageResultType }}<{{ entityType }}Tombstone> findDeletedByFilterPage({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }}) { return null; }
 
         @Override
         public {{ entityType }} create({{ entityType }} entity) { return null; }
@@ -39,15 +49,20 @@ class {{ className }} {
 
         @Override
         public void deleteById({{ identifierType }} id) { }
+
+        @Override
+        public void restoreById({{ identifierType }} {{ identifierParameterName }}) { }
     }
 
     @Test
     void shouldDelegateIdentifierToGatewayAndReturnItsResult() {
         var gateway = new {{ fakeGatewayType }}();
         var identifier = {{ identifierValueExpression }};
-        gateway.result = new {{ entityType }}(
+{% if deletedUseCase %}        gateway.result = null;
+{% else %}        gateway.result = new {{ entityType }}(
 {% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
 {% endfor %}        );
+{% endif %}
 
         var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(identifier);
 

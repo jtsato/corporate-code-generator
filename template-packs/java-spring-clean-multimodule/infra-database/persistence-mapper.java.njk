@@ -17,4 +17,10 @@ public final class {{ className }} {
 {% for argument in toDomainArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
 {% endfor %}        );
     }
+
+    public static {{ tombstoneType }} {{ toTombstoneMethodName }}({{ entityType }} {{ entityParameterName }}) {
+        return new {{ tombstoneType }}(
+{% for argument in toTombstoneArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+    }
 }

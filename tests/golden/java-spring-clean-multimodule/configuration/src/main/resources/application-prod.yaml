@@ -1,0 +1,11 @@
+application:
+  cors:
+    allowed-origins: ${APPLICATION_CORS_ALLOWED_ORIGINS}
+    allowed-methods: ${APPLICATION_CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+    allowed-headers: ${APPLICATION_CORS_ALLOWED_HEADERS:*}
+    allow-credentials: ${APPLICATION_CORS_ALLOW_CREDENTIALS:false}
+    max-age: ${APPLICATION_CORS_MAX_AGE:3600}
+
+springdoc:
+  swagger-ui:
+    enabled: ${OPENAPI_SWAGGER_UI_ENABLED:false}

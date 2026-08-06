@@ -24,11 +24,13 @@ export interface JavaPersistenceEntityTemplateModel {
   readonly getters: readonly JavaGetterTemplateModel[];
   readonly deletionTimestampFieldName: string;
   readonly deletionTimestampColumnName: string;
+  readonly deletionTimestampGetterName: string;
   readonly deletionScopeFieldName: string;
   readonly deletionScopeColumnName: string;
   readonly activeScopeConstantName: string;
   readonly activeScopeValue: string;
   readonly markDeletedMethodName: string;
+  readonly restoreMethodName: string;
   readonly isActiveMethodName: string;
   readonly uniqueConstraints: readonly JavaPersistenceUniqueConstraintTemplateModel[];
 }

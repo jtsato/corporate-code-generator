@@ -39,6 +39,9 @@ public class WalletEntity {
         return balance;
     }
 
+    public Instant getDeletedAt() {
+        return deletedAt;
+    }
     public boolean isActive() {
         return deletedAt == null && ACTIVE_SCOPE.equals(deletionScope);
     }
@@ -46,6 +49,11 @@ public class WalletEntity {
     public void markDeleted(String deletionScope) {
         this.deletedAt = Instant.now();
         this.deletionScope = deletionScope;
+    }
+
+    public void restore() {
+        this.deletedAt = null;
+        this.deletionScope = ACTIVE_SCOPE;
     }
 
     public static final String ACTIVE_SCOPE = "ACTIVE";

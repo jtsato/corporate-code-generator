@@ -41,8 +41,12 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const entityType = toJavaTypeName(entity.name);
       const controllerName = `${entityType}Controller`;
       const responseName = `${entityType}Response`;
+      const tombstoneResponseName = `${entityType}TombstoneResponse`;
       const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
       const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
+      const deletedByFilterPageUseCaseType = `FindDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
+      const deletedByIdUseCaseType = `FindDeleted${entityType}ByIdUseCase`;
+      const restoreUseCaseType = `Restore${entityType}UseCase`;
       const createUseCaseType = `Create${entityType}UseCase`;
       const createRequestType = `Create${entityType}Request`;
       const updateUseCaseType = `Update${entityType}UseCase`;
@@ -63,6 +67,10 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const controllerImports = new JavaImportCollector();
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byIdUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${deletedByFilterPageUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${deletedByIdUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.restore.${restoreUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.restore.Restore${entityType}Command`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${createRequestType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}`);
@@ -74,8 +82,11 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
       controllerImports.add(`${namespace}.core.common.paging.PageResult`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
       controllerImports.add(`${namespace}.core.common.filter.FilterExpression`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.${entityType}PageResponse`);
+      controllerImports.add(`${namespace}.entrypoint.rest.common.${entityType}TombstonePageResponse`);
+      controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.${tombstoneResponseName}`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.ResponseStatus`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.filter.RestFilterParser`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.filter.${filterDefinitionType}`);
@@ -114,6 +125,9 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         responseClassName: responseName,
         domainClassName: entityType,
         pageResponseClassName: `${entityType}PageResponse`,
+        deletedPageResponseClassName: `${entityType}TombstonePageResponse`,
+        deletedResponseClassName: tombstoneResponseName,
+        deletedResponseSourceClassName: `${entityType}Tombstone`,
         pageRequestClassName: "PageRequest",
         pageResultClassName: "PageResult",
         findAllMethodName: "findAll",
@@ -186,6 +200,23 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         deleteOperationSummary: `Delete ${entityType.toLowerCase()}`,
         deleteOperationDescription: `Deletes a ${entityType.toLowerCase()}.`,
         deleteResponseStatus: "204",
+        deletedByFilterPageUseCaseType,
+        deletedByFilterPageUseCaseFieldName: toJavaFieldName(deletedByFilterPageUseCaseType),
+        deletedByFilterPageUseCaseExecuteMethodName: "execute",
+        deletedByIdUseCaseType,
+        deletedByIdUseCaseFieldName: toJavaFieldName(deletedByIdUseCaseType),
+        deletedByIdUseCaseExecuteMethodName: "execute",
+        deletedOperationSummary: `Find deleted ${toJavaPluralTypeName(entityType).toLowerCase()}`,
+        deletedOperationDescription: `Returns deleted ${toJavaPluralTypeName(entityType).toLowerCase()}.`,
+        deletedByIdOperationSummary: `Find deleted ${entityType.toLowerCase()} by id`,
+        deletedByIdOperationDescription: `Returns a deleted ${entityType.toLowerCase()} by its identifier.`,
+        restoreUseCaseType,
+        restoreUseCaseFieldName: toJavaFieldName(restoreUseCaseType),
+        restoreUseCaseExecuteMethodName: "execute",
+        restoreMethodName: "restore",
+        restoreOperationSummary: `Restore ${entityType.toLowerCase()}`,
+        restoreOperationDescription: `Restores a deleted ${entityType.toLowerCase()}.`,
+        restoreResponseStatus: "204",
       };
       const responseImports = new JavaImportCollector();
       responseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -206,6 +237,23 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
           `${toJavaFieldName(entityType)}.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`,
         ),
       };
+      const tombstoneResponseImports = new JavaImportCollector();
+      tombstoneResponseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
+      tombstoneResponseImports.add("java.time.Instant");
+      for (const attribute of entity.attributes) tombstoneResponseImports.add(this.typeResolver.resolve(attribute.type).import);
+      const tombstoneResponse: JavaFactoryRestResponseTemplateModel = {
+        packageName,
+        imports: tombstoneResponseImports.values(),
+        recordName: tombstoneResponseName,
+        components: [...components, { name: "deletedAt", type: "Instant", description: `${entityType} deletion timestamp.` }],
+        factoryMethodName: "from",
+        factoryParameterType: `${entityType}Tombstone`,
+        factoryParameterName: `${toJavaFieldName(entityType)}Tombstone`,
+        factoryArguments: [
+          ...entity.attributes.map((attribute) => `${toJavaFieldName(entityType)}Tombstone.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`),
+          `${toJavaFieldName(entityType)}Tombstone.getDeletedAt()`,
+        ],
+      };
       const variables = { packagePath: namespace.replaceAll(".", "/"), domainName };
       return [
         { templateId: "entrypoints-rest-controller", model: controller, outputVariables: { ...variables, className: controllerName } },
@@ -225,6 +273,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
           model: createPatchRequestModel(entity.attributes, identifier, namespace, domainName, entityType, this.typeResolver),
           outputVariables: { ...variables, domainName, className: patchRequestType },
         },
+        { templateId: "entrypoints-rest-tombstone-response", model: tombstoneResponse, outputVariables: { ...variables, className: tombstoneResponseName } },
       ];
     });
     const packagePath = namespace.replaceAll(".", "/");
@@ -268,6 +317,14 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
           templateId: "entrypoints-rest-page-response",
           model: { packageName: `${namespace}.entrypoint.rest.common`, pageResultPackageName: `${namespace}.core.common.paging`, responsePackageName: `${namespace}.entrypoint.rest.domains.${toJavaPackageSegment(entity.name)}`, responseType: `${entityType}Response`, className: `${entityType}PageResponse` },
           outputVariables: { packagePath, className: `${entityType}PageResponse` },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const entityType = toJavaTypeName(entity.name);
+        return {
+          templateId: "entrypoints-rest-tombstone-page-response",
+          model: { packageName: `${namespace}.entrypoint.rest.common`, pageResultPackageName: `${namespace}.core.common.paging`, responsePackageName: `${namespace}.entrypoint.rest.domains.${toJavaPackageSegment(entity.name)}`, responseType: `${entityType}TombstoneResponse`, className: `${entityType}TombstonePageResponse` },
+          outputVariables: { packagePath, className: `${entityType}TombstonePageResponse` },
         };
       }),
     ];

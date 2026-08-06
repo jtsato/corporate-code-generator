@@ -21,7 +21,7 @@ class {{ className }} {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.headers().firstValue("Content-Type")).hasValueSatisfying(value -> assertThat(value).startsWith("application/json"));
-        assertThat(response.body()).contains("openapi", "{{ endpointPath }}", "WalletResponse", "ResponseStatus", "{{ title }}");
+        assertThat(response.body()).contains("openapi", "{{ endpointPath }}", "{{ itemResponseSchemaName }}", "ResponseStatus", "{{ title }}");
     }
 
     @Test void documentsTheFilterQueryParameter() throws Exception {
@@ -193,6 +193,33 @@ class {{ className }} {
         assertThat(operation.path("responses").has("500")).isTrue();
     }
 
+    @Test void documentsDeletedQueryOperations() throws Exception {
+        JsonNode document = document();
+        JsonNode operation = deletedQueryOperation(document);
+        assertThat(findParameter(operation.path("parameters"), "{{ filterParameterName }}").path("in").asText()).isEqualTo("query");
+        JsonNode response = operation.path("responses").path("200");
+        JsonNode schema = response.path("content").path("*/*").path("schema");
+        assertThat(schema.path("$ref").asText("")).contains("{{ tombstonePageResponseSchemaName }}");
+    }
+
+    @Test void documentsDeletedByIdOperation() throws Exception {
+        JsonNode document = document();
+        JsonNode operation = deletedByIdOperation(document);
+        assertThat(operation.path("responses").path("200").path("content").path("*/*").path("schema").path("$ref").asText(""))
+            .contains("{{ tombstoneResponseSchemaName }}");
+        assertThat(operation.path("responses").has("404")).isTrue();
+    }
+
+    @Test void documentsRestoreOperation() throws Exception {
+        JsonNode document = document();
+        JsonNode operation = restoreOperation(document);
+        assertThat(operation.path("responses").has("204")).isTrue();
+        assertThat(operation.path("responses").has("400")).isTrue();
+        assertThat(operation.path("responses").has("404")).isTrue();
+        assertThat(operation.path("responses").has("409")).isTrue();
+        assertThat(operation.path("responses").has("500")).isTrue();
+    }
+
     private JsonNode document() throws Exception {
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/v3/api-docs")).GET().build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -228,6 +255,21 @@ class {{ className }} {
         assertThat(document.path("paths").has("{{ findByIdEndpointPath }}")).isTrue();
         assertThat(document.path("paths").path("{{ findByIdEndpointPath }}").has("delete")).isTrue();
         return document.path("paths").path("{{ findByIdEndpointPath }}").path("delete");
+    }
+
+    private JsonNode deletedQueryOperation(JsonNode document) {
+        assertThat(document.path("paths").has("{{ endpointPath }}/deleted")).isTrue();
+        return document.path("paths").path("{{ endpointPath }}/deleted").path("get");
+    }
+
+    private JsonNode deletedByIdOperation(JsonNode document) {
+        assertThat(document.path("paths").has("{{ deletedByIdEndpointPath }}")).isTrue();
+        return document.path("paths").path("{{ deletedByIdEndpointPath }}").path("get");
+    }
+
+    private JsonNode restoreOperation(JsonNode document) {
+        assertThat(document.path("paths").has("{{ restoreEndpointPath }}")).isTrue();
+        return document.path("paths").path("{{ restoreEndpointPath }}").path("post");
     }
 
     private JsonNode patchOperation(JsonNode document) {

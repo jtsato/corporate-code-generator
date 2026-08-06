@@ -8,6 +8,7 @@ import io.github.jtsato.walletservice.core.common.paging.PageRequest;
 import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
+import io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone;
 import io.github.jtsato.walletservice.infra.database.common.filter.QuerydslFilterMapper;
 import io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageRequestMapper;
 import io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageResultMapper;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 public class WalletGatewayProvider implements WalletGateway {
     private static final QWalletEntity ENTITY = QWalletEntity.walletEntity;
@@ -47,6 +49,19 @@ public class WalletGatewayProvider implements WalletGateway {
         return walletRepository.findById(id)
             .filter(WalletEntity::isActive)
             .map(WalletPersistenceMapper::toDomain)
+            .orElseThrow(() -> new NotFoundException(
+                "wallet.not-found",
+                "Wallet was not found."
+        ));
+    }
+
+    @Override
+    public WalletTombstone findDeletedById(UUID id) {
+        Objects.requireNonNull(id, "id");
+
+        return walletRepository.findById(id)
+            .filter(entity -> !entity.isActive())
+            .map(WalletPersistenceMapper::toTombstone)
             .orElseThrow(() -> new NotFoundException(
                 "wallet.not-found",
                 "Wallet was not found."
@@ -169,8 +184,65 @@ public class WalletGatewayProvider implements WalletGateway {
         );
     }
 
+    @Override
+    public PageResult<WalletTombstone> findDeletedByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) {
+        Objects.requireNonNull(filterExpression, "filterExpression");
+        Objects.requireNonNull(pageRequest, "pageRequest");
+
+        BooleanExpression predicate = deletedPredicate();
+        predicate = QuerydslFilterMapper.toPredicate(
+            filterExpression,
+            WalletQuerydslFilterDefinition.create()
+        ).map(predicate::and).orElse(predicate);
+        Pageable pageable = SpringDataPageRequestMapper.toPageable(
+            pageRequest,
+            Map.ofEntries(
+                Map.entry("id", "id"),
+                Map.entry("balance", "balance")
+            )
+        );
+        Page<WalletEntity> page = walletRepository.findAll(predicate, pageable);
+
+        return SpringDataPageResultMapper.toPageResult(
+            page,
+            WalletPersistenceMapper::toTombstone
+        );
+    }
+
+    @Override
+    @Transactional
+    public void restoreById(UUID id) {
+        Objects.requireNonNull(id, "id");
+
+        WalletEntity entity = walletRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException(
+                "wallet.not-found",
+                "Wallet was not found."
+            ));
+        if (entity.isActive()) {
+            throw new ConflictException(
+                "wallet.already-exists",
+                "Wallet already exists."
+            );
+        }
+
+        Wallet domain = WalletPersistenceMapper.toDomain(entity);
+        if (hasActiveUniqueConflict(domain, id)) {
+            throw new ConflictException(
+                "wallet.already-exists",
+                "Wallet already exists."
+            );
+        }
+        entity.restore();
+        walletRepository.save(entity);
+    }
+
     private BooleanExpression activePredicate() {
         return ENTITY.deletedAt.isNull().and(ENTITY.deletionScope.eq(WalletEntity.ACTIVE_SCOPE));
+    }
+
+    private BooleanExpression deletedPredicate() {
+        return ENTITY.deletedAt.isNotNull().and(ENTITY.deletionScope.ne(WalletEntity.ACTIVE_SCOPE));
     }
 
     private boolean hasActiveUniqueConflict(Wallet wallet, UUID ignoredIdentifier) {

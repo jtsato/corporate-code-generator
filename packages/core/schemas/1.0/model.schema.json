@@ -62,7 +62,21 @@
           "items": {
             "$ref": "#/$defs/attribute"
           }
+        },
+        "uniqueGroups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/uniqueGroup"
+          }
         }
+      }
+    },
+    "uniqueGroup": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "string",
+        "minLength": 1
       }
     },
     "attribute": {

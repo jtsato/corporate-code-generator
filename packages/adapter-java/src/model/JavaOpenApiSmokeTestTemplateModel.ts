@@ -4,6 +4,8 @@ export interface JavaOpenApiSmokeTestTemplateModel {
   readonly title: string;
   readonly endpointPath: string;
   readonly findByIdEndpointPath: string;
+  readonly deletedByIdEndpointPath: string;
+  readonly restoreEndpointPath: string;
   readonly identifierParameterName: string;
   readonly identifierSchemaFormat: string;
   readonly filterParameterName: string;
@@ -18,4 +20,6 @@ export interface JavaOpenApiSmokeTestTemplateModel {
   readonly createResponseSchemaName: string;
   readonly updateRequestSchemaName: string;
   readonly patchRequestSchemaName: string;
+  readonly tombstonePageResponseSchemaName: string;
+  readonly tombstoneResponseSchemaName: string;
 }

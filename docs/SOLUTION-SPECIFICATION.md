@@ -676,6 +676,7 @@ interface ApplicationModel {
 interface Entity {
     name: string;
     attributes: Attribute[];
+    uniqueGroups?: string[][];
     relationships: Relationship[];
 }
 

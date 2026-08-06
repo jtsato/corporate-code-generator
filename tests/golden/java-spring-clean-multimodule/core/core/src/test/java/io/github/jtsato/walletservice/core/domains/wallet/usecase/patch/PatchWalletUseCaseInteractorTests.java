@@ -10,6 +10,7 @@ import io.github.jtsato.walletservice.core.common.paging.PageRequest;
 import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
+import io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletCommand;
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,9 +30,12 @@ class PatchWalletUseCaseInteractorTests {
         @Override public PageResult<Wallet> findPage(PageRequest pageRequest) { return null; }
         @Override public PageResult<Wallet> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) { return null; }
         @Override public Wallet findById(UUID id) { findByIdCallCount++; return current; }
+        @Override public WalletTombstone findDeletedById(UUID id) { return null; }
+        @Override public PageResult<WalletTombstone> findDeletedByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) { return null; }
         @Override public Wallet create(Wallet entity) { return null; }
         @Override public Wallet update(Wallet entity) { updateCallCount++; received = entity; return result; }
         @Override public void deleteById(UUID id) { }
+        @Override public void restoreById(UUID id) { }
     }
 
     @Test

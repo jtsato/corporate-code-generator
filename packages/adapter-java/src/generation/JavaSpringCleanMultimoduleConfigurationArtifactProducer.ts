@@ -19,6 +19,10 @@ import type { JavaFindByIdPersistenceTestTemplateModel } from "../model/JavaFind
 import type { JavaCreatePersistenceTestTemplateModel } from "../model/JavaCreatePersistenceTestTemplateModel.js";
 import type { JavaUpdatePersistenceTestTemplateModel } from "../model/JavaUpdatePersistenceTestTemplateModel.js";
 import type { JavaDeletePersistenceTestTemplateModel } from "../model/JavaDeletePersistenceTestTemplateModel.js";
+import type { JavaDeletedQueryPersistenceTestTemplateModel } from "../model/JavaDeletedQueryPersistenceTestTemplateModel.js";
+import type { JavaRestorePersistenceTestTemplateModel } from "../model/JavaRestorePersistenceTestTemplateModel.js";
+import type { JavaHttpDeletedQueryTestTemplateModel } from "../model/JavaHttpDeletedQueryTestTemplateModel.js";
+import type { JavaHttpRestoreTestTemplateModel } from "../model/JavaHttpRestoreTestTemplateModel.js";
 import type { JavaHttpFindByIdTestTemplateModel } from "../model/JavaHttpFindByIdTestTemplateModel.js";
 import { createJavaHttpUpdateTestModel } from "../transformers/createJavaHttpUpdateTestModel.js";
 import { createJavaHttpPatchTestModel } from "../transformers/createJavaHttpPatchTestModel.js";
@@ -115,6 +119,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const updateUseCaseType = `Update${entityType}UseCase`;
         const patchUseCaseType = `Patch${entityType}UseCase`;
         const deleteUseCaseType = `Delete${entityType}UseCase`;
+        const deletedByIdUseCaseType = `FindDeleted${entityType}ByIdUseCase`;
+        const deletedByFilterPageUseCaseType = `FindDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
+        const restoreUseCaseType = `Restore${entityType}UseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
@@ -135,6 +142,12 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.patch.${patchUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${deleteUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${deletedByIdUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${deletedByIdUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${deletedByFilterPageUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${deletedByFilterPageUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.restore.${restoreUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.restore.${restoreUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
@@ -176,6 +189,15 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           deleteUseCaseBeanMethodName: `delete${entityType}UseCase`,
           deleteUseCaseType,
           deleteUseCaseImplementationType: `${deleteUseCaseType}Interactor`,
+          deletedByIdUseCaseBeanMethodName: `findDeleted${entityType}ByIdUseCase`,
+          deletedByIdUseCaseType,
+          deletedByIdUseCaseImplementationType: `${deletedByIdUseCaseType}Interactor`,
+          deletedByFilterPageUseCaseBeanMethodName: `findDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`,
+          deletedByFilterPageUseCaseType,
+          deletedByFilterPageUseCaseImplementationType: `${deletedByFilterPageUseCaseType}Interactor`,
+          restoreUseCaseBeanMethodName: `restore${entityType}UseCase`,
+          restoreUseCaseType,
+          restoreUseCaseImplementationType: `${restoreUseCaseType}Interactor`,
         };
 
         return {
@@ -229,6 +251,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           title: openApiConfiguration.title,
           endpointPath: toRestCollectionPath(entity.name),
           findByIdEndpointPath: `${toRestCollectionPath(entity.name)}/{${identifier.name}}`,
+          deletedByIdEndpointPath: `${toRestCollectionPath(entity.name)}/deleted/{${identifier.name}}`,
+          restoreEndpointPath: `${toRestCollectionPath(entity.name)}/{${identifier.name}}/restore`,
           identifierParameterName: identifier.name,
           identifierSchemaFormat: identifier.type === "uuid" ? "uuid" : "",
           filterParameterName: "filter",
@@ -243,6 +267,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           createResponseSchemaName: `${toJavaTypeName(entity.name)}Response`,
           updateRequestSchemaName: `Update${toJavaTypeName(entity.name)}Request`,
           patchRequestSchemaName: `Patch${toJavaTypeName(entity.name)}Request`,
+          tombstonePageResponseSchemaName: `${toJavaTypeName(entity.name)}TombstonePageResponse`,
+          tombstoneResponseSchemaName: `${toJavaTypeName(entity.name)}TombstoneResponse`,
         };
         return { templateId: "configuration-openapi-smoke-test", model, outputVariables: { ...outputVariables, className: model.className } };
       }),
@@ -779,6 +805,154 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           model: persistenceModel,
           outputVariables: { ...outputVariables, className: persistenceModel.className },
         };
+      }),
+      ...request.application.entities.flatMap((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const identifier = entity.attributes.find((attribute) => attribute.identifier);
+        if (identifier === undefined) throw new Error(`Cannot generate deleted-query tests for entity '${entity.name}' without an identifier.`);
+        const occurrenceCounts = new Map<string, number>();
+        const imports = new JavaImportCollector();
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.Delete${entityType}Command`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.Delete${entityType}UseCase`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.FindDeleted${entityType}ByIdUseCase`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.find.FindDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`);
+        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.core.common.filter.FilterExpression`);
+        imports.add(`${namespace}.core.common.paging.PageRequest`);
+        imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
+        imports.add("java.util.List");
+        imports.add("org.junit.jupiter.api.AfterEach");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.beans.factory.annotation.Autowired");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.test.context.ActiveProfiles");
+        const fixtures = entity.attributes.map((attribute) => {
+          const occurrenceIndex = occurrenceCounts.get(attribute.type) ?? 0;
+          occurrenceCounts.set(attribute.type, occurrenceIndex + 1);
+          const javaType = this.typeResolver.resolve(attribute.type);
+          imports.add(javaType.import);
+          return { constantName: toJavaConstantName(`${entity.name}_${attribute.name}`), type: javaType.name, javaExpression: this.fixtureResolver.resolve(attribute.type, occurrenceIndex).javaExpression };
+        });
+        const deletedModel: JavaDeletedQueryPersistenceTestTemplateModel = {
+          packageName: namespace,
+          imports: imports.values(),
+          className: `${entityType}DeletedQueryPersistenceTests`,
+          activeProfile: "test",
+          deleteUseCaseType: `Delete${entityType}UseCase`,
+          deleteUseCaseFieldName: toJavaFieldName(`Delete${entityType}UseCase`),
+          deleteCommandType: `Delete${entityType}Command`,
+          deletedByIdUseCaseType: `FindDeleted${entityType}ByIdUseCase`,
+          deletedByIdUseCaseFieldName: toJavaFieldName(`FindDeleted${entityType}ByIdUseCase`),
+          deletedByFilterPageUseCaseType: `FindDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`,
+          deletedByFilterPageUseCaseFieldName: toJavaFieldName(`FindDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`),
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          persistenceEntityType: `${entityType}Entity`,
+          declaredFixtures: fixtures,
+          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          identifierExpression: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
+          pageRequestExpression: "PageRequest.of(0, 20, List.of())",
+          tombstoneType: `${entityType}Tombstone`,
+        };
+
+        const restoreImports = new JavaImportCollector();
+        restoreImports.add(`${namespace}.core.common.exception.ConflictException`);
+        restoreImports.add(`${namespace}.core.common.exception.NotFoundException`);
+        restoreImports.add(`${namespace}.core.domains.${domainName}.usecase.delete.Delete${entityType}Command`);
+        restoreImports.add(`${namespace}.core.domains.${domainName}.usecase.delete.Delete${entityType}UseCase`);
+        restoreImports.add(`${namespace}.core.domains.${domainName}.usecase.restore.Restore${entityType}Command`);
+        restoreImports.add(`${namespace}.core.domains.${domainName}.usecase.restore.Restore${entityType}UseCase`);
+        restoreImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+        restoreImports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        restoreImports.add("org.junit.jupiter.api.AfterEach");
+        restoreImports.add("org.junit.jupiter.api.Test");
+        restoreImports.add("org.springframework.beans.factory.annotation.Autowired");
+        restoreImports.add("org.springframework.boot.test.context.SpringBootTest");
+        restoreImports.add("org.springframework.test.context.ActiveProfiles");
+        for (const attribute of entity.attributes) restoreImports.add(this.typeResolver.resolve(attribute.type).import);
+        const uniqueGroupAttributes = new Set((entity.uniqueGroups ?? []).flat());
+        const conflictingEntityConstructorArguments = entity.attributes.map((attribute, index) => {
+          if (attribute.identifier) return this.fixtureResolver.resolve(attribute.type, 1).javaExpression;
+          if (attribute.unique || uniqueGroupAttributes.has(attribute.name)) return toJavaConstantName(`${entity.name}_${attribute.name}`);
+          return this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression;
+        });
+        const restoreModel: JavaRestorePersistenceTestTemplateModel = {
+          packageName: namespace,
+          imports: restoreImports.values(),
+          className: `${entityType}RestorePersistenceTests`,
+          activeProfile: "test",
+          deleteUseCaseType: `Delete${entityType}UseCase`,
+          deleteUseCaseFieldName: toJavaFieldName(`Delete${entityType}UseCase`),
+          deleteCommandType: `Delete${entityType}Command`,
+          restoreUseCaseType: `Restore${entityType}UseCase`,
+          restoreUseCaseFieldName: toJavaFieldName(`Restore${entityType}UseCase`),
+          restoreCommandType: `Restore${entityType}Command`,
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          persistenceEntityType: `${entityType}Entity`,
+          declaredFixtures: fixtures,
+          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          identifierExpression: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
+          conflictingEntityConstructorArguments,
+          hasUniqueAttribute: entity.attributes.some((attribute) => attribute.unique === true)
+            || (entity.uniqueGroups?.length ?? 0) > 0,
+          notFoundExceptionType: "NotFoundException",
+          conflictExceptionType: "ConflictException",
+          conflictMessageKey: `${domainName}.already-exists`,
+        };
+
+        const httpImports = new JavaImportCollector();
+        httpImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+        httpImports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        httpImports.add("com.fasterxml.jackson.databind.ObjectMapper");
+        httpImports.add("java.net.http.HttpClient");
+        httpImports.add("java.net.http.HttpRequest");
+        httpImports.add("java.net.http.HttpResponse");
+        httpImports.add("org.junit.jupiter.api.AfterEach");
+        httpImports.add("org.junit.jupiter.api.Test");
+        httpImports.add("org.springframework.beans.factory.annotation.Autowired");
+        httpImports.add("org.springframework.boot.test.context.SpringBootTest");
+        httpImports.add("org.springframework.boot.test.web.server.LocalServerPort");
+        httpImports.add("org.springframework.test.context.ActiveProfiles");
+        for (const fixture of fixtures) httpImports.add(fixture.type === "UUID" ? "java.util.UUID" : this.typeResolver.resolve(entity.attributes.find((attribute) => toJavaConstantName(`${entity.name}_${attribute.name}`) === fixture.constantName)!.type).import);
+        const httpDeletedModel: JavaHttpDeletedQueryTestTemplateModel = {
+          packageName: namespace,
+          imports: insertUriImport(httpImports.values()),
+          className: `${entityType}HttpDeletedQueryTests`,
+          activeProfile: "test",
+          endpointPath: toRestCollectionPath(entity.name),
+          persistenceEntityType: `${entityType}Entity`,
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          identifierConstantName: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          fixtures,
+        };
+        const httpRestoreModel: JavaHttpRestoreTestTemplateModel = {
+          packageName: namespace,
+          imports: insertUriImport(httpImports.values()),
+          className: `${entityType}HttpRestoreTests`,
+          activeProfile: "test",
+          endpointPath: toRestCollectionPath(entity.name),
+          persistenceEntityType: `${entityType}Entity`,
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          identifierConstantName: toJavaConstantName(`${entity.name}_${identifier.name}`),
+          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          conflictingEntityConstructorArguments,
+          fixtures,
+          restoreResponseStatus: 204,
+        };
+        return [
+          { templateId: "configuration-deleted-query-persistence-test", model: deletedModel, outputVariables: { ...outputVariables, className: deletedModel.className } },
+          { templateId: "configuration-restore-persistence-test", model: restoreModel, outputVariables: { ...outputVariables, className: restoreModel.className } },
+          { templateId: "configuration-http-deleted-query-test", model: httpDeletedModel, outputVariables: { ...outputVariables, className: httpDeletedModel.className } },
+          { templateId: "configuration-http-restore-test", model: httpRestoreModel, outputVariables: { ...outputVariables, className: httpRestoreModel.className } },
+        ];
       }),
     ];
   }

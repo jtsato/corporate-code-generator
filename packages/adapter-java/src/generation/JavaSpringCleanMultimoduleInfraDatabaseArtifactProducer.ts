@@ -10,6 +10,7 @@ import type { JavaPersistenceMapperTemplateModel } from "../model/JavaPersistenc
 import type { JavaSpringDataRepositoryTemplateModel } from "../model/JavaSpringDataRepositoryTemplateModel.js";
 import { toJavaDatabaseColumnName } from "../naming/JavaDatabaseColumnName.js";
 import { toJavaDatabaseTableName } from "../naming/JavaDatabaseTableName.js";
+import { toJavaDatabaseUniqueConstraintName } from "../naming/JavaDatabaseConstraintName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
@@ -47,7 +48,8 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       persistenceImports.add("jakarta.persistence.Table");
       persistenceImports.add("java.time.Instant");
       const uniqueAttributes = entity.attributes.filter((attribute) => attribute.unique === true);
-      if (uniqueAttributes.length > 0) persistenceImports.add("jakarta.persistence.UniqueConstraint");
+      const uniqueGroups = entity.uniqueGroups ?? [];
+      if (uniqueAttributes.length > 0 || uniqueGroups.length > 0) persistenceImports.add("jakarta.persistence.UniqueConstraint");
       const fields = entity.attributes.map((attribute) => {
         const javaType = typeResolver.resolve(attribute.type);
         persistenceImports.add(javaType.import);
@@ -70,28 +72,44 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         getters: fields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })),
         deletionTimestampFieldName: "deletedAt",
         deletionTimestampColumnName: "deleted_at",
+        deletionTimestampGetterName: "getDeletedAt",
         deletionScopeFieldName: "deletionScope",
         deletionScopeColumnName: "deletion_scope",
         activeScopeConstantName: "ACTIVE_SCOPE",
         activeScopeValue: "ACTIVE",
         markDeletedMethodName: "markDeleted",
+        restoreMethodName: "restore",
         isActiveMethodName: "isActive",
-        uniqueConstraints: uniqueAttributes.map((attribute) => ({
-          name: `uk_${toJavaDatabaseTableName(entityType)}_${toJavaDatabaseColumnName(attribute.name)}_active_scope`,
+        uniqueConstraints: [
+          ...uniqueAttributes.map((attribute) => ({
+          name: toJavaDatabaseUniqueConstraintName(
+            toJavaDatabaseTableName(entityType),
+            [toJavaDatabaseColumnName(attribute.name)],
+          ),
           columnNames: [toJavaDatabaseColumnName(attribute.name), "deletion_scope"],
-        })),
+          })),
+          ...uniqueGroups.map((group) => ({
+            name: toJavaDatabaseUniqueConstraintName(
+              toJavaDatabaseTableName(entityType),
+              group.map((attributeName) => toJavaDatabaseColumnName(attributeName)),
+            ),
+            columnNames: [...group.map((attributeName) => toJavaDatabaseColumnName(attributeName)), "deletion_scope"],
+          })),
+        ],
       };
       const gatewayType = `${entityType}Gateway`;
       const mapperImports = new JavaImportCollector();
       mapperImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+      mapperImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
       mapperImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
       const domainParameterName = toJavaFieldName(entityType);
       const entityParameterName = toJavaFieldName(`${entityType}Entity`);
       const mapperModel: JavaPersistenceMapperTemplateModel = {
         packageName: `${namespace}.infra.domains.${domainName}.mapper`, imports: mapperImports.values(), className: `${entityType}PersistenceMapper`, constructorName: `${entityType}PersistenceMapper`,
-        domainType: entityType, entityType: `${entityType}Entity`, domainParameterName, entityParameterName, toEntityMethodName: "toEntity", toDomainMethodName: "toDomain",
+        domainType: entityType, entityType: `${entityType}Entity`, tombstoneType: `${entityType}Tombstone`, domainParameterName, entityParameterName, toEntityMethodName: "toEntity", toDomainMethodName: "toDomain", toTombstoneMethodName: "toTombstone",
         toEntityArguments: entity.attributes.map((attribute) => `${domainParameterName}.get${toJavaTypeName(attribute.name)}()`),
         toDomainArguments: entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`),
+        toTombstoneArguments: [...entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`), `${entityParameterName}.getDeletedAt()`],
       };
       const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
       if (identifiers.length === 0) {
@@ -117,7 +135,8 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       };
       const imports = new JavaImportCollector();
       imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
-      imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
       imports.add(`${namespace}.core.common.exception.NotFoundException`);
       imports.add(`${namespace}.core.common.exception.ConflictException`);
       imports.add(identifierType.import);
@@ -139,6 +158,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       imports.add("java.util.Optional");
       imports.add("org.springframework.data.domain.Page");
       imports.add("org.springframework.data.domain.Pageable");
+      imports.add("org.springframework.transaction.annotation.Transactional");
       if (requiresIterableConversion) {
         imports.add("java.util.stream.StreamSupport");
       }
@@ -156,6 +176,8 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         mapperType: mapperModel.className,
         repositoryFindAllMethodName: "findAll",
         mapperToDomainMethodName: "toDomain",
+        mapperToTombstoneMethodName: "toTombstone",
+        tombstoneType: `${entityType}Tombstone`,
         identifierType: identifierType.name,
         identifierParameterName: identifiers[0]!.name,
         findByIdMethodName: "findById",
@@ -171,6 +193,10 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         filterDefinitionType: `${entityType}QuerydslFilterDefinition`,
         filterDefinitionFactoryMethodName: "create",
         findByFilterPageMethodName: "findByFilterPage",
+        findDeletedByIdMethodName: "findDeletedById",
+        findDeletedByFilterPageMethodName: "findDeletedByFilterPage",
+        deletedPredicateMethodName: "deletedPredicate",
+        restoreMethodName: "restoreById",
         persistenceEntityType: `${entityType}Entity`,
         persistenceEntitiesVariableName: toJavaFieldName(`${entityType}Entities`),
         requiresIterableConversion,
@@ -207,9 +233,16 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           domainAccessorName: `get${toJavaTypeName(attribute.name)}`,
           persistenceFieldName: toJavaFieldName(attribute.name),
         })),
+        uniqueGroupChecks: uniqueGroups.map((group) => ({
+          members: group.map((attributeName) => ({
+            domainAccessorName: `get${toJavaTypeName(attributeName)}`,
+            persistenceFieldName: toJavaFieldName(attributeName),
+          })),
+        })),
         identifierPersistenceFieldName: toJavaFieldName(identifiers[0]!.name),
         persistenceEntityActiveMethodName: "isActive",
         persistenceEntityMarkDeletedMethodName: "markDeleted",
+        persistenceEntityRestoreMethodName: "restore",
         repositoryExistsMethodName: "exists",
         sortPropertyMapping: entity.attributes.map((attribute) => ({
           domainName: attribute.name,

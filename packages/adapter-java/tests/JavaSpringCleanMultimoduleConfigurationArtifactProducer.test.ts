@@ -28,7 +28,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
       "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-architecture-test",
-      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-http-create-test", "configuration-http-update-test", "configuration-http-patch-test", "configuration-http-delete-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test", "configuration-update-persistence-test", "configuration-delete-persistence-test",
+      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-http-create-test", "configuration-http-update-test", "configuration-http-patch-test", "configuration-http-delete-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test", "configuration-update-persistence-test", "configuration-delete-persistence-test", "configuration-deleted-query-persistence-test", "configuration-restore-persistence-test", "configuration-http-deleted-query-test", "configuration-http-restore-test",
     ]);
     /* Detailed legacy expectations retained below for fixture reference.
     expect(artifacts).toMatchObject([{
@@ -317,6 +317,28 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-create-test")?.model).toMatchObject({
       hasUniqueAttribute: true,
       uniqueReusePayloadExpression: expect.stringContaining("11111111-1111-1111-1111-111111111112"),
+    });
+  });
+
+  it("prepares deleted-query and restore behavior tests", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+    const artifacts = producer.produce({
+      application: { schemaVersion: "1.0", name: "wallet-service", namespace: "io.github.jtsato.walletservice", entities: [
+        { name: "Wallet", attributes: [{ name: "id", type: "uuid", identifier: true }, { name: "balance", type: "decimal", identifier: false, unique: true }] },
+      ] },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "configuration", requires: ["core", "entrypoints-rest", "infra-database"] }],
+    });
+
+    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(expect.arrayContaining([
+      "configuration-deleted-query-persistence-test",
+      "configuration-restore-persistence-test",
+      "configuration-http-deleted-query-test",
+      "configuration-http-restore-test",
+    ]));
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-restore-test")?.model).toMatchObject({
+      endpointPath: "/wallets",
+      restoreResponseStatus: 204,
     });
   });
 });

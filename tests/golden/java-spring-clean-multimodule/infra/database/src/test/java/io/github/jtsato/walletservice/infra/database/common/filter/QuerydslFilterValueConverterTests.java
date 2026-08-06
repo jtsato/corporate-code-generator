@@ -1,0 +1,3 @@
+package io.github.jtsato.walletservice.infra.database.common.filter;
+import static org.junit.jupiter.api.Assertions.*; import java.math.BigDecimal; import java.util.*; import org.junit.jupiter.api.Test;
+class QuerydslFilterValueConverterTests { @Test void shouldConvertValues() { assertEquals(new BigDecimal("1.2"), QuerydslFilterValueConverter.convert("1.2", BigDecimal.class)); assertEquals(List.of(1, 1, 2), QuerydslFilterValueConverter.convertAll(List.of("1", "1", "2"), Integer.class)); } @Test void shouldRejectInvalidValues() { assertThrows(RuntimeException.class, () -> QuerydslFilterValueConverter.convert("TRUE", Boolean.class)); assertThrows(RuntimeException.class, () -> QuerydslFilterValueConverter.convert("x", UUID.class)); } }

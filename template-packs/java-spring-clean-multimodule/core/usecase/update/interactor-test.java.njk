@@ -28,6 +28,12 @@ class {{ className }} {
         public {{ entityType }} findById({{ identifierType }} id) { return null; }
 
         @Override
+        public {{ entityType }}Tombstone findDeletedById({{ identifierType }} id) { return null; }
+
+        @Override
+        public PageResult<{{ entityType }}Tombstone> findDeletedByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) { return null; }
+
+        @Override
         public {{ entityType }} create({{ entityType }} entity) { return null; }
 
         @Override
@@ -39,6 +45,9 @@ class {{ className }} {
 
         @Override
         public void deleteById({{ identifierType }} id) { }
+
+        @Override
+        public void restoreById({{ identifierType }} id) { }
     }
 
     @Test

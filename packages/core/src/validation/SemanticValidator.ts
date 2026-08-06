@@ -14,6 +14,7 @@ export class SemanticValidator {
 
     for (const entity of model.entities) {
       this.validateDuplicateAttributes(entity, issues);
+      this.validateUniqueGroups(entity, issues);
     }
 
     if (issues.length > 0) {
@@ -61,6 +62,68 @@ export class SemanticValidator {
       }
 
       names.add(attribute.name);
+    });
+  }
+
+  private validateUniqueGroups(
+    entity: Entity,
+    issues: SemanticValidationIssue[],
+  ): void {
+    const attributeNames = new Set(
+      entity.attributes.map((attribute) => attribute.name),
+    );
+
+    entity.uniqueGroups?.forEach((group, groupIndex) => {
+      if (group.length < 2) {
+        issues.push({
+          code: "MODEL006",
+          message:
+            `Unique group in entity '${entity.name}' must contain at least two attributes.`,
+          path: `entities.${entity.name}.uniqueGroups[${groupIndex}]`,
+        });
+      }
+
+      const groupMembers = new Set<string>();
+
+      group.forEach((attributeName, attributeIndex) => {
+        if (groupMembers.has(attributeName)) {
+          issues.push({
+            code: "MODEL007",
+            message:
+              `Duplicate attribute '${attributeName}' in unique group for entity '${entity.name}'.`,
+            path:
+              `entities.${entity.name}.uniqueGroups[${groupIndex}][${attributeIndex}]`,
+          });
+        } else {
+          groupMembers.add(attributeName);
+        }
+
+        if (!attributeNames.has(attributeName)) {
+          issues.push({
+            code: "MODEL008",
+            message:
+              `Unique group in entity '${entity.name}' references unknown attribute '${attributeName}'.`,
+            path:
+              `entities.${entity.name}.uniqueGroups[${groupIndex}][${attributeIndex}]`,
+          });
+        }
+      });
+    });
+
+    const groups = new Map<string, number>();
+    entity.uniqueGroups?.forEach((group, groupIndex) => {
+      const canonicalGroup = [...new Set(group)].sort().join("\u0000");
+      const previousIndex = groups.get(canonicalGroup);
+      if (previousIndex !== undefined) {
+        issues.push({
+          code: "MODEL009",
+          message:
+            `Duplicate unique group in entity '${entity.name}'; it is equivalent to group ${previousIndex}.`,
+          path: `entities.${entity.name}.uniqueGroups[${groupIndex}]`,
+        });
+      } else {
+        groups.set(canonicalGroup, groupIndex);
+      }
     });
   }
 }

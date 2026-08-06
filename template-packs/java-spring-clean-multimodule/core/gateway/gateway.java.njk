@@ -13,9 +13,15 @@ public interface {{ interfaceName }} {
 
     {{ entityType }} {{ findByIdMethodName }}({{ identifierType }} {{ identifierParameterName }});
 
+    {{ tombstoneType }} {{ findDeletedByIdMethodName }}({{ identifierType }} {{ identifierParameterName }});
+
+    {{ pageResultType }}<{{ tombstoneType }}> {{ findDeletedByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }});
+
     {{ entityType }} {{ createMethodName }}({{ entityType }} {{ createParameterName }});
 
     {{ entityType }} {{ updateMethodName }}({{ entityType }} {{ updateParameterName }});
 
     void {{ deleteMethodName }}({{ identifierType }} {{ deleteParameterName }});
+
+    void {{ restoreMethodName }}({{ identifierType }} {{ deleteParameterName }});
 }

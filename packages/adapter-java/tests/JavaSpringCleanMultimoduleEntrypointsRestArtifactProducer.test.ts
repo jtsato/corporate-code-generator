@@ -13,7 +13,7 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
     });
     expect(producer.profileId).toBe("java-spring-clean-multimodule");
     expect(producer.moduleId).toBe("entrypoints-rest");
-    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-domain-create-request", "entrypoints-rest-domain-update-request", "entrypoints-rest-domain-patch-request", "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test", "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-common-sort-field-definition", "entrypoints-rest-common-sort-definition", "entrypoints-rest-common-sort-parser", "entrypoints-rest-common-sort-parser-test", "entrypoints-rest-domain-sort-definition", "entrypoints-rest-domain-sort-definition-test", "entrypoints-rest-response-status", "entrypoints-rest-page-response"]);
+    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-domain-create-request", "entrypoints-rest-domain-update-request", "entrypoints-rest-domain-patch-request", "entrypoints-rest-tombstone-response", "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test", "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-common-sort-field-definition", "entrypoints-rest-common-sort-definition", "entrypoints-rest-common-sort-parser", "entrypoints-rest-common-sort-parser-test", "entrypoints-rest-domain-sort-definition", "entrypoints-rest-domain-sort-definition-test", "entrypoints-rest-response-status", "entrypoints-rest-page-response", "entrypoints-rest-tombstone-page-response"]);
     expect(artifacts.slice(0, 3)).toMatchObject([
       {
         outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletController" },
@@ -84,22 +84,29 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           "io.github.jtsato.walletservice.core.common.paging.PageResult",
           "io.github.jtsato.walletservice.core.common.paging.SortOrder",
           "io.github.jtsato.walletservice.core.domains.wallet.model.Wallet",
+          "io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.create.CreateWalletUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteWalletCommand",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.delete.DeleteWalletUseCase",
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindDeletedWalletByIdUseCase",
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindDeletedWalletsByFilterPageUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletByIdUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsByFilterPageUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.patch.PatchWalletUseCase",
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.restore.RestoreWalletCommand",
+          "io.github.jtsato.walletservice.core.domains.wallet.usecase.restore.RestoreWalletUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase",
           "io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser",
           "io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus",
           "io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser",
           "io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse",
+          "io.github.jtsato.walletservice.entrypoint.rest.common.WalletTombstonePageResponse",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter.WalletRestFilterDefinition",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.CreateWalletRequest",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.PatchWalletRequest",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.UpdateWalletRequest",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.sort.WalletRestSortDefinition",
+          "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.WalletTombstoneResponse",
           "io.swagger.v3.oas.annotations.enums.ParameterIn",
           "io.swagger.v3.oas.annotations.headers.Header",
           "io.swagger.v3.oas.annotations.media.ArraySchema",
@@ -189,7 +196,10 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
         ]),
       },
     });
-    expect(artifacts.slice(5, -2)).toMatchObject([
+    expect(artifacts.filter((artifact) => [
+      "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test",
+      "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-common-sort-field-definition", "entrypoints-rest-common-sort-definition", "entrypoints-rest-common-sort-parser", "entrypoints-rest-common-sort-parser-test", "entrypoints-rest-domain-sort-definition", "entrypoints-rest-domain-sort-definition-test",
+    ].includes(artifact.templateId))).toMatchObject([
       { templateId: "entrypoints-rest-filter-operator", model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.common.filter", coreFilterPackage: "io.github.jtsato.walletservice.core.common.filter" } },
       { templateId: "entrypoints-rest-filter-field-definition" }, { templateId: "entrypoints-rest-filter-definition" }, { templateId: "entrypoints-rest-filter-parser" }, { templateId: "entrypoints-rest-filter-parser-test" },
       { templateId: "entrypoints-rest-domain-filter-definition", model: { packageName: "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.filter" } }, { templateId: "entrypoints-rest-domain-filter-definition-test" },
@@ -209,5 +219,30 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
     });
 
     expect(artifacts[0]?.model).toMatchObject({ identifierAccessorName: "getCode" });
+  });
+
+  it("prepares explicit deleted-query and restore routes", () => {
+    const producer = new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer();
+    const artifacts = producer.produce({
+      application: { schemaVersion: "1.0", name: "wallet-service", namespace: "io.github.jtsato.walletservice", entities: [
+        { name: "Wallet", attributes: [{ name: "id", type: "uuid", identifier: true }, { name: "balance", type: "decimal", identifier: false }] },
+      ] },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "entrypoints-rest", requires: [] }],
+    });
+
+    expect(artifacts.find((artifact) => artifact.templateId === "entrypoints-rest-controller")?.model).toMatchObject({
+      deletedPageResponseClassName: "WalletTombstonePageResponse",
+      deletedResponseClassName: "WalletTombstoneResponse",
+      deletedByFilterPageUseCaseType: "FindDeletedWalletsByFilterPageUseCase",
+      deletedByIdUseCaseType: "FindDeletedWalletByIdUseCase",
+      restoreUseCaseType: "RestoreWalletUseCase",
+      restoreMethodName: "restore",
+      restoreResponseStatus: "204",
+    });
+    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(expect.arrayContaining([
+      "entrypoints-rest-tombstone-response",
+      "entrypoints-rest-tombstone-page-response",
+    ]));
   });
 });

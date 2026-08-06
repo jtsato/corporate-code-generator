@@ -10,6 +10,7 @@ import io.github.jtsato.walletservice.core.common.paging.PageRequest;
 import io.github.jtsato.walletservice.core.common.paging.PageResult;
 import io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway;
 import io.github.jtsato.walletservice.core.domains.wallet.model.Wallet;
+import io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,14 @@ class FindWalletByIdUseCaseInteractorTests {
             return result;
         }
 
+
+
+        @Override
+        public WalletTombstone findDeletedById(UUID id) { return null; }
+
+        @Override
+        public PageResult<WalletTombstone> findDeletedByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) { return null; }
+
         @Override
         public Wallet create(Wallet entity) { return null; }
 
@@ -48,6 +57,9 @@ class FindWalletByIdUseCaseInteractorTests {
 
         @Override
         public void deleteById(UUID id) { }
+
+        @Override
+        public void restoreById(UUID id) { }
     }
 
     @Test
@@ -58,6 +70,7 @@ class FindWalletByIdUseCaseInteractorTests {
             UUID.fromString("11111111-1111-1111-1111-111111111111"),
             new BigDecimal("124.45")
         );
+
 
         var result = new FindWalletByIdUseCaseInteractor(gateway).execute(identifier);
 

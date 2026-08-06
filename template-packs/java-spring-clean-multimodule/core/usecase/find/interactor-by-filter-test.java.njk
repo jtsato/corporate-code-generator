@@ -43,6 +43,12 @@ class {{ className }} {
         }
 
         @Override
+        public {{ entityType }}Tombstone findDeletedById({{ identifierType }} {{ identifierParameterName }}) { return null; }
+
+        @Override
+        public {{ pageResultType }}<{{ entityType }}Tombstone> findDeletedByFilterPage({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }}) { return null; }
+
+        @Override
         public {{ entityType }} create({{ entityType }} entity) { return null; }
 
         @Override
@@ -50,6 +56,9 @@ class {{ className }} {
 
         @Override
         public void deleteById({{ identifierType }} id) { }
+
+        @Override
+        public void restoreById({{ identifierType }} {{ identifierParameterName }}) { }
     }
 
     @Test

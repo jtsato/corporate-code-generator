@@ -30,6 +30,10 @@ templates:
     module: core
     template: core/domain/entity.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/model/{{ className }}.java
+  - id: core-domain-tombstone
+    module: core
+    template: core/domain/entity.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/model/{{ className }}.java
   - id: core-gateway
     module: core
     template: core/gateway/gateway.java.njk
@@ -98,6 +102,22 @@ templates:
     module: core
     template: core/usecase/delete/interactor-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/delete/{{ className }}.java
+  - id: core-restore-command
+    module: core
+    template: core/usecase/restore/command.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/restore/{{ className }}.java
+  - id: core-restore-usecase
+    module: core
+    template: core/usecase/restore/usecase.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/restore/{{ className }}.java
+  - id: core-restore-usecase-interactor
+    module: core
+    template: core/usecase/restore/interactor.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/restore/{{ className }}.java
+  - id: core-restore-usecase-interactor-test
+    module: core
+    template: core/usecase/restore/interactor-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/restore/{{ className }}.java
   - id: core-find-usecase
     module: core
     template: core/usecase/find/usecase.java.njk
@@ -115,6 +135,18 @@ templates:
     template: core/usecase/find/interactor-by-id.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
   - id: core-find-usecase-by-id-interactor-test
+    module: core
+    template: core/usecase/find/interactor-by-id-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-deleted-usecase-by-id
+    module: core
+    template: core/usecase/find/usecase-by-id.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-deleted-usecase-by-id-interactor
+    module: core
+    template: core/usecase/find/interactor-deleted-by-id.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-deleted-usecase-by-id-interactor-test
     module: core
     template: core/usecase/find/interactor-by-id-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
@@ -139,6 +171,18 @@ templates:
     template: core/usecase/find/interactor-by-filter-page.java.njk
     output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
   - id: core-find-usecase-by-filter-page-interactor-test
+    module: core
+    template: core/usecase/find/interactor-by-filter-page-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-deleted-usecase-by-filter-page
+    module: core
+    template: core/usecase/find/usecase-by-filter-page.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-deleted-usecase-by-filter-page-interactor
+    module: core
+    template: core/usecase/find/interactor-deleted-by-filter-page.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
+  - id: core-find-deleted-usecase-by-filter-page-interactor-test
     module: core
     template: core/usecase/find/interactor-by-filter-page-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/find/{{ className }}.java
@@ -250,6 +294,10 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/domain/response.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: entrypoints-rest-tombstone-response
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/response.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
   - id: entrypoints-rest-domain-create-request
     module: entrypoints-rest
     template: entrypoints-rest/domain/create-request.java.njk
@@ -267,6 +315,10 @@ templates:
     template: entrypoints-rest/common/response-status.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/{{ className }}.java
   - id: entrypoints-rest-page-response
+    module: entrypoints-rest
+    template: entrypoints-rest/common/domain-page-response.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/{{ className }}.java
+  - id: entrypoints-rest-tombstone-page-response
     module: entrypoints-rest
     template: entrypoints-rest/common/domain-page-response.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/common/{{ className }}.java
@@ -506,6 +558,14 @@ templates:
     module: configuration
     template: configuration/http-delete-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-deleted-query-test
+    module: configuration
+    template: configuration/http-deleted-query-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-restore-test
+    module: configuration
+    template: configuration/http-restore-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-filter-test
     module: configuration
     template: configuration/http-filter-test.java.njk
@@ -525,4 +585,12 @@ templates:
   - id: configuration-delete-persistence-test
     module: configuration
     template: configuration/delete-persistence-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-deleted-query-persistence-test
+    module: configuration
+    template: configuration/deleted-query-persistence-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-restore-persistence-test
+    module: configuration
+    template: configuration/restore-persistence-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java

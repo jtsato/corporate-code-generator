@@ -12,7 +12,7 @@ class {{ className }} {
         private final List<{{ entityType }}> result = new ArrayList<>();
         private {{ filterExpressionType }} receivedFilter;
         private {{ pageRequestType }} receivedPageRequest;
-        private {{ pageResultType }}<{{ entityType }}> pageResult;
+        private {{ pageResultType }}<{% if deletedUseCase %}{{ entityType }}Tombstone{% else %}{{ entityType }}{% endif %}> pageResult;
         private int findAllCallCount;
         private int findByFilterCallCount;
         private int findPageCallCount;
@@ -33,21 +33,35 @@ class {{ className }} {
         @Override
         public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindPageMethodName }}({{ pageRequestType }} pageRequest) {
             findPageCallCount++;
+{% if deletedUseCase %}            return null;
+{% else %}
             return pageResult;
+{% endif %}
         }
 
         @Override
-        public {{ pageResultType }}<{{ entityType }}> {{ gatewayFindByFilterPageMethodName }}({{ filterExpressionType }} filterExpression, {{ pageRequestType }} pageRequest) {
+        public {{ pageResultType }}<{% if deletedUseCase %}{{ entityType }}Tombstone{% else %}{{ entityType }}{% endif %}> {{ gatewayFindByFilterPageMethodName }}({{ filterExpressionType }} filterExpression, {{ pageRequestType }} pageRequest) {
             findByFilterPageCallCount++;
             receivedFilter = filterExpression;
             receivedPageRequest = pageRequest;
             return pageResult;
         }
 
+{% if deletedUseCase %}        @Override
+        public {{ pageResultType }}<{{ entityType }}> findByFilterPage({{ filterExpressionType }} filterExpression, {{ pageRequestType }} pageRequest) { return null; }
+{% endif %}
+
         @Override
         public {{ entityType }} {{ gatewayFindByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
             return null;
         }
+
+        @Override
+        public {{ entityType }}Tombstone findDeletedById({{ identifierType }} {{ identifierParameterName }}) { return null; }
+
+{% if not deletedUseCase %}        @Override
+        public {{ pageResultType }}<{{ entityType }}Tombstone> findDeletedByFilterPage({{ filterExpressionType }} filterExpression, {{ pageRequestType }} pageRequest) { return null; }
+{% endif %}
 
         @Override
         public {{ entityType }} create({{ entityType }} entity) { return null; }
@@ -57,6 +71,9 @@ class {{ className }} {
 
         @Override
         public void deleteById({{ identifierType }} id) { }
+
+        @Override
+        public void restoreById({{ identifierType }} {{ identifierParameterName }}) { }
     }
 
     @Test

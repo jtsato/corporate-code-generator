@@ -1,0 +1,72 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in declaredFixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    @Autowired
+    private {{ deleteUseCaseType }} {{ deleteUseCaseFieldName }};
+
+    @Autowired
+    private {{ restoreUseCaseType }} {{ restoreUseCaseFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldRestoreDeletedWallet() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        {{ deleteUseCaseFieldName }}.execute(new {{ deleteCommandType }}({{ identifierExpression }}));
+
+        {{ restoreUseCaseFieldName }}.execute(new {{ restoreCommandType }}({{ identifierExpression }}));
+
+        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }})).hasValueSatisfying(entity -> assertThat(entity.isActive()).isTrue());
+    }
+
+    @Test
+    void shouldRejectRestoreOfAnActiveWallet() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        assertThat(org.junit.jupiter.api.Assertions.assertThrows({{ conflictExceptionType }}.class, () ->
+            {{ restoreUseCaseFieldName }}.execute(new {{ restoreCommandType }}({{ identifierExpression }}))
+        ).getMessageKey()).isEqualTo("{{ conflictMessageKey }}");
+    }
+
+{% if hasUniqueAttribute %}    @Test
+    void shouldKeepTheTombstoneWhenRestoreConflictsWithAnActiveUniqueValue() {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+        {{ deleteUseCaseFieldName }}.execute(new {{ deleteCommandType }}({{ identifierExpression }}));
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in conflictingEntityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        org.junit.jupiter.api.Assertions.assertThrows({{ conflictExceptionType }}.class, () ->
+            {{ restoreUseCaseFieldName }}.execute(new {{ restoreCommandType }}({{ identifierExpression }}))
+        );
+
+        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }})).hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
+    }
+{% endif %}
+
+    @Test
+    void shouldRejectRestoreOfAMissingWallet() {
+        org.junit.jupiter.api.Assertions.assertThrows({{ notFoundExceptionType }}.class, () ->
+            {{ restoreUseCaseFieldName }}.execute(new {{ restoreCommandType }}({{ missingIdentifierExpression }}))
+        );
+    }
+}

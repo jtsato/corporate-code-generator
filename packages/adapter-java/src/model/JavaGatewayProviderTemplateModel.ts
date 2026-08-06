@@ -11,6 +11,8 @@ export interface JavaGatewayProviderTemplateModel {
   readonly mapperType: string;
   readonly repositoryFindAllMethodName: string;
   readonly mapperToDomainMethodName: string;
+  readonly mapperToTombstoneMethodName: string;
+  readonly tombstoneType: string;
   readonly identifierType: string;
   readonly identifierParameterName: string;
   readonly findByIdMethodName: string;
@@ -26,6 +28,10 @@ export interface JavaGatewayProviderTemplateModel {
   readonly filterDefinitionType: string;
   readonly filterDefinitionFactoryMethodName: string;
   readonly findByFilterPageMethodName: string;
+  readonly findDeletedByIdMethodName: string;
+  readonly findDeletedByFilterPageMethodName: string;
+  readonly deletedPredicateMethodName: string;
+  readonly restoreMethodName: string;
   readonly persistenceEntityType: string;
   readonly persistenceEntitiesVariableName: string;
   readonly requiresIterableConversion: boolean;
@@ -66,8 +72,15 @@ export interface JavaGatewayProviderTemplateModel {
     readonly domainAccessorName: string;
     readonly persistenceFieldName: string;
   }[];
+  readonly uniqueGroupChecks: readonly {
+    readonly members: readonly {
+      readonly domainAccessorName: string;
+      readonly persistenceFieldName: string;
+    }[];
+  }[];
   readonly identifierPersistenceFieldName: string;
   readonly persistenceEntityActiveMethodName: string;
   readonly persistenceEntityMarkDeletedMethodName: string;
+  readonly persistenceEntityRestoreMethodName: string;
   readonly repositoryExistsMethodName: string;
 }

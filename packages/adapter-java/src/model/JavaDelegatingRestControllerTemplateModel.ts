@@ -6,6 +6,9 @@ export interface JavaDelegatingRestControllerTemplateModel {
   readonly responseClassName: string;
   readonly domainClassName: string;
   readonly pageResponseClassName: string;
+  readonly deletedPageResponseClassName: string;
+  readonly deletedResponseClassName: string;
+  readonly deletedResponseSourceClassName: string;
   readonly pageRequestClassName: string;
   readonly pageResultClassName: string;
   readonly findAllMethodName: string;
@@ -81,4 +84,21 @@ export interface JavaDelegatingRestControllerTemplateModel {
   readonly deleteOperationSummary: string;
   readonly deleteOperationDescription: string;
   readonly deleteResponseStatus: string;
+  readonly deletedByFilterPageUseCaseType: string;
+  readonly deletedByFilterPageUseCaseFieldName: string;
+  readonly deletedByFilterPageUseCaseExecuteMethodName: string;
+  readonly deletedByIdUseCaseType: string;
+  readonly deletedByIdUseCaseFieldName: string;
+  readonly deletedByIdUseCaseExecuteMethodName: string;
+  readonly deletedOperationSummary: string;
+  readonly deletedOperationDescription: string;
+  readonly deletedByIdOperationSummary: string;
+  readonly deletedByIdOperationDescription: string;
+  readonly restoreUseCaseType: string;
+  readonly restoreUseCaseFieldName: string;
+  readonly restoreUseCaseExecuteMethodName: string;
+  readonly restoreMethodName: string;
+  readonly restoreOperationSummary: string;
+  readonly restoreOperationDescription: string;
+  readonly restoreResponseStatus: string;
 }

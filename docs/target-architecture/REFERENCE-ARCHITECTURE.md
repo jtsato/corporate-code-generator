@@ -102,9 +102,17 @@ The Core delete contract is implemented and exposed over HTTP. `Delete<Entity>Co
 
 Delete is **not** idempotent: a repeated `DELETE` on the same identifier returns 404 rather than 204, because the persistence provider maps a missing identifier to the generated not-found contract. This is a deliberate consequence of reusing the accepted delete runtime rather than a defect.
 
-The persistence adapter applies `deleted_at IS NULL AND deletion_scope = ACTIVE` to collection, filter, and paging queries. Find-by-id, update, PATCH, and repeated delete also reject tombstones. An attribute marked `unique: true` receives a composite constraint with `deletion_scope`, so its value can be reused by a new active row after soft deletion without changing the tombstone's business fields.
+The persistence adapter applies `deleted_at IS NULL AND deletion_scope = ACTIVE` to collection, filter, and paging queries. Find-by-id, update, PATCH, and repeated delete also reject tombstones. An attribute marked `unique: true` receives a composite constraint with `deletion_scope`, so its value can be reused by a new active row after soft deletion without changing the tombstone's business fields. An entity `uniqueGroups` declaration receives the same treatment: every declared tuple becomes a deterministic composite constraint over its business columns plus `deletion_scope`, and the gateway checks the tuple against active rows before create, update, and restore.
 
-Relevant decisions: [ADR-049](../adr/ADR-049-delete-runtime-integration.md), [ADR-050](../adr/ADR-050-rest-delete-integration.md), and [ADR-052](../adr/ADR-052-soft-delete-active-uniqueness.md).
+Relevant decisions: [ADR-049](../adr/ADR-049-delete-runtime-integration.md), [ADR-050](../adr/ADR-050-rest-delete-integration.md), [ADR-052](../adr/ADR-052-soft-delete-active-uniqueness.md), and [ADR-054](../adr/ADR-054-composite-unique-groups.md).
+
+### Deleted queries and restore
+
+The Java multi-module profile exposes deleted records through explicit routes rather than an `includeDeleted` flag. `GET /wallets/deleted` applies the normal filter, paging, and sorting contract to tombstones only, while `GET /wallets/deleted/{id}` retrieves one tombstone. Tombstone responses contain the business fields and `deletedAt`; normal domain responses remain unchanged.
+
+`POST /wallets/{id}/restore` is a command endpoint that returns 204 with an empty body. Restoring an unknown identifier or an already active row returns 404/409 respectively. If restoring would collide with an active row's attribute-level unique value, the operation returns 409 and the tombstone remains deleted. The generated Core gateway and use cases keep deleted reads and restore separate from active-only reads and writes.
+
+Relevant decision: [ADR-053](../adr/ADR-053-restore-include-deleted-queries.md).
 
 ## REST contracts
 
@@ -175,7 +183,7 @@ Relevant decision: [ADR-032](../adr/ADR-032-generated-java-ci-pipeline.md).
 
 ## Limitations
 
-- Restore/include-deleted queries, bulk/cascade delete, idempotent delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
+- Bulk/cascade delete, idempotent delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
 - Relationship modeling is not part of the current Application Model baseline.
 - Advanced persistence options such as additional databases, entity graphs, Testcontainers, MapStruct, and P6Spy require explicit future decisions.
 - Partial module selections may not produce independently runnable applications unless a specific quality gate validates that selection.

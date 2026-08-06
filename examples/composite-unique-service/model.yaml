@@ -1,0 +1,24 @@
+schemaVersion: "1.0"
+
+application:
+  name: composite-unique-service
+  namespace: io.github.jtsato.compositeuniqueservice
+
+entities:
+  - name: Product
+    attributes:
+      - name: id
+        type: uuid
+        identifier: true
+        required: true
+
+      - name: balance
+        type: decimal
+        required: true
+
+      - name: externalId
+        type: string
+        required: true
+
+    uniqueGroups:
+      - [balance, externalId]

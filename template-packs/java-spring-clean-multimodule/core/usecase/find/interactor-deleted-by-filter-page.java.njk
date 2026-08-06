@@ -1,0 +1,31 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public final class {{ className }} implements {{ interfaceName }} {
+    private final {{ gatewayType }} {{ gatewayFieldName }};
+
+    public {{ className }}({{ gatewayType }} {{ gatewayFieldName }}) {
+        this.{{ gatewayFieldName }} = {{ gatewayFieldName }};
+    }
+
+    @Override
+    public {{ pageResultType }}<{{ tombstoneType }}> {{ executeMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }}) {
+        if ({{ filterExpressionParameterName }} == null) {
+            throw new ValidationException(List.of(new FieldViolation(
+                "{{ filterExpressionParameterName }}",
+                "{{ requiredFilterMessageKey }}",
+                "{{ requiredFilterDefaultMessage }}"
+            )));
+        }
+        if ({{ pageRequestParameterName }} == null) {
+            throw new ValidationException(List.of(new FieldViolation(
+                "{{ pageRequestParameterName }}",
+                "{{ requiredPageMessageKey }}",
+                "{{ requiredPageDefaultMessage }}"
+            )));
+        }
+
+        return {{ gatewayFieldName }}.{{ gatewayFindByFilterPageMethodName }}({{ filterExpressionParameterName }}, {{ pageRequestParameterName }});
+    }
+}

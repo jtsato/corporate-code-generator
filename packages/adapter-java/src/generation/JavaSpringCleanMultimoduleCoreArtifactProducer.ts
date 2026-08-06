@@ -12,6 +12,7 @@ import type { JavaDeleteCommandTemplateModel } from "../model/JavaDeleteCommandT
 import type { JavaDeleteUseCaseInteractorTemplateModel } from "../model/JavaDeleteUseCaseInteractorTemplateModel.js";
 import type { JavaDeleteUseCaseInteractorTestTemplateModel } from "../model/JavaDeleteUseCaseInteractorTestTemplateModel.js";
 import type { JavaDeleteUseCaseTemplateModel } from "../model/JavaDeleteUseCaseTemplateModel.js";
+import type { JavaFindDeletedUseCaseTemplateModel } from "../model/JavaFindDeletedUseCaseTemplateModel.js";
 import type { JavaUpdateCommandTemplateModel } from "../model/JavaUpdateCommandTemplateModel.js";
 import type { JavaUpdateUseCaseInteractorTemplateModel } from "../model/JavaUpdateUseCaseInteractorTemplateModel.js";
 import type { JavaUpdateUseCaseInteractorTestTemplateModel } from "../model/JavaUpdateUseCaseInteractorTestTemplateModel.js";
@@ -20,6 +21,11 @@ import type { JavaPatchCommandTemplateModel } from "../model/JavaPatchCommandTem
 import type { JavaPatchUseCaseInteractorTemplateModel } from "../model/JavaPatchUseCaseInteractorTemplateModel.js";
 import type { JavaPatchUseCaseInteractorTestTemplateModel } from "../model/JavaPatchUseCaseInteractorTestTemplateModel.js";
 import type { JavaPatchUseCaseTemplateModel } from "../model/JavaPatchUseCaseTemplateModel.js";
+import type { JavaRestoreCommandTemplateModel } from "../model/JavaRestoreCommandTemplateModel.js";
+import type { JavaRestoreUseCaseInteractorTemplateModel } from "../model/JavaRestoreUseCaseInteractorTemplateModel.js";
+import type { JavaRestoreUseCaseInteractorTestTemplateModel } from "../model/JavaRestoreUseCaseInteractorTestTemplateModel.js";
+import type { JavaRestoreUseCaseTemplateModel } from "../model/JavaRestoreUseCaseTemplateModel.js";
+import type { JavaEntityTemplateModel } from "../model/JavaEntityTemplateModel.js";
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
@@ -54,8 +60,12 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const pageInteractorType = `${pageUseCaseType}Interactor`;
       const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
       const byFilterPageInteractorType = `${byFilterPageUseCaseType}Interactor`;
+      const deletedByFilterPageUseCaseType = `FindDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
+      const deletedByFilterPageInteractorType = `${deletedByFilterPageUseCaseType}Interactor`;
       const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
       const byIdInteractorType = `${byIdUseCaseType}Interactor`;
+      const deletedByIdUseCaseType = `FindDeleted${entityType}ByIdUseCase`;
+      const deletedByIdInteractorType = `${deletedByIdUseCaseType}Interactor`;
       const createCommandType = `Create${entityType}Command`;
       const createUseCaseType = `Create${entityType}UseCase`;
       const createInteractorType = `${createUseCaseType}Interactor`;
@@ -68,6 +78,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const deleteCommandType = `Delete${entityType}Command`;
       const deleteUseCaseType = `Delete${entityType}UseCase`;
       const deleteInteractorType = `${deleteUseCaseType}Interactor`;
+      const restoreCommandType = `Restore${entityType}Command`;
+      const restoreUseCaseType = `Restore${entityType}UseCase`;
+      const restoreInteractorType = `${restoreUseCaseType}Interactor`;
       const domainPackage = `${namespace}.core.domains.${domainName}`;
       const filterPackage = `${namespace}.core.common.filter`;
       const pagingPackage = `${namespace}.core.common.paging`;
@@ -86,6 +99,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       gatewayImports.add(`${pagingPackage}.PageRequest`);
       gatewayImports.add(`${pagingPackage}.PageResult`);
       gatewayImports.add(`${domainPackage}.model.${entityType}`);
+      gatewayImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       gatewayImports.add(identifierType.import);
       gatewayImports.add("java.util.List");
       const pageUseCaseImports = new JavaImportCollector();
@@ -107,6 +121,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       pageInteractorTestImports.add(`${pagingPackage}.PageResult`);
       pageInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       pageInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      pageInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       pageInteractorTestImports.add("java.util.List");
       pageInteractorTestImports.add("org.junit.jupiter.api.Test");
       pageInteractorTestImports.add(identifierType.import);
@@ -115,6 +130,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       byFilterPageUseCaseImports.add(`${pagingPackage}.PageRequest`);
       byFilterPageUseCaseImports.add(`${pagingPackage}.PageResult`);
       byFilterPageUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterPageUseCaseImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       const byFilterPageInteractorImports = new JavaImportCollector();
       byFilterPageInteractorImports.add(`${exceptionPackage}.FieldViolation`);
       byFilterPageInteractorImports.add(`${exceptionPackage}.ValidationException`);
@@ -123,6 +139,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       byFilterPageInteractorImports.add(`${pagingPackage}.PageResult`);
       byFilterPageInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
       byFilterPageInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterPageInteractorImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       byFilterPageInteractorImports.add("java.util.List");
       const byFilterPageInteractorTestImports = new JavaImportCollector();
       byFilterPageInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
@@ -133,6 +150,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       byFilterPageInteractorTestImports.add(`${pagingPackage}.PageResult`);
       byFilterPageInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       byFilterPageInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterPageInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       byFilterPageInteractorTestImports.add("java.util.ArrayList");
       byFilterPageInteractorTestImports.add("java.util.List");
       byFilterPageInteractorTestImports.add("org.junit.jupiter.api.Test");
@@ -157,18 +175,21 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       byFilterInteractorTestImports.add(`${pagingPackage}.PageResult`);
       byFilterInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       byFilterInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      byFilterInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       byFilterInteractorTestImports.add("java.util.ArrayList");
       byFilterInteractorTestImports.add("java.util.List");
       byFilterInteractorTestImports.add("org.junit.jupiter.api.Test");
       byFilterInteractorTestImports.add(identifierType.import);
       const byIdUseCaseImports = new JavaImportCollector();
       byIdUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      byIdUseCaseImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       byIdUseCaseImports.add(identifierType.import);
       const byIdInteractorImports = new JavaImportCollector();
       byIdInteractorImports.add(`${exceptionPackage}.FieldViolation`);
       byIdInteractorImports.add(`${exceptionPackage}.ValidationException`);
       byIdInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
       byIdInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      byIdInteractorImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       byIdInteractorImports.add("java.util.List");
       byIdInteractorImports.add(identifierType.import);
       const byIdInteractorTestImports = new JavaImportCollector();
@@ -178,6 +199,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       byIdInteractorTestImports.add(`${pagingPackage}.PageResult`);
       byIdInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       byIdInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      byIdInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       byIdInteractorTestImports.add("java.util.List");
       byIdInteractorTestImports.add(identifierType.import);
       byIdInteractorTestImports.add("org.junit.jupiter.api.Test");
@@ -207,6 +229,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       createInteractorTestImports.add(`${pagingPackage}.PageResult`);
       createInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       createInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      createInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       createInteractorTestImports.add(`${domainPackage}.usecase.create.${createCommandType}`);
       createInteractorTestImports.add("java.util.List");
       createInteractorTestImports.add("org.junit.jupiter.api.Test");
@@ -236,6 +259,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       updateInteractorTestImports.add(`${pagingPackage}.PageResult`);
       updateInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       updateInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      updateInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       updateInteractorTestImports.add(`${domainPackage}.usecase.update.${updateCommandType}`);
       updateInteractorTestImports.add("java.util.List");
       updateInteractorTestImports.add("org.junit.jupiter.api.Test");
@@ -263,6 +287,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       patchInteractorTestImports.add(`${pagingPackage}.PageResult`);
       patchInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       patchInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      patchInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       patchInteractorTestImports.add(`${domainPackage}.usecase.patch.${patchCommandType}`);
       patchInteractorTestImports.add("java.util.List");
       patchInteractorTestImports.add("org.junit.jupiter.api.Test");
@@ -286,10 +311,40 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       deleteInteractorTestImports.add(`${pagingPackage}.PageResult`);
       deleteInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
       deleteInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      deleteInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
       deleteInteractorTestImports.add(`${domainPackage}.usecase.delete.${deleteCommandType}`);
       deleteInteractorTestImports.add("java.util.List");
       deleteInteractorTestImports.add("org.junit.jupiter.api.Test");
       deleteInteractorTestImports.add(identifierType.import);
+      const restoreCommandImports = new JavaImportCollector();
+      restoreCommandImports.add(`${exceptionPackage}.FieldViolation`);
+      restoreCommandImports.add(`${exceptionPackage}.ValidationException`);
+      restoreCommandImports.add(identifierType.import);
+      const restoreUseCaseImports = new JavaImportCollector();
+      restoreUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      restoreUseCaseImports.add(`${domainPackage}.usecase.restore.${restoreCommandType}`);
+      const restoreInteractorImports = new JavaImportCollector();
+      restoreInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      restoreInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      restoreInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      restoreInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      restoreInteractorImports.add(`${domainPackage}.usecase.restore.${restoreCommandType}`);
+      restoreInteractorImports.add("java.util.List");
+      const restoreInteractorTestImports = new JavaImportCollector();
+      restoreInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      restoreInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      restoreInteractorTestImports.add(`${pagingPackage}.PageRequest`);
+      restoreInteractorTestImports.add(`${pagingPackage}.PageResult`);
+      restoreInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      restoreInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      restoreInteractorTestImports.add(`${domainPackage}.model.${entityType}Tombstone`);
+      restoreInteractorTestImports.add(`${domainPackage}.usecase.restore.${restoreCommandType}`);
+      restoreInteractorTestImports.add("java.util.List");
+      restoreInteractorTestImports.add("org.junit.jupiter.api.Test");
+      restoreInteractorTestImports.add(identifierType.import);
+      for (const attribute of entity.attributes) {
+        restoreInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
+      }
       const createCommandFields = entity.attributes.map((attribute) => {
         const required = attribute.required
           ? {
@@ -578,6 +633,100 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         deleteCallCountFieldName: "deleteCallCount",
         receivedIdFieldName: "receivedId",
       };
+      const restoreCommandModel: JavaRestoreCommandTemplateModel = {
+        packageName: `${domainPackage}.usecase.restore`,
+        imports: restoreCommandImports.values(),
+        className: restoreCommandType,
+        fields: [
+          {
+            name: identifier.name,
+            type: identifierType.name,
+            requiredMessageKey: "common.identifier.required",
+            requiredDefaultMessage: "Identifier is required.",
+          },
+        ],
+      };
+      const restoreUseCaseModel: JavaRestoreUseCaseTemplateModel = {
+        packageName: `${domainPackage}.usecase.restore`,
+        imports: restoreUseCaseImports.values(),
+        interfaceName: restoreUseCaseType,
+        commandType: restoreCommandType,
+        executeMethodName: "execute",
+      };
+      const restoreInteractorModel: JavaRestoreUseCaseInteractorTemplateModel = {
+        packageName: `${domainPackage}.usecase.restore`,
+        imports: restoreInteractorImports.values(),
+        className: restoreInteractorType,
+        interfaceName: restoreUseCaseType,
+        commandType: restoreCommandType,
+        gatewayType,
+        gatewayFieldName: `${domainName}Gateway`,
+        executeMethodName: "execute",
+        gatewayRestoreMethodName: "restoreById",
+        identifierAccessorName: identifier.name,
+        commandRequiredMessageKey: "common.command.required",
+        commandRequiredDefaultMessage: "Command is required.",
+      };
+      const restoreInteractorTestModel: JavaRestoreUseCaseInteractorTestTemplateModel = {
+        packageName: `${domainPackage}.usecase.restore`,
+        imports: restoreInteractorTestImports.values(),
+        className: `${restoreInteractorType}Tests`,
+        interactorType: restoreInteractorType,
+        fakeGatewayType: `Fake${gatewayType}`,
+        gatewayType,
+        entityType,
+        identifierType: identifierType.name,
+        identifierParameterName: identifier.name,
+        commandType: restoreCommandType,
+        executeMethodName: "execute",
+        gatewayRestoreMethodName: "restoreById",
+        commandRequiredMessageKey: "common.command.required",
+        commandRequiredDefaultMessage: "Command is required.",
+        identifierRequiredMessageKey: "common.identifier.required",
+        identifierRequiredDefaultMessage: "Identifier is required.",
+        identifierValueExpression: this.fixtureResolver.resolve(identifier.type, 0).javaExpression,
+        restoreCallCountFieldName: "restoreCallCount",
+        receivedIdFieldName: "receivedId",
+      };
+      const deletedByIdUseCaseModel: JavaFindDeletedUseCaseTemplateModel = {
+        packageName: `${domainPackage}.usecase.find`,
+        imports: byIdUseCaseImports.values(),
+        interfaceName: deletedByIdUseCaseType,
+        entityType: `${entityType}Tombstone`,
+        tombstoneType: `${entityType}Tombstone`,
+        identifierType: identifierType.name,
+        identifierParameterName: identifier.name,
+        executeMethodName: "execute",
+      };
+      const deletedByFilterPageUseCaseModel: JavaFindDeletedUseCaseTemplateModel = {
+        packageName: `${domainPackage}.usecase.find`,
+        imports: byFilterPageUseCaseImports.values(),
+        interfaceName: deletedByFilterPageUseCaseType,
+        entityType: `${entityType}Tombstone`,
+        tombstoneType: `${entityType}Tombstone`,
+        executeMethodName: "execute",
+        filterExpressionType: "FilterExpression",
+        filterExpressionParameterName: "filterExpression",
+        pageRequestType: "PageRequest",
+        pageRequestParameterName: "pageRequest",
+        pageResultType: "PageResult",
+      };
+      const tombstoneImports = new JavaImportCollector();
+      const tombstoneFields = entity.attributes.map((attribute) => {
+        const type = this.typeResolver.resolve(attribute.type);
+        tombstoneImports.add(type.import);
+        return { name: attribute.name, type: type.name, modifiers: ["private", "final"] };
+      });
+      tombstoneImports.add("java.time.Instant");
+      const tombstoneModel: JavaEntityTemplateModel = {
+        packageName: `${domainPackage}.model`,
+        imports: tombstoneImports.values(),
+        className: `${entityType}Tombstone`,
+        modifiers: ["public"],
+        fields: [...tombstoneFields, { name: "deletedAt", type: "Instant", modifiers: ["private", "final"] }],
+        constructorParameters: [...tombstoneFields.map(({ name, type }) => ({ name, type })), { name: "deletedAt", type: "Instant" }],
+        getters: [...tombstoneFields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })), { name: "getDeletedAt", returnType: "Instant", fieldName: "deletedAt" }],
+      };
       const outputVariables = {
         packagePath: namespace.replaceAll(".", "/"),
         domainName,
@@ -595,18 +744,26 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           outputVariables: { ...outputVariables, className: entityType },
         },
         {
+          templateId: "core-domain-tombstone",
+          model: tombstoneModel,
+          outputVariables: { ...outputVariables, className: `${entityType}Tombstone` },
+        },
+        {
           templateId: "core-gateway",
           model: {
             packageName: `${domainPackage}.gateway`,
             imports: gatewayImports.values(),
             interfaceName: gatewayType,
             entityType,
+            tombstoneType: `${entityType}Tombstone`,
             findAllMethodName: "findAll",
             findByFilterMethodName: "findByFilter",
             filterExpressionType: "FilterExpression",
             filterExpressionParameterName: "filterExpression",
             findPageMethodName: "findPage",
             findByFilterPageMethodName: "findByFilterPage",
+            findDeletedByIdMethodName: "findDeletedById",
+            findDeletedByFilterPageMethodName: "findDeletedByFilterPage",
             pageRequestType: "PageRequest",
             pageRequestParameterName: "pageRequest",
             pageResultType: "PageResult",
@@ -619,6 +776,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             updateParameterName: domainName,
             deleteMethodName: "deleteById",
             deleteParameterName: identifier.name,
+            restoreMethodName: "restoreById",
           },
           outputVariables: { ...outputVariables, className: gatewayType },
         },
@@ -701,6 +859,26 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           templateId: "core-delete-usecase-interactor-test",
           model: deleteInteractorTestModel,
           outputVariables: { ...outputVariables, className: deleteInteractorTestModel.className },
+        },
+        {
+          templateId: "core-restore-command",
+          model: restoreCommandModel,
+          outputVariables: { ...outputVariables, className: restoreCommandType },
+        },
+        {
+          templateId: "core-restore-usecase",
+          model: restoreUseCaseModel,
+          outputVariables: { ...outputVariables, className: restoreUseCaseType },
+        },
+        {
+          templateId: "core-restore-usecase-interactor",
+          model: restoreInteractorModel,
+          outputVariables: { ...outputVariables, className: restoreInteractorType },
+        },
+        {
+          templateId: "core-restore-usecase-interactor-test",
+          model: restoreInteractorTestModel,
+          outputVariables: { ...outputVariables, className: restoreInteractorTestModel.className },
         },
         {
           templateId: "core-find-usecase",
@@ -795,6 +973,63 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             requiredMessageKey: "common.identifier.required",
           },
           outputVariables: { ...outputVariables, className: `${byIdInteractorType}Tests` },
+        },
+        {
+          templateId: "core-find-deleted-usecase-by-id",
+          model: deletedByIdUseCaseModel,
+          outputVariables: { ...outputVariables, className: deletedByIdUseCaseType },
+        },
+        {
+          templateId: "core-find-deleted-usecase-by-id-interactor",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byIdInteractorImports.values(),
+            className: deletedByIdInteractorType,
+            interfaceName: deletedByIdUseCaseType,
+            gatewayType,
+            gatewayFieldName: `${domainName}Gateway`,
+            tombstoneType: `${entityType}Tombstone`,
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            executeMethodName: "execute",
+            gatewayFindByIdMethodName: "findDeletedById",
+            requiredMessageKey: "common.identifier.required",
+            requiredDefaultMessage: "Identifier is required.",
+          },
+          outputVariables: { ...outputVariables, className: deletedByIdInteractorType },
+        },
+        {
+          templateId: "core-find-deleted-usecase-by-id-interactor-test",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byIdInteractorTestImports.values(),
+            className: `${deletedByIdInteractorType}Tests`,
+            interactorType: deletedByIdInteractorType,
+            fakeGatewayType: `Fake${gatewayType}`,
+            gatewayType,
+            entityType,
+            deletedUseCase: true,
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            identifierValueExpression: this.fixtureResolver.resolve(identifier.type, 0).javaExpression,
+            entityConstructorArguments: entity.attributes.map((attribute, index) =>
+              this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+            ),
+            executeMethodName: "execute",
+            gatewayFindAllMethodName: "findAll",
+            gatewayFindByFilterMethodName: "findByFilter",
+            gatewayFindPageMethodName: "findPage",
+            gatewayFindByFilterPageMethodName: "findByFilterPage",
+            gatewayFindByIdMethodName: "findDeletedById",
+            filterExpressionType: "FilterExpression",
+            gatewayCreateMethodName: "create",
+            filterExpressionParameterName: "filterExpression",
+            pageRequestType: "PageRequest",
+            pageRequestParameterName: "pageRequest",
+            pageResultType: "PageResult",
+            requiredMessageKey: "common.identifier.required",
+          },
+          outputVariables: { ...outputVariables, className: `${deletedByIdInteractorType}Tests` },
         },
         {
           templateId: "core-find-usecase-by-filter",
@@ -924,6 +1159,65 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             gatewayFindByIdMethodName: "findById",
           },
           outputVariables: { ...outputVariables, className: `${byFilterPageInteractorType}Tests` },
+        },
+        {
+          templateId: "core-find-deleted-usecase-by-filter-page",
+          model: deletedByFilterPageUseCaseModel,
+          outputVariables: { ...outputVariables, className: deletedByFilterPageUseCaseType },
+        },
+        {
+          templateId: "core-find-deleted-usecase-by-filter-page-interactor",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterPageInteractorImports.values(),
+            className: deletedByFilterPageInteractorType,
+            interfaceName: deletedByFilterPageUseCaseType,
+            gatewayType,
+            gatewayFieldName: `${domainName}Gateway`,
+            tombstoneType: `${entityType}Tombstone`,
+            executeMethodName: "execute",
+            gatewayFindByFilterPageMethodName: "findDeletedByFilterPage",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            pageRequestType: "PageRequest",
+            pageRequestParameterName: "pageRequest",
+            pageResultType: "PageResult",
+            requiredFilterMessageKey: "common.filter.expression.required",
+            requiredFilterDefaultMessage: "Filter expression is required.",
+            requiredPageMessageKey: "common.paging.page-request.required",
+            requiredPageDefaultMessage: "Page request is required.",
+          },
+          outputVariables: { ...outputVariables, className: deletedByFilterPageInteractorType },
+        },
+        {
+          templateId: "core-find-deleted-usecase-by-filter-page-interactor-test",
+          model: {
+            packageName: `${domainPackage}.usecase.find`,
+            imports: byFilterPageInteractorTestImports.values(),
+            className: `${deletedByFilterPageInteractorType}Tests`,
+            interactorType: deletedByFilterPageInteractorType,
+            fakeGatewayType: `Fake${gatewayType}`,
+            gatewayType,
+            entityType,
+            deletedUseCase: true,
+            executeMethodName: "execute",
+            gatewayFindAllMethodName: "findAll",
+            gatewayFindByFilterMethodName: "findByFilter",
+            gatewayFindPageMethodName: "findPage",
+            gatewayFindByFilterPageMethodName: "findDeletedByFilterPage",
+            filterExpressionType: "FilterExpression",
+            filterExpressionParameterName: "filterExpression",
+            pageRequestType: "PageRequest",
+            pageRequestParameterName: "pageRequest",
+            pageResultType: "PageResult",
+            requiredFilterMessageKey: "common.filter.expression.required",
+            requiredPageMessageKey: "common.paging.page-request.required",
+            sampleFieldName: entity.attributes[0]!.name,
+            identifierType: identifierType.name,
+            identifierParameterName: identifier.name,
+            gatewayFindByIdMethodName: "findById",
+          },
+          outputVariables: { ...outputVariables, className: `${deletedByFilterPageInteractorType}Tests` },
         },
         {
           templateId: "core-find-usecase-page",

@@ -142,6 +142,17 @@ Run context: main workspace, soft delete with active uniqueness; date: 2026-08-0
 - `npm run smoke:maven-reactor:java-multimodule` - passed with Maven required; generated H2 tests covered physical tombstone retention, hidden reads, repeated-delete not-found, and unique-value reuse after soft delete.
 - The single-module profile was not changed by this milestone.
 
+## Milestone 6.33 Validation
+
+Run context: main workspace, restore and deleted-only queries; date: 2026-08-06.
+
+- `npm run typecheck` and `npm run build` - passed.
+- `npm test` - passed, 44 test files and 153 tests.
+- `npm run test:coverage` - passed; Statements 91.49%, Branches 75.11%, Functions 97.49%, Lines 92.46%.
+- Focused Core, REST, persistence, and configuration producer tests - passed, 15 tests.
+- Full generated wallet-service Maven reactor (`mvn -q test`) - passed, including generated OpenAPI, deleted-query, restore, and unique-conflict tests.
+- Full-profile generation produced 148 CREATE operations; the single-module profile was not changed.
+
 ## Documented facts
 
 The following facts are documented in ADRs and target-architecture docs and are treated as current unless superseded by measured facts:

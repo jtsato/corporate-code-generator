@@ -14,6 +14,7 @@ export interface ApplicationDocument {
 export interface EntityDocument {
   readonly name: string;
   readonly attributes: readonly AttributeDocument[];
+  readonly uniqueGroups?: readonly (readonly string[])[];
 }
 
 export interface AttributeDocument {

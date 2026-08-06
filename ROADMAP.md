@@ -99,7 +99,9 @@ Allowed milestone statuses are: Done, In progress, Planned, Deferred, Superseded
 | 6.30 | Golden Path Java 1.0 Release Readiness | Done | Completed the release-readiness audit without adding a new capability. | [Current State](docs/project/CURRENT-STATE.md); [Quality Gates](docs/project/QUALITY-GATES.md) |
 | 6.31 | REST PATCH Integration | Done | Added partial update semantics with explicit presence tracking, HTTP exposure, OpenAPI documentation, and generated runtime tests. | [ADR-051](docs/adr/ADR-051-rest-patch-integration.md) |
 | 6.32 | Soft Delete with Active Uniqueness | Done | Added persistence tombstones, active-row filtering, reusable attribute-level unique values, and generated H2/HTTP coverage while preserving the single-module profile. | [ADR-052](docs/adr/ADR-052-soft-delete-active-uniqueness.md) |
+| 6.33 | Restore and Deleted Queries | Done | Added explicit deleted-only query routes, tombstone representations, restore command semantics, conflict-safe persistence behavior, OpenAPI coverage, and generated runtime tests. | [ADR-053](docs/adr/ADR-053-restore-include-deleted-queries.md) |
+| 6.34 | Composite Unique Groups | Done | Added technology-agnostic composite uniqueness declarations with deterministic Core validation and active-row JPA constraints/conflict checks in the Java multi-module Golden Path. | [ADR-054](docs/adr/ADR-054-composite-unique-groups.md) |
 
 ## Future optional work
 
-Future work remains outside the current release unless explicitly approved: restore/include-deleted queries, composite unique groups, optimistic locking, auditing, ETag/If-Match, authentication and authorization, additional databases, additional stacks, deployment scaffolding, remote registries, and plugin systems.
+Future work remains outside the current release unless explicitly approved: optimistic locking, auditing, ETag/If-Match, authentication and authorization, additional databases, additional stacks, deployment scaffolding, remote registries, and plugin systems.

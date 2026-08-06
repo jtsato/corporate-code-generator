@@ -28,6 +28,19 @@ public class {{ className }} implements {{ gatewayType }} {
             .orElseThrow(() -> new {{ notFoundExceptionType }}(
                 "{{ notFoundMessageKey }}",
                 "{{ notFoundDefaultMessage }}"
+        ));
+    }
+
+    @Override
+    public {{ tombstoneType }} {{ findDeletedByIdMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
+        Objects.requireNonNull({{ identifierParameterName }}, "{{ identifierParameterName }}");
+
+        return {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ identifierParameterName }})
+            .filter(entity -> !entity.{{ persistenceEntityActiveMethodName }}())
+            .map({{ mapperType }}::{{ mapperToTombstoneMethodName }})
+            .orElseThrow(() -> new {{ notFoundExceptionType }}(
+                "{{ notFoundMessageKey }}",
+                "{{ notFoundDefaultMessage }}"
             ));
     }
 
@@ -145,13 +158,74 @@ public class {{ className }} implements {{ gatewayType }} {
         );
     }
 
+    @Override
+    public {{ pageResultType }}<{{ tombstoneType }}> {{ findDeletedByFilterPageMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}, {{ pageRequestType }} {{ pageRequestParameterName }}) {
+        Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
+        Objects.requireNonNull({{ pageRequestParameterName }}, "{{ pageRequestParameterName }}");
+
+        BooleanExpression predicate = {{ deletedPredicateMethodName }}();
+        predicate = {{ filterMapperType }}.{{ filterMapperMethodName }}(
+            {{ filterExpressionParameterName }},
+            {{ filterDefinitionType }}.{{ filterDefinitionFactoryMethodName }}()
+        ).map(predicate::and).orElse(predicate);
+        {{ pageableType }} {{ pageableVariableName }} = {{ pageRequestMapperType }}.{{ pageRequestMapperMethodName }}(
+            {{ pageRequestParameterName }},
+            Map.ofEntries(
+{% for mapping in sortPropertyMapping %}                Map.entry("{{ mapping.domainName }}", "{{ mapping.persistenceName }}"){% if not loop.last %},{% endif %}
+{% endfor %}            )
+        );
+        {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}(predicate, {{ pageableVariableName }});
+
+        return {{ pageResultMapperType }}.{{ pageResultMapperMethodName }}(
+            {{ pageVariableName }},
+            {{ mapperType }}::{{ mapperToTombstoneMethodName }}
+        );
+    }
+
+    @Override
+    @Transactional
+    public void {{ restoreMethodName }}({{ identifierType }} {{ identifierParameterName }}) {
+        Objects.requireNonNull({{ identifierParameterName }}, "{{ identifierParameterName }}");
+
+        {{ persistenceEntityType }} entity = {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ identifierParameterName }})
+            .orElseThrow(() -> new {{ notFoundExceptionType }}(
+                "{{ notFoundMessageKey }}",
+                "{{ notFoundDefaultMessage }}"
+            ));
+        if (entity.{{ persistenceEntityActiveMethodName }}()) {
+            throw new {{ conflictExceptionType }}(
+                "{{ conflictMessageKey }}",
+                "{{ conflictDefaultMessage }}"
+            );
+        }
+
+        {{ entityType }} domain = {{ mapperType }}.{{ mapperToDomainMethodName }}(entity);
+        if (hasActiveUniqueConflict(domain, {{ identifierParameterName }})) {
+            throw new {{ conflictExceptionType }}(
+                "{{ conflictMessageKey }}",
+                "{{ conflictDefaultMessage }}"
+            );
+        }
+        entity.{{ persistenceEntityRestoreMethodName }}();
+        {{ repositoryFieldName }}.{{ repositorySaveMethodName }}(entity);
+    }
+
     private BooleanExpression {{ activePredicateMethodName }}() {
         return ENTITY.deletedAt.isNull().and(ENTITY.deletionScope.eq({{ activeScopeConstantReference }}));
+    }
+
+    private BooleanExpression {{ deletedPredicateMethodName }}() {
+        return ENTITY.deletedAt.isNotNull().and(ENTITY.deletionScope.ne({{ activeScopeConstantReference }}));
     }
 
     private boolean hasActiveUniqueConflict({{ entityType }} {{ createParameterName }}, {{ identifierType }} ignoredIdentifier) {
 {% for check in uniqueChecks %}        if ({{ createParameterName }}.{{ check.domainAccessorName }}() != null) {
             BooleanExpression predicate = {{ activePredicateMethodName }}().and(ENTITY.{{ check.persistenceFieldName }}.eq({{ createParameterName }}.{{ check.domainAccessorName }}()));
+            if (ignoredIdentifier != null) predicate = predicate.and(ENTITY.{{ identifierPersistenceFieldName }}.ne(ignoredIdentifier));
+            if ({{ repositoryFieldName }}.{{ repositoryExistsMethodName }}(predicate)) return true;
+        }
+{% endfor %}{% for check in uniqueGroupChecks %}        if ({% for member in check.members %}{{ createParameterName }}.{{ member.domainAccessorName }}() != null{% if not loop.last %} && {% endif %}{% endfor %}) {
+            BooleanExpression predicate = {{ activePredicateMethodName }}(){% for member in check.members %}.and(ENTITY.{{ member.persistenceFieldName }}.eq({{ createParameterName }}.{{ member.domainAccessorName }}())){% endfor %};
             if (ignoredIdentifier != null) predicate = predicate.and(ENTITY.{{ identifierPersistenceFieldName }}.ne(ignoredIdentifier));
             if ({{ repositoryFieldName }}.{{ repositoryExistsMethodName }}(predicate)) return true;
         }
