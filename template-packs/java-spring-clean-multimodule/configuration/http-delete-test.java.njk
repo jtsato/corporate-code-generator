@@ -32,7 +32,8 @@ class {{ className }} {
 
         assertThat(response.statusCode()).isEqualTo(204);
         assertThat(response.body()).isEmpty();
-        assertThat({{ repositoryFieldName }}.findById({{ identifierConstantName }})).isEmpty();
+        assertThat({{ repositoryFieldName }}.findById({{ identifierConstantName }}))
+            .hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
     }
 
     @Test

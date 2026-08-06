@@ -12,6 +12,7 @@ import io.github.jtsato.walletservice.infra.database.common.filter.QuerydslFilte
 import io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageRequestMapper;
 import io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageResultMapper;
 import io.github.jtsato.walletservice.infra.database.domains.wallet.filter.WalletQuerydslFilterDefinition;
+import io.github.jtsato.walletservice.infra.domains.wallet.entity.QWalletEntity;
 import io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity;
 import io.github.jtsato.walletservice.infra.domains.wallet.mapper.WalletPersistenceMapper;
 import io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public class WalletGatewayProvider implements WalletGateway {
+    private static final QWalletEntity ENTITY = QWalletEntity.walletEntity;
     private final WalletRepository walletRepository;
 
     public WalletGatewayProvider(WalletRepository walletRepository) {
@@ -32,7 +34,7 @@ public class WalletGatewayProvider implements WalletGateway {
 
     @Override
     public List<Wallet> findAll() {
-        return walletRepository.findAll()
+        return walletRepository.findAll(activePredicate())
             .stream()
             .map(WalletPersistenceMapper::toDomain)
             .toList();
@@ -43,6 +45,7 @@ public class WalletGatewayProvider implements WalletGateway {
         Objects.requireNonNull(id, "id");
 
         return walletRepository.findById(id)
+            .filter(WalletEntity::isActive)
             .map(WalletPersistenceMapper::toDomain)
             .orElseThrow(() -> new NotFoundException(
                 "wallet.not-found",
@@ -54,7 +57,7 @@ public class WalletGatewayProvider implements WalletGateway {
     public Wallet create(Wallet wallet) {
         Objects.requireNonNull(wallet, "wallet");
 
-        if (walletRepository.existsById(wallet.getId())) {
+        if (walletRepository.existsById(wallet.getId()) || hasActiveUniqueConflict(wallet, null)) {
             throw new ConflictException(
                 "wallet.already-exists",
                 "Wallet already exists."
@@ -71,10 +74,17 @@ public class WalletGatewayProvider implements WalletGateway {
     public Wallet update(Wallet wallet) {
         Objects.requireNonNull(wallet, "wallet");
 
-        if (!walletRepository.existsById(wallet.getId())) {
-            throw new NotFoundException(
+        walletRepository.findById(wallet.getId())
+            .filter(WalletEntity::isActive)
+            .orElseThrow(() -> new NotFoundException(
                 "wallet.not-found",
                 "Wallet was not found."
+            ));
+
+        if (hasActiveUniqueConflict(wallet, wallet.getId())) {
+            throw new ConflictException(
+                "wallet.already-exists",
+                "Wallet already exists."
             );
         }
 
@@ -88,30 +98,28 @@ public class WalletGatewayProvider implements WalletGateway {
     public void deleteById(UUID id) {
         Objects.requireNonNull(id, "id");
 
-        if (!walletRepository.existsById(id)) {
-            throw new NotFoundException(
+        WalletEntity entity = walletRepository.findById(id)
+            .filter(WalletEntity::isActive)
+            .orElseThrow(() -> new NotFoundException(
                 "wallet.not-found",
                 "Wallet was not found."
-            );
-        }
-
-        walletRepository.deleteById(id);
+            ));
+        entity.markDeleted(id.toString());
+        walletRepository.save(entity);
     }
 
     @Override
     public List<Wallet> findByFilter(FilterExpression filterExpression) {
         Objects.requireNonNull(filterExpression, "filterExpression");
 
-        Optional<BooleanExpression> predicate = QuerydslFilterMapper.toPredicate(
+        BooleanExpression predicate = activePredicate();
+        predicate = QuerydslFilterMapper.toPredicate(
             filterExpression,
             WalletQuerydslFilterDefinition.create()
-        );
+        ).map(predicate::and).orElse(predicate);
 
-        List<WalletEntity> walletEntities = predicate
-            .map(walletRepository::findAll)
-            .orElseGet(() -> walletRepository.findAll());
-
-        return walletEntities.stream()
+        return walletRepository.findAll(predicate)
+            .stream()
             .map(WalletPersistenceMapper::toDomain)
             .toList();
     }
@@ -121,14 +129,14 @@ public class WalletGatewayProvider implements WalletGateway {
         Objects.requireNonNull(pageRequest, "pageRequest");
 
         Pageable pageable = SpringDataPageRequestMapper.toPageable(
-        pageRequest,
+            pageRequest,
             Map.ofEntries(
                 Map.entry("id", "id"),
                 Map.entry("balance", "balance")
             )
         );
 
-        Page<WalletEntity> page = walletRepository.findAll(pageable);
+        Page<WalletEntity> page = walletRepository.findAll(activePredicate(), pageable);
 
         return SpringDataPageResultMapper.toPageResult(
             page,
@@ -141,10 +149,11 @@ public class WalletGatewayProvider implements WalletGateway {
         Objects.requireNonNull(filterExpression, "filterExpression");
         Objects.requireNonNull(pageRequest, "pageRequest");
 
-        Optional<BooleanExpression> predicate = QuerydslFilterMapper.toPredicate(
+        BooleanExpression predicate = activePredicate();
+        predicate = QuerydslFilterMapper.toPredicate(
             filterExpression,
             WalletQuerydslFilterDefinition.create()
-        );
+        ).map(predicate::and).orElse(predicate);
         Pageable pageable = SpringDataPageRequestMapper.toPageable(
             pageRequest,
             Map.ofEntries(
@@ -152,13 +161,24 @@ public class WalletGatewayProvider implements WalletGateway {
                 Map.entry("balance", "balance")
             )
         );
-        Page<WalletEntity> page = predicate
-            .map(value -> walletRepository.findAll(value, pageable))
-            .orElseGet(() -> walletRepository.findAll(pageable));
+        Page<WalletEntity> page = walletRepository.findAll(predicate, pageable);
 
         return SpringDataPageResultMapper.toPageResult(
             page,
             WalletPersistenceMapper::toDomain
         );
+    }
+
+    private BooleanExpression activePredicate() {
+        return ENTITY.deletedAt.isNull().and(ENTITY.deletionScope.eq(WalletEntity.ACTIVE_SCOPE));
+    }
+
+    private boolean hasActiveUniqueConflict(Wallet wallet, UUID ignoredIdentifier) {
+        if (wallet.getBalance() != null) {
+            BooleanExpression predicate = activePredicate().and(ENTITY.balance.eq(wallet.getBalance()));
+            if (ignoredIdentifier != null) predicate = predicate.and(ENTITY.id.ne(ignoredIdentifier));
+            if (walletRepository.exists(predicate)) return true;
+        }
+        return false;
     }
 }

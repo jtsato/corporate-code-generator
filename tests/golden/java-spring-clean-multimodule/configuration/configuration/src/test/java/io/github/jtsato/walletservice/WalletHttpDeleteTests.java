@@ -49,7 +49,8 @@ class WalletHttpDeleteTests {
 
         assertThat(response.statusCode()).isEqualTo(204);
         assertThat(response.body()).isEmpty();
-        assertThat(walletRepository.findById(WALLET_ID)).isEmpty();
+        assertThat(walletRepository.findById(WALLET_ID))
+            .hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
     }
 
     @Test

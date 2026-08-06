@@ -45,6 +45,9 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       persistenceImports.add("jakarta.persistence.Entity");
       persistenceImports.add("jakarta.persistence.Id");
       persistenceImports.add("jakarta.persistence.Table");
+      persistenceImports.add("java.time.Instant");
+      const uniqueAttributes = entity.attributes.filter((attribute) => attribute.unique === true);
+      if (uniqueAttributes.length > 0) persistenceImports.add("jakarta.persistence.UniqueConstraint");
       const fields = entity.attributes.map((attribute) => {
         const javaType = typeResolver.resolve(attribute.type);
         persistenceImports.add(javaType.import);
@@ -54,6 +57,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           columnName: toJavaDatabaseColumnName(attribute.name),
           nullable: !attribute.required,
           identifier: attribute.identifier,
+          ...(attribute.unique === true ? { unique: true } : {}),
         };
       });
       const persistenceModel: JavaPersistenceEntityTemplateModel = {
@@ -64,6 +68,18 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         fields,
         constructorParameters: fields.map(({ name, type }) => ({ name, type })),
         getters: fields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })),
+        deletionTimestampFieldName: "deletedAt",
+        deletionTimestampColumnName: "deleted_at",
+        deletionScopeFieldName: "deletionScope",
+        deletionScopeColumnName: "deletion_scope",
+        activeScopeConstantName: "ACTIVE_SCOPE",
+        activeScopeValue: "ACTIVE",
+        markDeletedMethodName: "markDeleted",
+        isActiveMethodName: "isActive",
+        uniqueConstraints: uniqueAttributes.map((attribute) => ({
+          name: `uk_${toJavaDatabaseTableName(entityType)}_${toJavaDatabaseColumnName(attribute.name)}_active_scope`,
+          columnNames: [toJavaDatabaseColumnName(attribute.name), "deletion_scope"],
+        })),
       };
       const gatewayType = `${entityType}Gateway`;
       const mapperImports = new JavaImportCollector();
@@ -116,6 +132,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       imports.add(`${namespace}.infra.database.common.paging.SpringDataPageRequestMapper`);
       imports.add(`${namespace}.infra.database.common.paging.SpringDataPageResultMapper`);
       imports.add("com.querydsl.core.types.dsl.BooleanExpression");
+      imports.add(`${namespace}.infra.domains.${domainName}.entity.Q${entityType}Entity`);
       imports.add("java.util.List");
       imports.add("java.util.Map");
       imports.add("java.util.Objects");
@@ -183,6 +200,17 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         deleteMethodName: "deleteById",
         deleteParameterName: identifiers[0]!.name,
         repositoryDeleteByIdMethodName: "deleteById",
+        querydslEntityVariableName: toJavaFieldName(`${entityType}Entity`),
+        activeScopeConstantReference: `${entityType}Entity.ACTIVE_SCOPE`,
+        activePredicateMethodName: "activePredicate",
+        uniqueChecks: uniqueAttributes.map((attribute) => ({
+          domainAccessorName: `get${toJavaTypeName(attribute.name)}`,
+          persistenceFieldName: toJavaFieldName(attribute.name),
+        })),
+        identifierPersistenceFieldName: toJavaFieldName(identifiers[0]!.name),
+        persistenceEntityActiveMethodName: "isActive",
+        persistenceEntityMarkDeletedMethodName: "markDeleted",
+        repositoryExistsMethodName: "exists",
         sortPropertyMapping: entity.attributes.map((attribute) => ({
           domainName: attribute.name,
           persistenceName: toJavaFieldName(attribute.name),

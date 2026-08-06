@@ -51,6 +51,17 @@ class {{ className }} {
 {% for fixture in fixtures if fixture.jsonName != "id" %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
 {% endfor %}    }
 
+{% if hasUniqueAttribute %}    @Test
+    void shouldReuseUniqueValueAfterSoftDelete() throws Exception {
+        assertThat(post({{ validPayloadExpression }}).statusCode()).isEqualTo(201);
+        assertThat(delete("{{ endpointPath }}/" + {{ identifierConstantName }}).statusCode()).isEqualTo(204);
+
+        HttpResponse<String> response = post({{ uniqueReusePayloadExpression }});
+
+        assertThat(response.statusCode()).isEqualTo(201);
+    }
+{% endif %}
+
     @Test
     void shouldRejectNullIdentifier() throws Exception {
         assertThat(post({{ nullIdentifierPayloadExpression }}).statusCode()).isEqualTo(400);
@@ -101,6 +112,11 @@ class {{ className }} {
 
     private HttpResponse<String> get(String path) throws Exception {
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> delete(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).DELETE().build();
         return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
     }
 }

@@ -3,6 +3,7 @@ package {{ packageName }};
 {% for import in imports %}import {{ import }};
 {% endfor %}
 public class {{ className }} implements {{ gatewayType }} {
+    private static final Q{{ entityType }}Entity ENTITY = Q{{ entityType }}Entity.{{ querydslEntityVariableName }};
     private final {{ repositoryType }} {{ repositoryFieldName }};
 
     public {{ constructorName }}({{ repositoryType }} {{ repositoryFieldName }}) {
@@ -11,7 +12,7 @@ public class {{ className }} implements {{ gatewayType }} {
 
     @Override
     public List<{{ entityType }}> {{ findAllMethodName }}() {
-        return {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}()
+        return {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}({{ activePredicateMethodName }}())
             .stream()
             .map({{ mapperType }}::{{ mapperToDomainMethodName }})
             .toList();
@@ -22,6 +23,7 @@ public class {{ className }} implements {{ gatewayType }} {
         Objects.requireNonNull({{ identifierParameterName }}, "{{ identifierParameterName }}");
 
         return {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ identifierParameterName }})
+            .filter({{ persistenceEntityType }}::{{ persistenceEntityActiveMethodName }})
             .map({{ mapperType }}::{{ mapperToDomainMethodName }})
             .orElseThrow(() -> new {{ notFoundExceptionType }}(
                 "{{ notFoundMessageKey }}",
@@ -33,7 +35,7 @@ public class {{ className }} implements {{ gatewayType }} {
     public {{ entityType }} {{ createMethodName }}({{ entityType }} {{ createParameterName }}) {
         Objects.requireNonNull({{ createParameterName }}, "{{ createParameterName }}");
 
-        if ({{ repositoryFieldName }}.{{ repositoryExistsByIdMethodName }}({{ createParameterName }}.{{ identifierAccessorName }}())) {
+        if ({{ repositoryFieldName }}.{{ repositoryExistsByIdMethodName }}({{ createParameterName }}.{{ identifierAccessorName }}()) || hasActiveUniqueConflict({{ createParameterName }}, null)) {
             throw new {{ conflictExceptionType }}(
                 "{{ conflictMessageKey }}",
                 "{{ conflictDefaultMessage }}"
@@ -50,10 +52,17 @@ public class {{ className }} implements {{ gatewayType }} {
     public {{ entityType }} {{ updateMethodName }}({{ entityType }} {{ updateParameterName }}) {
         Objects.requireNonNull({{ updateParameterName }}, "{{ updateParameterName }}");
 
-        if (!{{ repositoryFieldName }}.{{ repositoryExistsByIdMethodName }}({{ updateParameterName }}.{{ identifierAccessorName }}())) {
-            throw new {{ notFoundExceptionType }}(
+        {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ updateParameterName }}.{{ identifierAccessorName }}())
+            .filter({{ persistenceEntityType }}::{{ persistenceEntityActiveMethodName }})
+            .orElseThrow(() -> new {{ notFoundExceptionType }}(
                 "{{ notFoundMessageKey }}",
                 "{{ notFoundDefaultMessage }}"
+            ));
+
+        if (hasActiveUniqueConflict({{ updateParameterName }}, {{ updateParameterName }}.{{ identifierAccessorName }}())) {
+            throw new {{ conflictExceptionType }}(
+                "{{ conflictMessageKey }}",
+                "{{ conflictDefaultMessage }}"
             );
         }
 
@@ -67,36 +76,29 @@ public class {{ className }} implements {{ gatewayType }} {
     public void {{ deleteMethodName }}({{ identifierType }} {{ deleteParameterName }}) {
         Objects.requireNonNull({{ deleteParameterName }}, "{{ deleteParameterName }}");
 
-        if (!{{ repositoryFieldName }}.{{ repositoryExistsByIdMethodName }}({{ deleteParameterName }})) {
-            throw new {{ notFoundExceptionType }}(
+        {{ persistenceEntityType }} entity = {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ deleteParameterName }})
+            .filter({{ persistenceEntityType }}::{{ persistenceEntityActiveMethodName }})
+            .orElseThrow(() -> new {{ notFoundExceptionType }}(
                 "{{ notFoundMessageKey }}",
                 "{{ notFoundDefaultMessage }}"
-            );
-        }
-
-        {{ repositoryFieldName }}.{{ repositoryDeleteByIdMethodName }}({{ deleteParameterName }});
+            ));
+        entity.{{ persistenceEntityMarkDeletedMethodName }}({{ deleteParameterName }}.toString());
+        {{ repositoryFieldName }}.{{ repositorySaveMethodName }}(entity);
     }
 
     @Override
     public List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) {
         Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
 
-        Optional<BooleanExpression> predicate = {{ filterMapperType }}.{{ filterMapperMethodName }}(
+        BooleanExpression predicate = {{ activePredicateMethodName }}();
+        predicate = {{ filterMapperType }}.{{ filterMapperMethodName }}(
             {{ filterExpressionParameterName }},
             {{ filterDefinitionType }}.{{ filterDefinitionFactoryMethodName }}()
-        );
+        ).map(predicate::and).orElse(predicate);
 
-{% if requiresIterableConversion %}        Iterable<{{ persistenceEntityType }}> {{ persistenceEntitiesVariableName }} = predicate.isPresent()
-            ? {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}(predicate.get())
-            : {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}();
-
-        return StreamSupport.stream({{ persistenceEntitiesVariableName }}.spliterator(), false)
-{% else %}        List<{{ persistenceEntityType }}> {{ persistenceEntitiesVariableName }} = predicate
-            .map({{ repositoryFieldName }}::{{ repositoryFindAllMethodName }})
-            .orElseGet(() -> {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}());
-
-        return {{ persistenceEntitiesVariableName }}.stream()
-{% endif %}            .map({{ mapperType }}::{{ mapperToDomainMethodName }})
+        return {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}(predicate)
+            .stream()
+            .map({{ mapperType }}::{{ mapperToDomainMethodName }})
             .toList();
     }
 
@@ -105,13 +107,13 @@ public class {{ className }} implements {{ gatewayType }} {
         Objects.requireNonNull({{ pageRequestParameterName }}, "{{ pageRequestParameterName }}");
 
         {{ pageableType }} {{ pageableVariableName }} = {{ pageRequestMapperType }}.{{ pageRequestMapperMethodName }}(
-        {{ pageRequestParameterName }},
+            {{ pageRequestParameterName }},
             Map.ofEntries(
 {% for mapping in sortPropertyMapping %}                Map.entry("{{ mapping.domainName }}", "{{ mapping.persistenceName }}"){% if not loop.last %},{% endif %}
 {% endfor %}            )
         );
 
-        {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}({{ pageableVariableName }});
+        {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}({{ activePredicateMethodName }}(), {{ pageableVariableName }});
 
         return {{ pageResultMapperType }}.{{ pageResultMapperMethodName }}(
             {{ pageVariableName }},
@@ -124,23 +126,35 @@ public class {{ className }} implements {{ gatewayType }} {
         Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
         Objects.requireNonNull({{ pageRequestParameterName }}, "{{ pageRequestParameterName }}");
 
-        Optional<BooleanExpression> predicate = {{ filterMapperType }}.{{ filterMapperMethodName }}(
+        BooleanExpression predicate = {{ activePredicateMethodName }}();
+        predicate = {{ filterMapperType }}.{{ filterMapperMethodName }}(
             {{ filterExpressionParameterName }},
             {{ filterDefinitionType }}.{{ filterDefinitionFactoryMethodName }}()
-        );
+        ).map(predicate::and).orElse(predicate);
         {{ pageableType }} {{ pageableVariableName }} = {{ pageRequestMapperType }}.{{ pageRequestMapperMethodName }}(
             {{ pageRequestParameterName }},
             Map.ofEntries(
 {% for mapping in sortPropertyMapping %}                Map.entry("{{ mapping.domainName }}", "{{ mapping.persistenceName }}"){% if not loop.last %},{% endif %}
 {% endfor %}            )
         );
-        {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = predicate
-            .map(value -> {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}(value, {{ pageableVariableName }}))
-            .orElseGet(() -> {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}({{ pageableVariableName }}));
+        {{ pageType }}<{{ persistenceEntityType }}> {{ pageVariableName }} = {{ repositoryFieldName }}.{{ repositoryFindAllMethodName }}(predicate, {{ pageableVariableName }});
 
         return {{ pageResultMapperType }}.{{ pageResultMapperMethodName }}(
             {{ pageVariableName }},
             {{ mapperType }}::{{ mapperToDomainMethodName }}
         );
+    }
+
+    private BooleanExpression {{ activePredicateMethodName }}() {
+        return ENTITY.deletedAt.isNull().and(ENTITY.deletionScope.eq({{ activeScopeConstantReference }}));
+    }
+
+    private boolean hasActiveUniqueConflict({{ entityType }} {{ createParameterName }}, {{ identifierType }} ignoredIdentifier) {
+{% for check in uniqueChecks %}        if ({{ createParameterName }}.{{ check.domainAccessorName }}() != null) {
+            BooleanExpression predicate = {{ activePredicateMethodName }}().and(ENTITY.{{ check.persistenceFieldName }}.eq({{ createParameterName }}.{{ check.domainAccessorName }}()));
+            if (ignoredIdentifier != null) predicate = predicate.and(ENTITY.{{ identifierPersistenceFieldName }}.ne(ignoredIdentifier));
+            if ({{ repositoryFieldName }}.{{ repositoryExistsMethodName }}(predicate)) return true;
+        }
+{% endfor %}        return false;
     }
 }

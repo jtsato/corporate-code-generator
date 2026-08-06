@@ -6,6 +6,12 @@ export interface JavaPersistenceFieldTemplateModel {
   readonly columnName: string;
   readonly nullable: boolean;
   readonly identifier: boolean;
+  readonly unique?: boolean;
+}
+
+export interface JavaPersistenceUniqueConstraintTemplateModel {
+  readonly name: string;
+  readonly columnNames: readonly string[];
 }
 
 export interface JavaPersistenceEntityTemplateModel {
@@ -16,4 +22,13 @@ export interface JavaPersistenceEntityTemplateModel {
   readonly fields: readonly JavaPersistenceFieldTemplateModel[];
   readonly constructorParameters: readonly JavaParameterModel[];
   readonly getters: readonly JavaGetterTemplateModel[];
+  readonly deletionTimestampFieldName: string;
+  readonly deletionTimestampColumnName: string;
+  readonly deletionScopeFieldName: string;
+  readonly deletionScopeColumnName: string;
+  readonly activeScopeConstantName: string;
+  readonly activeScopeValue: string;
+  readonly markDeletedMethodName: string;
+  readonly isActiveMethodName: string;
+  readonly uniqueConstraints: readonly JavaPersistenceUniqueConstraintTemplateModel[];
 }

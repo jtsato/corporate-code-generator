@@ -297,4 +297,26 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       },
     });
   });
+
+  it("prepares a reuse payload when an entity has an active unique attribute", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+    const artifacts = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "catalog-service",
+        namespace: "example.catalog",
+        entities: [{ name: "Product", attributes: [
+          { name: "id", type: "uuid", required: true, identifier: true },
+          { name: "name", type: "string", required: true, identifier: false, unique: true },
+        ] }],
+      },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "configuration", requires: [] }],
+    });
+
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-create-test")?.model).toMatchObject({
+      hasUniqueAttribute: true,
+      uniqueReusePayloadExpression: expect.stringContaining("11111111-1111-1111-1111-111111111112"),
+    });
+  });
 });

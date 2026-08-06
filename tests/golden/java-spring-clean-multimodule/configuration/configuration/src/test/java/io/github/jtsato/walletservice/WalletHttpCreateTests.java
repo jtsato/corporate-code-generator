@@ -72,6 +72,17 @@ class WalletHttpCreateTests {
     }
 
     @Test
+    void shouldReuseUniqueValueAfterSoftDelete() throws Exception {
+        assertThat(post("{\"id\":\"11111111-1111-1111-1111-111111111111\",\"balance\":123.45}").statusCode()).isEqualTo(201);
+        assertThat(delete("/wallets/" + WALLET_ID).statusCode()).isEqualTo(204);
+
+        HttpResponse<String> response = post("{\"id\":\"11111111-1111-1111-1111-111111111112\",\"balance\":123.45}");
+
+        assertThat(response.statusCode()).isEqualTo(201);
+    }
+
+
+    @Test
     void shouldRejectNullIdentifier() throws Exception {
         assertThat(post("{\"id\":null,\"balance\":123.45}").statusCode()).isEqualTo(400);
     }
@@ -122,6 +133,11 @@ class WalletHttpCreateTests {
 
     private HttpResponse<String> get(String path) throws Exception {
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> delete(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).DELETE().build();
         return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
     }
 }

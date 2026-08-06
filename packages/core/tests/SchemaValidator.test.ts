@@ -26,6 +26,7 @@ describe("SchemaValidator", () => {
               type: "uuid",
               identifier: true,
               required: true,
+              unique: true,
             },
           ],
         },
@@ -80,6 +81,19 @@ describe("SchemaValidator", () => {
 
     expect(() => validator.validate(document))
       .toThrow(SchemaValidationError);
+  });
+
+  it("should reject a non-boolean unique attribute", () => {
+    const document: unknown = {
+      schemaVersion: "1.0",
+      application: { name: "wallet-service" },
+      entities: [{
+        name: "Wallet",
+        attributes: [{ name: "name", type: "string", unique: "yes" }],
+      }],
+    };
+
+    expect(() => validator.validate(document)).toThrow(SchemaValidationError);
   });
 
   it("should reject an unsupported schema version", () => {

@@ -98,7 +98,8 @@ Allowed milestone statuses are: Done, In progress, Planned, Deferred, Superseded
 | 6.29 | REST Delete Integration | Done | Exposed generated delete runtime through DELETE, returning 204/400/404/500 with non-idempotent repeated-delete semantics. | [ADR-050](docs/adr/ADR-050-rest-delete-integration.md) |
 | 6.30 | Golden Path Java 1.0 Release Readiness | Done | Completed the release-readiness audit without adding a new capability. | [Current State](docs/project/CURRENT-STATE.md); [Quality Gates](docs/project/QUALITY-GATES.md) |
 | 6.31 | REST PATCH Integration | Done | Added partial update semantics with explicit presence tracking, HTTP exposure, OpenAPI documentation, and generated runtime tests. | [ADR-051](docs/adr/ADR-051-rest-patch-integration.md) |
+| 6.32 | Soft Delete with Active Uniqueness | Done | Added persistence tombstones, active-row filtering, reusable attribute-level unique values, and generated H2/HTTP coverage while preserving the single-module profile. | [ADR-052](docs/adr/ADR-052-soft-delete-active-uniqueness.md) |
 
 ## Future optional work
 
-Future work remains outside the current release unless explicitly approved: soft delete, optimistic locking, auditing, ETag/If-Match, authentication and authorization, additional databases, additional stacks, deployment scaffolding, remote registries, and plugin systems.
+Future work remains outside the current release unless explicitly approved: restore/include-deleted queries, composite unique groups, optimistic locking, auditing, ETag/If-Match, authentication and authorization, additional databases, additional stacks, deployment scaffolding, remote registries, and plugin systems.

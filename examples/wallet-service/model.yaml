@@ -16,3 +16,4 @@ entities:
       - name: balance
         type: decimal
         required: true
+        unique: true

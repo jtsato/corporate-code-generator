@@ -40,7 +40,8 @@ class WalletDeletePersistenceTests {
 
         deleteWalletUseCase.execute(new DeleteWalletCommand(WALLET_ID));
 
-        assertThat(walletRepository.findById(WALLET_ID)).isEmpty();
+        assertThat(walletRepository.findById(WALLET_ID))
+            .hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
     }
 
     @Test
@@ -68,6 +69,7 @@ class WalletDeletePersistenceTests {
 
         assertThat(exception.getMessageKey()).isEqualTo("wallet.not-found");
         assertThat(exception.getDefaultMessage()).isEqualTo("Wallet was not found.");
-        assertThat(walletRepository.findById(WALLET_ID)).isEmpty();
+        assertThat(walletRepository.findById(WALLET_ID))
+            .hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
     }
 }

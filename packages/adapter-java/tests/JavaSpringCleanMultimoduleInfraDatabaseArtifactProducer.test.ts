@@ -31,8 +31,8 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       templateId: "infra-database-persistence-entity",
       model: {
         packageName: "io.github.jtsato.walletservice.infra.domains.wallet.entity",
-        imports: ["jakarta.persistence.Column", "jakarta.persistence.Entity", "jakarta.persistence.Id", "jakarta.persistence.Table", "java.math.BigDecimal", "java.util.UUID"],
-        className: "WalletEntity", tableName: "wallet",
+        imports: ["jakarta.persistence.Column", "jakarta.persistence.Entity", "jakarta.persistence.Id", "jakarta.persistence.Table", "java.math.BigDecimal", "java.time.Instant", "java.util.UUID"],
+        className: "WalletEntity", tableName: "wallet", deletionTimestampFieldName: "deletedAt", deletionTimestampColumnName: "deleted_at", deletionScopeFieldName: "deletionScope", deletionScopeColumnName: "deletion_scope", activeScopeConstantName: "ACTIVE_SCOPE", activeScopeValue: "ACTIVE", markDeletedMethodName: "markDeleted", isActiveMethodName: "isActive", uniqueConstraints: [],
         fields: [
           { name: "id", type: "UUID", columnName: "id", nullable: false, identifier: true },
           { name: "balance", type: "BigDecimal", columnName: "balance", nullable: false, identifier: false },
@@ -85,6 +85,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
           "io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageRequestMapper",
           "io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageResultMapper",
           "io.github.jtsato.walletservice.infra.database.domains.wallet.filter.WalletQuerydslFilterDefinition",
+          "io.github.jtsato.walletservice.infra.domains.wallet.entity.QWalletEntity",
           "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity",
           "io.github.jtsato.walletservice.infra.domains.wallet.mapper.WalletPersistenceMapper",
           "io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository",
@@ -150,6 +151,14 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         deleteMethodName: "deleteById",
         deleteParameterName: "id",
         repositoryDeleteByIdMethodName: "deleteById",
+        querydslEntityVariableName: "walletEntity",
+        activeScopeConstantReference: "WalletEntity.ACTIVE_SCOPE",
+        activePredicateMethodName: "activePredicate",
+        uniqueChecks: [],
+        identifierPersistenceFieldName: "id",
+        persistenceEntityActiveMethodName: "isActive",
+        persistenceEntityMarkDeletedMethodName: "markDeleted",
+        repositoryExistsMethodName: "exists",
         sortPropertyMapping: [{ domainName: "id", persistenceName: "id" }, { domainName: "balance", persistenceName: "balance" }],
       },
       outputVariables: {
@@ -264,5 +273,35 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     expect(fields.find((field) => field.domainName === "startsAt")!.operators.map(({ operator }) => operator)).toEqual(["EQUALS", "NOT_EQUALS", "GREATER_THAN", "GREATER_THAN_OR_EQUALS", "LESS_THAN", "LESS_THAN_OR_EQUALS", "IN", "IS_NULL", "IS_NOT_NULL"]);
     expect(JSON.stringify(definition)).not.toContain("balance");
     expect(JSON.stringify(definition)).not.toContain("Wallet");
+  });
+
+  it("prepares active uniqueness and soft-delete persistence metadata", () => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    const artifacts = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "catalog-service",
+        namespace: "example.catalog",
+        entities: [{ name: "Product", attributes: [
+          { name: "id", type: "uuid", identifier: true, required: true },
+          { name: "name", type: "string", required: true, unique: true },
+        ] }],
+      },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    });
+
+    const entity = artifacts.find((artifact) => artifact.templateId === "infra-database-persistence-entity");
+    expect(entity?.model).toMatchObject({
+      deletionTimestampFieldName: "deletedAt",
+      deletionScopeFieldName: "deletionScope",
+      activeScopeConstantName: "ACTIVE_SCOPE",
+      uniqueConstraints: [{ columnNames: ["name", "deletion_scope"] }],
+    });
+    const provider = artifacts.find((artifact) => artifact.templateId === "infra-database-gateway-provider");
+    expect(provider?.model).toMatchObject({
+      uniqueChecks: [{ domainAccessorName: "getName", persistenceFieldName: "name" }],
+      activeScopeConstantReference: "ProductEntity.ACTIVE_SCOPE",
+    });
   });
 });

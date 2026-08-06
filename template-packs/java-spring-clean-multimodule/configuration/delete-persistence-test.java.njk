@@ -27,7 +27,8 @@ class {{ className }} {
 
         {{ useCaseFieldName }}.execute(new {{ commandType }}({{ identifierExpression }}));
 
-        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }})).isEmpty();
+        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }}))
+            .hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
     }
 
     @Test
@@ -54,6 +55,7 @@ class {{ className }} {
 
         assertThat(exception.getMessageKey()).isEqualTo("{{ notFoundMessageKey }}");
         assertThat(exception.getDefaultMessage()).isEqualTo("{{ notFoundDefaultMessage }}");
-        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }})).isEmpty();
+        assertThat({{ repositoryFieldName }}.findById({{ identifierExpression }}))
+            .hasValueSatisfying(entity -> assertThat(entity.isActive()).isFalse());
     }
 }

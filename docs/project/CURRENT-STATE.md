@@ -65,7 +65,7 @@ Measured and documented implemented capabilities in the current Java multi-modul
 - Core domain model, use cases, commands, ports, paging, filters, sorting model, and self-validation.
 - REST entrypoints for collection reads, filtered paging, sorting, find-by-id, create, full replacement update, partial update, and delete.
 - Database infrastructure with Spring Data JPA, H2 test support, persistence mappers, Querydsl predicates, paging adapters, and filter mapping.
-- Runtime create, update, and physical delete behavior through Core and JPA, with delete exposed over REST as a non-idempotent operation.
+- Runtime create, update, and soft-delete behavior through Core and JPA, with delete exposed over REST as a non-idempotent operation. Attribute-level `unique: true` values are reusable after soft deletion through the generated active-scope constraint.
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
 
 Current documented REST surface:
@@ -128,6 +128,19 @@ Run context: main workspace, REST PATCH integration; date: 2026-08-06.
 - `npm run typecheck`, `npm run build`, `npm test`, and `npm run test:coverage` - passed; current Node suite: 44 test files and 146 tests; coverage Statements 90.51%, Branches 73.13%, Functions 96.81%, Lines 91.56%.
 - Full-profile dry-run passed with 131 CREATE operations; Core 54, entrypoints-rest 74, infra-database 72, configuration 131, and build+core 60.
 - `npm run smoke:maven-reactor:java-multimodule` - passed with Maven required; generated HTTP PATCH and OpenAPI tests were included in the full reactor.
+
+## Milestone 6.32 Validation
+
+Run context: main workspace, soft delete with active uniqueness; date: 2026-08-06.
+
+- `npm run typecheck` - passed, exit 0.
+- `npm run build` - passed, exit 0.
+- `npm test` - passed, 44 test files and 150 tests.
+- `npm run test:coverage` - passed; Statements 90.82%, Branches 74.96%, Functions 97.38%, Lines 91.81%.
+- Full-profile dry-run passed with 131 CREATE operations; the artifact count remains unchanged because soft delete modifies existing persistence and generated-test artifacts.
+- `npm run smoke:java-multimodule` - passed.
+- `npm run smoke:maven-reactor:java-multimodule` - passed with Maven required; generated H2 tests covered physical tombstone retention, hidden reads, repeated-delete not-found, and unique-value reuse after soft delete.
+- The single-module profile was not changed by this milestone.
 
 ## Documented facts
 

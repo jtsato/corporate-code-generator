@@ -89,20 +89,22 @@ Relevant decision: [ADR-051](../adr/ADR-051-rest-patch-integration.md).
 
 ### Delete
 
-The Core/JPA delete runtime is implemented and exposed over HTTP. `Delete<Entity>Command` delegates to `Delete<Entity>UseCase`, which calls the gateway. The persistence provider checks existence before `deleteById`. Missing and repeated identifiers raise the generated not-found contract.
+The Core delete contract is implemented and exposed over HTTP. `Delete<Entity>Command` delegates to `Delete<Entity>UseCase`, which calls the gateway. The persistence provider loads the active JPA entity, sets `deletedAt`, changes its `deletionScope` to the identifier string, and saves the row. The row remains physically present while normal reads treat it as absent.
 
 `DELETE /wallets/{id}` receives the typed path identifier, constructs `Delete<Entity>Command(id)` inline in the controller, and delegates to `Delete<Entity>UseCase.execute(...)`. There is no request DTO because an empty body has no representation.
 
 | Condition | Status | Body |
 | --- | --- | --- |
-| Identifier exists, row deleted | 204 No Content | empty |
+| Identifier exists, row soft-deleted | 204 No Content | empty |
 | Identifier absent (never existed, or already deleted) | 404 Not Found | `ResponseStatus` |
 | Path value not a valid identifier | 400 Bad Request | `ResponseStatus` |
 | Unexpected failure | 500 Internal Server Error | `ResponseStatus` |
 
 Delete is **not** idempotent: a repeated `DELETE` on the same identifier returns 404 rather than 204, because the persistence provider maps a missing identifier to the generated not-found contract. This is a deliberate consequence of reusing the accepted delete runtime rather than a defect.
 
-Relevant decisions: [ADR-049](../adr/ADR-049-delete-runtime-integration.md) and [ADR-050](../adr/ADR-050-rest-delete-integration.md).
+The persistence adapter applies `deleted_at IS NULL AND deletion_scope = ACTIVE` to collection, filter, and paging queries. Find-by-id, update, PATCH, and repeated delete also reject tombstones. An attribute marked `unique: true` receives a composite constraint with `deletion_scope`, so its value can be reused by a new active row after soft deletion without changing the tombstone's business fields.
+
+Relevant decisions: [ADR-049](../adr/ADR-049-delete-runtime-integration.md), [ADR-050](../adr/ADR-050-rest-delete-integration.md), and [ADR-052](../adr/ADR-052-soft-delete-active-uniqueness.md).
 
 ## REST contracts
 
@@ -173,7 +175,7 @@ Relevant decision: [ADR-032](../adr/ADR-032-generated-java-ci-pipeline.md).
 
 ## Limitations
 
-- Soft delete, bulk/cascade delete, idempotent delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
+- Restore/include-deleted queries, bulk/cascade delete, idempotent delete, optimistic locking, audit fields, ETags, conditional requests, authentication, authorization, and security-provider integration are future capabilities.
 - Relationship modeling is not part of the current Application Model baseline.
 - Advanced persistence options such as additional databases, entity graphs, Testcontainers, MapStruct, and P6Spy require explicit future decisions.
 - Partial module selections may not produce independently runnable applications unless a specific quality gate validates that selection.

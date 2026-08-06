@@ -3,7 +3,10 @@ package {{ packageName }};
 {% for import in imports %}import {{ import }};
 {% endfor %}
 @Entity
-@Table(name = "{{ tableName }}")
+@Table(name = "{{ tableName }}"{% if uniqueConstraints.length > 0 %}, uniqueConstraints = {
+{% for constraint in uniqueConstraints %}    @UniqueConstraint(name = "{{ constraint.name }}", columnNames = { {% for columnName in constraint.columnNames %}"{{ columnName }}"{% if not loop.last %}, {% endif %}{% endfor %} }){% if not loop.last %},
+{% endif %}{% endfor %}
+}{% endif %})
 public class {{ className }} {
 {% for field in fields %}{% if field.identifier %}    @Id
 {% endif %}    @Column(name = "{{ field.columnName }}", nullable = {{ field.nullable }})
@@ -14,9 +17,28 @@ public class {{ className }} {
 
     public {{ className }}({% for parameter in constructorParameters %}{{ parameter.type }} {{ parameter.name }}{% if not loop.last %}, {% endif %}{% endfor %}) {
 {% for parameter in constructorParameters %}        this.{{ parameter.name }} = {{ parameter.name }};
-{% endfor %}    }
+{% endfor %}        this.{{ deletionTimestampFieldName }} = null;
+        this.{{ deletionScopeFieldName }} = {{ activeScopeConstantName }};
+    }
 {% for getter in getters %}
     public {{ getter.returnType }} {{ getter.name }}() {
         return {{ getter.fieldName }};
     }
-{% endfor %}}
+{% endfor %}
+    public boolean {{ isActiveMethodName }}() {
+        return {{ deletionTimestampFieldName }} == null && {{ activeScopeConstantName }}.equals({{ deletionScopeFieldName }});
+    }
+
+    public void {{ markDeletedMethodName }}(String deletionScope) {
+        this.{{ deletionTimestampFieldName }} = Instant.now();
+        this.{{ deletionScopeFieldName }} = deletionScope;
+    }
+
+    public static final String {{ activeScopeConstantName }} = "{{ activeScopeValue }}";
+
+    @Column(name = "{{ deletionTimestampColumnName }}")
+    private Instant {{ deletionTimestampFieldName }};
+
+    @Column(name = "{{ deletionScopeColumnName }}", nullable = false)
+    private String {{ deletionScopeFieldName }};
+}

@@ -87,6 +87,10 @@
         "identifier": {
           "type": "boolean",
           "default": false
+        },
+        "unique": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

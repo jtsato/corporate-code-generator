@@ -21,6 +21,7 @@ export function createJavaHttpCreateTestModel(
   if (identifier === undefined) throw new Error(`Cannot generate the HTTP create test for entity '${entity.name}' without an identifier.`);
   const valueAttribute = entity.attributes.find((attribute) => !attribute.identifier);
   if (valueAttribute === undefined) throw new Error(`Cannot generate the HTTP create test for entity '${entity.name}' without a non-identifier attribute.`);
+  const hasUniqueAttribute = entity.attributes.some((attribute) => attribute.unique === true);
 
   const imports = new JavaImportCollector();
   imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
@@ -60,6 +61,10 @@ export function createJavaHttpCreateTestModel(
     return fixtureResolver.resolve(attribute.type, (occurrenceCounts.get(attribute.type) ?? 1)).jsonLiteral;
   });
   const validValues = fixtures.map((fixture) => fixture.jsonLiteral);
+  const uniqueReuseValues = entity.attributes.map((attribute, index) => {
+    if (attribute.identifier) return fixtureResolver.resolve(attribute.type, occurrenceCounts.get(attribute.type) ?? 1).jsonLiteral;
+    return fixtures[index]!.jsonLiteral;
+  });
   const nullIdentifierValues = fixtures.map((fixture, index) => index === entity.attributes.indexOf(identifier) ? "null" : fixture.jsonLiteral);
   const nullValueValues = fixtures.map((fixture, index) => index === entity.attributes.indexOf(valueAttribute) ? "null" : fixture.jsonLiteral);
   const invalidIdentifierValues = fixtures.map((fixture, index) => index === entity.attributes.indexOf(identifier) ? JSON.stringify("not-a-uuid") : fixture.jsonLiteral);
@@ -80,6 +85,8 @@ export function createJavaHttpCreateTestModel(
     entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
     validPayloadExpression: toJsonStringLiteral(entity.attributes, validValues),
     duplicatePayloadExpression: toJsonStringLiteral(entity.attributes, duplicateValues),
+    hasUniqueAttribute,
+    uniqueReusePayloadExpression: toJsonStringLiteral(entity.attributes, uniqueReuseValues),
     nullIdentifierPayloadExpression: toJsonStringLiteral(entity.attributes, nullIdentifierValues),
     nullValuePayloadExpression: toJsonStringLiteral(entity.attributes, nullValueValues),
     invalidIdentifierPayloadExpression: toJsonStringLiteral(entity.attributes, invalidIdentifierValues),

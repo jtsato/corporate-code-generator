@@ -59,4 +59,15 @@ export interface JavaGatewayProviderTemplateModel {
   readonly deleteMethodName: string;
   readonly deleteParameterName: string;
   readonly repositoryDeleteByIdMethodName: string;
+  readonly querydslEntityVariableName: string;
+  readonly activeScopeConstantReference: string;
+  readonly activePredicateMethodName: string;
+  readonly uniqueChecks: readonly {
+    readonly domainAccessorName: string;
+    readonly persistenceFieldName: string;
+  }[];
+  readonly identifierPersistenceFieldName: string;
+  readonly persistenceEntityActiveMethodName: string;
+  readonly persistenceEntityMarkDeletedMethodName: string;
+  readonly repositoryExistsMethodName: string;
 }

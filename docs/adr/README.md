@@ -49,3 +49,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [049](ADR-049-delete-runtime-integration.md) | Delete Runtime Integration | Accepted - Milestone 6.28. | Milestone 6.28 | Not recorded | Not recorded |
 | [050](ADR-050-rest-delete-integration.md) | REST Delete Integration | Accepted — Milestone 6.29. | Milestone 6.29 | Not recorded | Not recorded |
 | [051](ADR-051-rest-patch-integration.md) | REST PATCH Integration | Accepted — Milestone 6.31. | Milestone 6.31 | Not recorded | Not recorded |
+| [052](ADR-052-soft-delete-active-uniqueness.md) | Soft Delete with Active Uniqueness | Accepted — Milestone 6.32. | Milestone 6.32 | Not recorded | Not recorded |

@@ -40,6 +40,7 @@ export class ModelParser {
       type: document.type,
       required: document.required ?? false,
       identifier: document.identifier ?? false,
+      unique: document.unique ?? false,
     };
   }
 }

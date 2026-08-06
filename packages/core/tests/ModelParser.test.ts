@@ -22,11 +22,13 @@ describe("ModelParser", () => {
               type: "uuid",
               identifier: true,
               required: true,
+              unique: false,
             },
             {
               name: "balance",
               type: "decimal",
               required: true,
+              unique: true,
             },
           ],
         },
@@ -50,12 +52,14 @@ describe("ModelParser", () => {
               type: "uuid",
               identifier: true,
               required: true,
+              unique: false,
             },
             {
               name: "balance",
               type: "decimal",
               identifier: false,
               required: true,
+              unique: true,
             },
           ],
         },
@@ -91,6 +95,26 @@ describe("ModelParser", () => {
       type: "decimal",
       required: false,
       identifier: false,
+      unique: false,
+    });
+  });
+
+  it("should parse unique attributes", () => {
+    const document: ApplicationModelDocument = {
+      schemaVersion: "1.0",
+      application: { name: "catalog" },
+      entities: [{
+        name: "Product",
+        attributes: [{ name: "name", type: "string", unique: true }],
+      }],
+    };
+
+    expect(new ModelParser().parse(document).entities[0]?.attributes[0]).toEqual({
+      name: "name",
+      type: "string",
+      required: false,
+      identifier: false,
+      unique: true,
     });
   });
 });

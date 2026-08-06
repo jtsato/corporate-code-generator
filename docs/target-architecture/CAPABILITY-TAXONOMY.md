@@ -63,7 +63,8 @@ Conceptually, baseline capabilities include:
 - create runtime and REST integration;
 - update runtime and REST integration;
 - partial update (PATCH) runtime and REST integration;
-- delete runtime and REST integration.
+- delete runtime and REST integration with soft-delete persistence.
+- attribute-level active uniqueness.
 
 ## Explicit opt-in or future capabilities
 
@@ -81,7 +82,8 @@ The following require explicit future profile selection, environment configurati
 - JPA Entity Graph;
 - MapStruct;
 - P6Spy;
-- soft delete;
+- restore/include-deleted queries;
+- composite unique groups;
 - optimistic locking;
 - auditing;
 - ETags and conditional requests;
@@ -239,7 +241,8 @@ Future schema work must validate incompatible combinations, such as a provider o
 | Java Clean Architecture multi-module | Supported | Current measured facts are in Current State. |
 | REST read/filter/page/sort | Supported in Java multi-module | See Generated Java Reference Architecture. |
 | REST create/update/partial update | Supported in Java multi-module | PUT is full replacement; PATCH tracks supplied fields and explicit null. |
-| Delete runtime and REST integration | Supported in Java multi-module | Physical delete only; repeated delete on the same identifier returns not found rather than being idempotent. |
+| Delete runtime and REST integration | Supported in Java multi-module | Soft delete retains the row, filters tombstones from normal flows, and repeated delete returns not found rather than being idempotent. |
+| Attribute-level active uniqueness | Supported in Java multi-module | `unique: true` uses a composite constraint with the technical deletion scope, allowing reuse after soft delete. |
 | Security | Planned/future | Requires explicit model/profile decisions. |
 | Deployment/IaC | Planned/future | Not implied by current Java Golden Path. |
 | Additional languages/stacks | Planned/future | Must preserve technology-agnostic Core/model boundaries. |

@@ -5,4 +5,5 @@ export interface Attribute {
   readonly type: PrimitiveType;
   readonly required: boolean;
   readonly identifier: boolean;
+  readonly unique?: boolean;
 }

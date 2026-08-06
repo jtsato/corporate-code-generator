@@ -23,6 +23,8 @@ export interface JavaHttpCreateTestTemplateModel {
   readonly entityConstructorArguments: readonly string[];
   readonly validPayloadExpression: string;
   readonly duplicatePayloadExpression: string;
+  readonly hasUniqueAttribute: boolean;
+  readonly uniqueReusePayloadExpression: string;
   readonly nullIdentifierPayloadExpression: string;
   readonly nullValuePayloadExpression: string;
   readonly invalidIdentifierPayloadExpression: string;
