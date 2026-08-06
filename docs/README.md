@@ -3,6 +3,7 @@
 ## Architecture
 
 - [Solution Specification](SOLUTION-SPECIFICATION.md)
+- [Roadmap](ROADMAP.md)
 - [Reference Architecture](target-architecture/REFERENCE-ARCHITECTURE.md) —
   minimal Wallet reference and current multi-module Golden Path decisions.
 - [Extended Reference Architecture](target-architecture/EXTENDED-REFERENCE-ARCHITECTURE.md) —
