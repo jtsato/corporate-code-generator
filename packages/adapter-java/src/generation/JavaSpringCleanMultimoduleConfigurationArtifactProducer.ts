@@ -17,6 +17,7 @@ import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainCo
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
 import type { JavaFindByIdPersistenceTestTemplateModel } from "../model/JavaFindByIdPersistenceTestTemplateModel.js";
 import type { JavaCreatePersistenceTestTemplateModel } from "../model/JavaCreatePersistenceTestTemplateModel.js";
+import type { JavaUpdatePersistenceTestTemplateModel } from "../model/JavaUpdatePersistenceTestTemplateModel.js";
 import type { JavaHttpFindByIdTestTemplateModel } from "../model/JavaHttpFindByIdTestTemplateModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
@@ -30,6 +31,7 @@ import { createJavaHttpFilterTestModel } from "../transformers/createJavaHttpFil
 import { createJavaPagingPersistenceTestModel } from "../transformers/createJavaPagingPersistenceTestModel.js";
 import { createJavaFilteredPagingPersistenceTestModel } from "../transformers/createJavaFilteredPagingPersistenceTestModel.js";
 import { createJavaQuerydslFilterPersistenceTestModel } from "../transformers/createJavaQuerydslFilterPersistenceTestModel.js";
+import { createJavaHttpCreateTestModel } from "../transformers/createJavaHttpCreateTestModel.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements GenerationArtifactProducer {
@@ -106,6 +108,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
         const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
         const createUseCaseType = `Create${entityType}UseCase`;
+        const updateUseCaseType = `Update${entityType}UseCase`;
         const imports = new JavaImportCollector();
         imports.add(`${namespace}.core.domains.${domainName}.gateway.${gatewayType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
@@ -120,6 +123,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}Interactor`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${updateUseCaseType}Interactor`);
         imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
@@ -152,6 +157,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           createUseCaseBeanMethodName: `create${entityType}UseCase`,
           createUseCaseType,
           createUseCaseImplementationType: `${createUseCaseType}Interactor`,
+          updateUseCaseBeanMethodName: `update${entityType}UseCase`,
+          updateUseCaseType,
+          updateUseCaseImplementationType: `${updateUseCaseType}Interactor`,
         };
 
         return {
@@ -215,6 +223,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           sizeParameterName: "size",
           pageResponseSchemaName: `${toJavaTypeName(entity.name)}PageResponse`,
           itemResponseSchemaName: `${toJavaTypeName(entity.name)}Response`,
+          createRequestSchemaName: `Create${toJavaTypeName(entity.name)}Request`,
+          createResponseSchemaName: `${toJavaTypeName(entity.name)}Response`,
         };
         return { templateId: "configuration-openapi-smoke-test", model, outputVariables: { ...outputVariables, className: model.className } };
       }),
@@ -499,6 +509,19 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         };
       }),
       ...request.application.entities.map((entity) => {
+        const httpCreateModel = createJavaHttpCreateTestModel(
+          entity,
+          namespace,
+          this.typeResolver,
+          this.fixtureResolver,
+        );
+        return {
+          templateId: "configuration-http-create-test",
+          model: httpCreateModel,
+          outputVariables: { ...outputVariables, className: httpCreateModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
         const filterPersistenceModel = createJavaQuerydslFilterPersistenceTestModel(
           entity,
           namespace,
@@ -560,6 +583,89 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           templateId: "configuration-querydsl-filter-paging-persistence-test",
           model: filteredPagingPersistenceModel,
           outputVariables: { ...outputVariables, className: filteredPagingPersistenceModel.className },
+        };
+      }),
+      ...request.application.entities.map((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        const entityType = toJavaTypeName(entity.name);
+        const identifier = entity.attributes.find((attribute) => attribute.identifier);
+        if (identifier === undefined) throw new Error(`Cannot generate update persistence test for entity '${entity.name}' without an identifier.`);
+        const useCaseType = `Update${entityType}UseCase`;
+        const commandType = `Update${entityType}Command`;
+        const imports = new JavaImportCollector();
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${commandType}`);
+        imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${useCaseType}`);
+        imports.add(`${namespace}.core.common.exception.NotFoundException`);
+        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add("org.junit.jupiter.api.AfterEach");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.beans.factory.annotation.Autowired");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.test.context.ActiveProfiles");
+
+        const originalFixtures = entity.attributes.map((attribute, index) => {
+          const javaType = this.typeResolver.resolve(attribute.type);
+          imports.add(javaType.import);
+          return {
+            attribute,
+            javaType,
+            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+            javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+            accessorName: `get${toJavaTypeName(attribute.name)}`,
+          };
+        });
+        const updatedFixtures = entity.attributes.map((attribute, index) => {
+          if (attribute.identifier) return originalFixtures[index]!;
+          const javaType = this.typeResolver.resolve(attribute.type);
+          return {
+            attribute,
+            javaType,
+            constantName: toJavaConstantName(`${entity.name}_updated_${attribute.name}`),
+            javaExpression: this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression,
+            accessorName: `get${toJavaTypeName(attribute.name)}`,
+          };
+        });
+        const missingIdentifierFixture = {
+          constantName: toJavaConstantName(`${entity.name}_missing_${identifier.name}`),
+          type: this.typeResolver.resolve(identifier.type).name,
+          javaExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
+        };
+        const declaredFixtures = [
+          ...originalFixtures.map((fixture) => ({ constantName: fixture.constantName, type: fixture.javaType.name, javaExpression: fixture.javaExpression })),
+          ...updatedFixtures.filter((fixture) => !fixture.attribute.identifier).map((fixture) => ({ constantName: fixture.constantName, type: fixture.javaType.name, javaExpression: fixture.javaExpression })),
+          missingIdentifierFixture,
+        ];
+        const identifierFixture = originalFixtures.find((fixture) => fixture.attribute.identifier)!;
+
+        const persistenceModel: JavaUpdatePersistenceTestTemplateModel = {
+          packageName: namespace,
+          imports: imports.values(),
+          className: `${entityType}UpdatePersistenceTests`,
+          activeProfile: "test",
+          useCaseType,
+          useCaseFieldName: toJavaFieldName(useCaseType),
+          commandType,
+          repositoryType: `${entityType}Repository`,
+          repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
+          persistenceEntityType: `${entityType}Entity`,
+          declaredFixtures,
+          originalEntityConstructorArguments: originalFixtures.map((fixture) => fixture.constantName),
+          commandArguments: updatedFixtures.map((fixture) => fixture.constantName),
+          assertionFixtures: updatedFixtures.map((fixture) => ({ constantName: fixture.constantName, accessorName: fixture.accessorName })),
+          identifierExpression: identifierFixture.constantName,
+          notFoundExceptionType: "NotFoundException",
+          notFoundMessageKey: `${domainName}.not-found`,
+          notFoundDefaultMessage: `${entityType} was not found.`,
+          missingIdentifierExpression: missingIdentifierFixture.constantName,
+          missingCommandArguments: entity.attributes.map((attribute) => attribute.identifier
+            ? missingIdentifierFixture.constantName
+            : updatedFixtures.find((fixture) => fixture.attribute === attribute)!.constantName),
+        };
+        return {
+          templateId: "configuration-update-persistence-test",
+          model: persistenceModel,
+          outputVariables: { ...outputVariables, className: persistenceModel.className },
         };
       }),
     ];

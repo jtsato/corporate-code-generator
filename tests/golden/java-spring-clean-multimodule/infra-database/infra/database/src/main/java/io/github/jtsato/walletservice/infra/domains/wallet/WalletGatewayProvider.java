@@ -68,6 +68,23 @@ public class WalletGatewayProvider implements WalletGateway {
     }
 
     @Override
+    public Wallet update(Wallet wallet) {
+        Objects.requireNonNull(wallet, "wallet");
+
+        if (!walletRepository.existsById(wallet.getId())) {
+            throw new NotFoundException(
+                "wallet.not-found",
+                "Wallet was not found."
+            );
+        }
+
+        WalletEntity entity = WalletPersistenceMapper.toEntity(wallet);
+        WalletEntity saved = walletRepository.save(entity);
+
+        return WalletPersistenceMapper.toDomain(saved);
+    }
+
+    @Override
     public List<Wallet> findByFilter(FilterExpression filterExpression) {
         Objects.requireNonNull(filterExpression, "filterExpression");
 

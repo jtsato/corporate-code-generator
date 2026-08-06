@@ -80,6 +80,28 @@ class WalletOpenApiSmokeTests {
         assertThat(sort.path("description").asText()).contains("<field>:<direction>");
     }
 
+    @Test void documentsTheCreateOperation() throws Exception {
+        JsonNode document = document();
+        JsonNode operation = createOperation(document);
+        JsonNode requestBody = operation.path("requestBody");
+        assertThat(requestBody.isObject()).isTrue();
+        String requestReference = requestBody.path("content").path("application/json").path("schema").path("$ref").asText("");
+        assertThat(requestReference).contains("CreateWalletRequest");
+        assertThat(document.path("components").path("schemas").has("CreateWalletRequest")).isTrue();
+
+        JsonNode createdResponse = operation.path("responses").path("201");
+        assertThat(createdResponse.isObject()).isTrue();
+        JsonNode responseContent = createdResponse.path("content");
+        JsonNode responseSchema = responseContent.has("application/json")
+            ? responseContent.path("application/json").path("schema")
+            : responseContent.path("*/*").path("schema");
+        assertThat(responseSchema.path("$ref").asText("")).contains("WalletResponse");
+        assertThat(createdResponse.path("headers").has("Location")).isTrue();
+        assertThat(operation.path("responses").has("400")).isTrue();
+        assertThat(operation.path("responses").has("409")).isTrue();
+        assertThat(operation.path("responses").has("500")).isTrue();
+    }
+
     @Test void documentsFindByIdOperation() throws Exception {
         JsonNode document = document();
         JsonNode operation = findByIdOperation(document);
@@ -110,6 +132,12 @@ class WalletOpenApiSmokeTests {
         assertThat(document.path("paths").has("/wallets")).isTrue();
         assertThat(document.path("paths").path("/wallets").has("get")).isTrue();
         return document.path("paths").path("/wallets").path("get");
+    }
+
+    private JsonNode createOperation(JsonNode document) {
+        assertThat(document.path("paths").has("/wallets")).isTrue();
+        assertThat(document.path("paths").path("/wallets").has("post")).isTrue();
+        return document.path("paths").path("/wallets").path("post");
     }
 
     private JsonNode findByIdOperation(JsonNode document) {

@@ -1,0 +1,106 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in fixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldCreateAndPersist{{ entityType }}() throws Exception {
+        HttpResponse<String> response = post({{ validPayloadExpression }});
+
+        assertThat(response.statusCode()).isEqualTo(201);
+        assertThat(response.headers().firstValue("Location")).hasValue("{{ endpointPath }}/" + {{ identifierConstantName }});
+        JsonNode body = OBJECT_MAPPER.readTree(response.body());
+{% for fixture in fixtures %}        assertThat(body.path("{{ fixture.jsonName }}").asText()).isEqualTo(String.valueOf({{ fixture.constantName }}));
+{% endfor %}        var persisted = {{ repositoryFieldName }}.findById({{ identifierConstantName }}).orElseThrow();
+{% for fixture in fixtures %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}    }
+
+    @Test
+    void shouldRejectDuplicate{{ entityType }}WithoutOverwritingOriginal() throws Exception {
+        {{ repositoryFieldName }}.saveAndFlush(new {{ persistenceEntityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        HttpResponse<String> response = post({{ duplicatePayloadExpression }});
+
+        assertThat(response.statusCode()).isEqualTo(409);
+        JsonNode body = OBJECT_MAPPER.readTree(response.body());
+        assertThat(body.path("code").asInt()).isEqualTo(409);
+        assertThat(body.path("message").asText()).isEqualTo("{{ conflictDefaultMessage }}");
+        var persisted = {{ repositoryFieldName }}.findById({{ identifierConstantName }}).orElseThrow();
+{% for fixture in fixtures if fixture.jsonName != "id" %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}    }
+
+    @Test
+    void shouldRejectNullIdentifier() throws Exception {
+        assertThat(post({{ nullIdentifierPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectNullValue() throws Exception {
+        assertThat(post({{ nullValuePayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidIdentifier() throws Exception {
+        assertThat(post({{ invalidIdentifierPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectInvalidJson() throws Exception {
+        assertThat(post({{ invalidJsonPayloadExpression }}).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldRejectMissingBody() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "{{ endpointPath }}"))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.noBody())
+            .build();
+        assertThat(HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldCreateThenFindByIdentifier() throws Exception {
+        HttpResponse<String> created = post({{ validPayloadExpression }});
+        assertThat(created.statusCode()).isEqualTo(201);
+
+        HttpResponse<String> found = get("{{ findByIdEndpointPath }}/" + {{ identifierConstantName }});
+        assertThat(found.statusCode()).isEqualTo(200);
+        JsonNode body = OBJECT_MAPPER.readTree(found.body());
+{% for fixture in fixtures %}        assertThat(body.path("{{ fixture.jsonName }}").asText()).isEqualTo(String.valueOf({{ fixture.constantName }}));
+{% endfor %}    }
+
+    private HttpResponse<String> post(String body) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "{{ endpointPath }}"))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> get(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build();
+        return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+}

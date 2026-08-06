@@ -55,6 +55,9 @@ class FindWalletsByFilterUseCaseInteractorTests {
 
         @Override
         public Wallet create(Wallet entity) { return null; }
+
+        @Override
+        public Wallet update(Wallet entity) { return null; }
     }
 
     @Test

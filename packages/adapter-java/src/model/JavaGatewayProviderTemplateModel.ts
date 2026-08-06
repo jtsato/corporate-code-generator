@@ -54,4 +54,6 @@ export interface JavaGatewayProviderTemplateModel {
   readonly conflictExceptionType: string;
   readonly conflictMessageKey: string;
   readonly conflictDefaultMessage: string;
+  readonly updateMethodName: string;
+  readonly updateParameterName: string;
 }

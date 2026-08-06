@@ -47,6 +47,23 @@ public class {{ className }} implements {{ gatewayType }} {
     }
 
     @Override
+    public {{ entityType }} {{ updateMethodName }}({{ entityType }} {{ updateParameterName }}) {
+        Objects.requireNonNull({{ updateParameterName }}, "{{ updateParameterName }}");
+
+        if (!{{ repositoryFieldName }}.{{ repositoryExistsByIdMethodName }}({{ updateParameterName }}.{{ identifierAccessorName }}())) {
+            throw new {{ notFoundExceptionType }}(
+                "{{ notFoundMessageKey }}",
+                "{{ notFoundDefaultMessage }}"
+            );
+        }
+
+        {{ persistenceEntityType }} entity = {{ mapperType }}.{{ mapperToEntityMethodName }}({{ updateParameterName }});
+        {{ persistenceEntityType }} saved = {{ repositoryFieldName }}.{{ repositorySaveMethodName }}(entity);
+
+        return {{ mapperType }}.{{ mapperToDomainMethodName }}(saved);
+    }
+
+    @Override
     public List<{{ entityType }}> {{ findByFilterMethodName }}({{ filterExpressionType }} {{ filterExpressionParameterName }}) {
         Objects.requireNonNull({{ filterExpressionParameterName }}, "{{ filterExpressionParameterName }}");
 

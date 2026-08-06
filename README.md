@@ -1,6 +1,6 @@
 # Corporate Code Generator
 
-`java-spring-clean-multimodule` now generates 110 artifacts in the full profile: build 6, Core 42, entrypoints-rest 59, Infra 60, and Configuration 110. The build+core selection emits 48 artifacts; build+configuration emits 110. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the REST Filter Contract Foundation, REST Sort Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, the REST filter runtime integration, paging runtime integration, filtered paging runtime integration, REST filtered paging runtime integration, REST sorting runtime integration, find-by-id runtime integration, and create runtime integration without HTTP exposure. The generated Java CI uses Java 25 and `mvn -B clean verify`.
+`java-spring-clean-multimodule` now generates 117 artifacts in the full profile: build 6, Core 46, entrypoints-rest 64, Infra 64, and Configuration 117. The build+core selection emits 52 artifacts; build+configuration emits 117. Because `entrypoints-rest` and `infra-database` require `core`, their selection counts include the Core artifacts transitively. It includes the REST Filter Contract Foundation, REST Sort Contract Foundation, Core Filter Common, entity-aware Querydsl filter definitions and mapper foundation in Infra, the Querydsl filter runtime integration, the REST filter runtime integration, paging runtime integration, filtered paging runtime integration, REST filtered paging runtime integration, REST sorting runtime integration, find-by-id runtime integration, create runtime integration, REST create integration, and update runtime integration. The generated Java CI uses Java 25 and `mvn -B clean verify`.
 
 Querydsl filters run against the database through a dedicated filtered use case. The generated flow is `FilterExpression -> QuerydslFilterMapper -> ListQuerydslPredicateExecutor -> repository -> gateway -> Find<Entity>ByFilterUseCase`. `FilterExpression.empty()` falls back to `repository.findAll()`. Validate it with `npm run smoke:querydsl-filter-runtime:java-multimodule`.
 
@@ -21,10 +21,24 @@ flow is `CreateWalletCommand -> CreateWalletUseCase -> WalletGateway.create ->
 WalletGatewayProvider -> WalletRepository.existsById/save ->
 WalletPersistenceMapper`. The command supplies the identifier, and duplicate
 IDs raise a Core `ConflictException` before save. Validate the Core and H2
-persistence path with `npm run smoke:create-runtime:java-multimodule`. POST,
-HTTP 409 mapping and concurrent conflict translation remain future work; see
-[ADR-043](docs/adr/ADR-043-create-runtime-integration.md) and
-[ADR-044](docs/adr/ADR-044-create-conflict-runtime-integration.md).
+persistence path with `npm run smoke:create-runtime:java-multimodule`. REST
+creation is exposed by `POST /wallets`, returning `201 Created`, a relative
+`Location`, and `WalletResponse`; invalid bodies return `400` and duplicate
+IDs return `409`. Validate it with
+`npm run smoke:http-create:java-multimodule`. See
+[ADR-043](docs/adr/ADR-043-create-runtime-integration.md),
+[ADR-044](docs/adr/ADR-044-create-conflict-runtime-integration.md), and
+[ADR-046](docs/adr/ADR-046-rest-create-integration.md).
+
+Update runtime is available without HTTP through `UpdateWalletUseCase`. The
+flow is `UpdateWalletCommand -> UpdateWalletUseCase -> WalletGateway.update ->
+WalletGatewayProvider -> WalletRepository.existsById/save ->
+WalletPersistenceMapper`. Existing IDs are updated and the persisted balance
+changes; missing IDs raise a Core `NotFoundException` (`wallet.not-found`)
+and never create a new row. Validate the Core and H2 persistence path with
+`npm run smoke:update-runtime:java-multimodule`. REST update
+(`PUT`/`PATCH /wallets/{id}`) remains a future capability. See
+[ADR-047](docs/adr/ADR-047-update-runtime-integration.md).
 
 It also generates explicit local, test, and production configuration profiles plus properties-driven CORS. Validate the generated preflight path with `npm run smoke:cors:java-multimodule`.
 

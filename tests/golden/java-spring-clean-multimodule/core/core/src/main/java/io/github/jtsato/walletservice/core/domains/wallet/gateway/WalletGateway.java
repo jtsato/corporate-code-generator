@@ -19,4 +19,6 @@ public interface WalletGateway {
     Wallet findById(UUID id);
 
     Wallet create(Wallet wallet);
+
+    Wallet update(Wallet wallet);
 }

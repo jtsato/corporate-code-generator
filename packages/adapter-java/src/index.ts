@@ -94,6 +94,8 @@ export {
   createJavaPagingPersistenceTestModel,
 } from "./transformers/createJavaPagingPersistenceTestModel.js";
 export { createJavaFilteredPagingPersistenceTestModel } from "./transformers/createJavaFilteredPagingPersistenceTestModel.js";
+export { createJavaHttpCreateTestModel } from "./transformers/createJavaHttpCreateTestModel.js";
+export type { JavaHttpCreateFixtureModel, JavaHttpCreateTestTemplateModel } from "./model/JavaHttpCreateTestTemplateModel.js";
 
 export {
   JavaTestFixtureValueResolver,
@@ -114,6 +116,7 @@ export type {
 export type {
   JavaDelegatingRestControllerTemplateModel,
 } from "./model/JavaDelegatingRestControllerTemplateModel.js";
+export type { JavaCreateRestRequestTemplateModel } from "./model/JavaCreateRestRequestTemplateModel.js";
 export type { JavaPageResponseTemplateModel } from "./model/JavaPageResponseTemplateModel.js";
 export type { JavaRestSortFieldTemplateModel, JavaRestSortTemplateModel } from "./model/JavaRestSortTemplateModels.js";
 

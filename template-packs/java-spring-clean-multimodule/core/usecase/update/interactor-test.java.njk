@@ -1,0 +1,82 @@
+package {{ packageName }};
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+class {{ className }} {
+    private static final class {{ fakeGatewayType }} implements {{ gatewayType }} {
+        private {{ entityType }} received;
+        private {{ entityType }} result;
+        private int updateCallCount;
+
+        @Override
+        public List<{{ entityType }}> findAll() { return List.of(); }
+
+        @Override
+        public List<{{ entityType }}> findByFilter(FilterExpression filterExpression) { return List.of(); }
+
+        @Override
+        public PageResult<{{ entityType }}> findPage(PageRequest pageRequest) { return null; }
+
+        @Override
+        public PageResult<{{ entityType }}> findByFilterPage(FilterExpression filterExpression, PageRequest pageRequest) { return null; }
+
+        @Override
+        public {{ entityType }} findById({{ identifierType }} id) { return null; }
+
+        @Override
+        public {{ entityType }} create({{ entityType }} entity) { return null; }
+
+        @Override
+        public {{ entityType }} {{ gatewayUpdateMethodName }}({{ entityType }} entity) {
+            updateCallCount++;
+            received = entity;
+            return result;
+        }
+    }
+
+    @Test
+    void shouldRejectNullCommand() {
+        var gateway = new {{ fakeGatewayType }}();
+
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null)
+        );
+
+        assertEquals("command", exception.getFields().getFirst().name());
+        assertEquals("{{ commandRequiredMessageKey }}", exception.getFields().getFirst().messageKey());
+        assertEquals(0, gateway.updateCallCount);
+    }
+
+{% for requiredField in requiredFields %}    @Test
+    void shouldRejectNull{{ requiredField.testMethodSuffix }}InCommand() {
+        var exception = assertThrows(
+            ValidationException.class,
+            () -> new {{ commandType }}({{ requiredField.nullArguments | join(", ") }})
+        );
+
+        assertEquals("{{ requiredField.fieldName }}", exception.getFields().getFirst().name());
+        assertEquals("{{ requiredField.messageKey }}", exception.getFields().getFirst().messageKey());
+    }
+{% endfor %}
+
+    @Test
+    void shouldUpdateAndDelegateWalletPreservingItsValues() {
+        var gateway = new {{ fakeGatewayType }}();
+        gateway.result = new {{ entityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+        var command = new {{ commandType }}({{ commandArguments | join(", ") }});
+
+        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(command);
+
+{% for assertion in fieldAssertions %}        assertEquals({{ assertion.expectedExpression }}, gateway.received.{{ assertion.accessorName }}());
+{% endfor %}
+        assertSame(gateway.result, result);
+        assertEquals(1, gateway.updateCallCount);
+    }
+}

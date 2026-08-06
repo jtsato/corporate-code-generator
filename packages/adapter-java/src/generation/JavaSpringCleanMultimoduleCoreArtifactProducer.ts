@@ -8,6 +8,10 @@ import type { JavaCreateCommandTemplateModel } from "../model/JavaCreateCommandT
 import type { JavaCreateUseCaseInteractorTemplateModel } from "../model/JavaCreateUseCaseInteractorTemplateModel.js";
 import type { JavaCreateUseCaseInteractorTestTemplateModel } from "../model/JavaCreateUseCaseInteractorTestTemplateModel.js";
 import type { JavaCreateUseCaseTemplateModel } from "../model/JavaCreateUseCaseTemplateModel.js";
+import type { JavaUpdateCommandTemplateModel } from "../model/JavaUpdateCommandTemplateModel.js";
+import type { JavaUpdateUseCaseInteractorTemplateModel } from "../model/JavaUpdateUseCaseInteractorTemplateModel.js";
+import type { JavaUpdateUseCaseInteractorTestTemplateModel } from "../model/JavaUpdateUseCaseInteractorTestTemplateModel.js";
+import type { JavaUpdateUseCaseTemplateModel } from "../model/JavaUpdateUseCaseTemplateModel.js";
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
@@ -47,6 +51,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       const createCommandType = `Create${entityType}Command`;
       const createUseCaseType = `Create${entityType}UseCase`;
       const createInteractorType = `${createUseCaseType}Interactor`;
+      const updateCommandType = `Update${entityType}Command`;
+      const updateUseCaseType = `Update${entityType}UseCase`;
+      const updateInteractorType = `${updateUseCaseType}Interactor`;
       const domainPackage = `${namespace}.core.domains.${domainName}`;
       const filterPackage = `${namespace}.core.common.filter`;
       const pagingPackage = `${namespace}.core.common.paging`;
@@ -192,6 +199,35 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       for (const attribute of entity.attributes) {
         createInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
       }
+      const updateCommandImports = new JavaImportCollector();
+      updateCommandImports.add(`${exceptionPackage}.FieldViolation`);
+      updateCommandImports.add(`${exceptionPackage}.ValidationException`);
+      for (const attribute of entity.attributes) {
+        updateCommandImports.add(this.typeResolver.resolve(attribute.type).import);
+      }
+      const updateUseCaseImports = new JavaImportCollector();
+      updateUseCaseImports.add(`${domainPackage}.model.${entityType}`);
+      updateUseCaseImports.add(`${domainPackage}.usecase.update.${updateCommandType}`);
+      const updateInteractorImports = new JavaImportCollector();
+      updateInteractorImports.add(`${exceptionPackage}.FieldViolation`);
+      updateInteractorImports.add(`${exceptionPackage}.ValidationException`);
+      updateInteractorImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      updateInteractorImports.add(`${domainPackage}.model.${entityType}`);
+      updateInteractorImports.add(`${domainPackage}.usecase.update.${updateCommandType}`);
+      updateInteractorImports.add("java.util.List");
+      const updateInteractorTestImports = new JavaImportCollector();
+      updateInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
+      updateInteractorTestImports.add(`${filterPackage}.FilterExpression`);
+      updateInteractorTestImports.add(`${pagingPackage}.PageRequest`);
+      updateInteractorTestImports.add(`${pagingPackage}.PageResult`);
+      updateInteractorTestImports.add(`${domainPackage}.gateway.${gatewayType}`);
+      updateInteractorTestImports.add(`${domainPackage}.model.${entityType}`);
+      updateInteractorTestImports.add(`${domainPackage}.usecase.update.${updateCommandType}`);
+      updateInteractorTestImports.add("java.util.List");
+      updateInteractorTestImports.add("org.junit.jupiter.api.Test");
+      for (const attribute of entity.attributes) {
+        updateInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
+      }
       const createCommandFields = entity.attributes.map((attribute) => {
         const required = attribute.required
           ? {
@@ -262,6 +298,56 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         gatewayCreateMethodName: "create",
         commandRequiredMessageKey: "common.command.required",
       };
+      const updateCommandModel: JavaUpdateCommandTemplateModel = {
+        packageName: `${domainPackage}.usecase.update`,
+        imports: updateCommandImports.values(),
+        className: updateCommandType,
+        fields: createCommandFields,
+      };
+      const updateUseCaseModel: JavaUpdateUseCaseTemplateModel = {
+        packageName: `${domainPackage}.usecase.update`,
+        imports: updateUseCaseImports.values(),
+        interfaceName: updateUseCaseType,
+        commandType: updateCommandType,
+        entityType,
+        executeMethodName: "execute",
+      };
+      const updateInteractorModel: JavaUpdateUseCaseInteractorTemplateModel = {
+        packageName: `${domainPackage}.usecase.update`,
+        imports: updateInteractorImports.values(),
+        className: updateInteractorType,
+        interfaceName: updateUseCaseType,
+        commandType: updateCommandType,
+        gatewayType,
+        gatewayFieldName: `${domainName}Gateway`,
+        entityType,
+        entityConstructorArguments: entity.attributes.map((attribute) => `command.${attribute.name}()`),
+        executeMethodName: "execute",
+        gatewayUpdateMethodName: "update",
+        commandRequiredMessageKey: "common.command.required",
+        commandRequiredDefaultMessage: "Command is required.",
+      };
+      const updateInteractorTestModel: JavaUpdateUseCaseInteractorTestTemplateModel = {
+        packageName: `${domainPackage}.usecase.update`,
+        imports: updateInteractorTestImports.values(),
+        className: `${updateInteractorType}Tests`,
+        interactorType: updateInteractorType,
+        fakeGatewayType: `Fake${gatewayType}`,
+        gatewayType,
+        entityType,
+        commandType: updateCommandType,
+        identifierType: identifierType.name,
+        entityConstructorArguments: fixtureArguments,
+        commandArguments: fixtureArguments,
+        fieldAssertions: entity.attributes.map((attribute, index) => ({
+          accessorName: `get${toJavaTypeName(attribute.name)}`,
+          expectedExpression: fixtureArguments[index]!,
+        })),
+        requiredFields,
+        executeMethodName: "execute",
+        gatewayUpdateMethodName: "update",
+        commandRequiredMessageKey: "common.command.required",
+      };
       const outputVariables = {
         packagePath: namespace.replaceAll(".", "/"),
         domainName,
@@ -299,6 +385,8 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             findByIdMethodName: "findById",
             createMethodName: "create",
             createParameterName: domainName,
+            updateMethodName: "update",
+            updateParameterName: domainName,
           },
           outputVariables: { ...outputVariables, className: gatewayType },
         },
@@ -321,6 +409,26 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           templateId: "core-create-usecase-interactor-test",
           model: createInteractorTestModel,
           outputVariables: { ...outputVariables, className: createInteractorTestModel.className },
+        },
+        {
+          templateId: "core-update-command",
+          model: updateCommandModel,
+          outputVariables: { ...outputVariables, className: updateCommandType },
+        },
+        {
+          templateId: "core-update-usecase",
+          model: updateUseCaseModel,
+          outputVariables: { ...outputVariables, className: updateUseCaseType },
+        },
+        {
+          templateId: "core-update-usecase-interactor",
+          model: updateInteractorModel,
+          outputVariables: { ...outputVariables, className: updateInteractorType },
+        },
+        {
+          templateId: "core-update-usecase-interactor-test",
+          model: updateInteractorTestModel,
+          outputVariables: { ...outputVariables, className: updateInteractorTestModel.className },
         },
         {
           templateId: "core-find-usecase",

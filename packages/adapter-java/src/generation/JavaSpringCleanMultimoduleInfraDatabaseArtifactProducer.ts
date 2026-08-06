@@ -178,6 +178,8 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         conflictExceptionType: "ConflictException",
         conflictMessageKey: `${toJavaPackageSegment(entity.name)}.already-exists`,
         conflictDefaultMessage: `${entityType} already exists.`,
+        updateMethodName: "update",
+        updateParameterName: toJavaFieldName(entityType),
         sortPropertyMapping: entity.attributes.map((attribute) => ({
           domainName: attribute.name,
           persistenceName: toJavaFieldName(attribute.name),

@@ -2,6 +2,7 @@ package io.github.jtsato.walletservice.configuration.exception;
 
 import io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus;
 import io.github.jtsato.walletservice.core.common.exception.FieldViolation;
+import io.github.jtsato.walletservice.core.common.exception.ConflictException;
 import io.github.jtsato.walletservice.core.common.exception.NotFoundException;
 import io.github.jtsato.walletservice.core.common.exception.ValidationException;
 import java.util.Comparator;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -30,6 +32,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     ResponseEntity<ResponseStatus> handleNotFoundException(NotFoundException exception, Locale locale) {
         return response(HttpStatus.NOT_FOUND, resolveMessage(exception.getMessageKey(), exception.getDefaultMessage(), locale), List.of());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    ResponseEntity<ResponseStatus> handleConflictException(ConflictException exception, Locale locale) {
+        return response(HttpStatus.CONFLICT, resolveMessage(exception.getMessageKey(), exception.getDefaultMessage(), locale), List.of());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<ResponseStatus> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception, Locale locale) {
+        return response(HttpStatus.BAD_REQUEST, resolveMessage("common.error.invalid-request", "Invalid request.", locale), List.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

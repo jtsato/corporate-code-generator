@@ -38,4 +38,9 @@ public class {{ className }} {
     public {{ createUseCaseType }} {{ createUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
         return new {{ createUseCaseImplementationType }}({{ gatewayParameterName }});
     }
+
+    @Bean
+    public {{ updateUseCaseType }} {{ updateUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
+        return new {{ updateUseCaseImplementationType }}({{ gatewayParameterName }});
+    }
 }

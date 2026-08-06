@@ -14,4 +14,6 @@ export interface JavaOpenApiSmokeTestTemplateModel {
   readonly sizeParameterName: string;
   readonly pageResponseSchemaName: string;
   readonly itemResponseSchemaName: string;
+  readonly createRequestSchemaName: string;
+  readonly createResponseSchemaName: string;
 }

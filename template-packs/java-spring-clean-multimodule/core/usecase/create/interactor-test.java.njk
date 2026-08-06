@@ -33,6 +33,9 @@ class {{ className }} {
             received = entity;
             return result;
         }
+
+        @Override
+        public {{ entityType }} update({{ entityType }} entity) { return null; }
     }
 
     @Test

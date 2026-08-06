@@ -5,6 +5,7 @@ import type {
 } from "@corporate-code-generator/core";
 import { JavaImportCollector } from "../model/JavaImportCollector.js";
 import type { JavaDelegatingRestControllerTemplateModel } from "../model/JavaDelegatingRestControllerTemplateModel.js";
+import type { JavaCreateRestRequestTemplateModel } from "../model/JavaCreateRestRequestTemplateModel.js";
 import type { JavaFactoryRestResponseTemplateModel } from "../model/JavaFactoryRestResponseTemplateModel.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
@@ -40,6 +41,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const responseName = `${entityType}Response`;
       const byFilterPageUseCaseType = `Find${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`;
       const byIdUseCaseType = `Find${entityType}ByIdUseCase`;
+      const createUseCaseType = `Create${entityType}UseCase`;
+      const createRequestType = `Create${entityType}Request`;
       const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
       if (identifiers.length !== 1) {
         throw new Error(`Cannot generate find-by-id controller for entity '${entity.name}' without exactly one identifier attribute.`);
@@ -52,6 +55,8 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       const controllerImports = new JavaImportCollector();
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byFilterPageUseCaseType}`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.find.${byIdUseCaseType}`);
+      controllerImports.add(`${namespace}.core.domains.${domainName}.usecase.create.${createUseCaseType}`);
+      controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${createRequestType}`);
       controllerImports.add(`${namespace}.core.common.paging.PageRequest`);
       controllerImports.add(`${namespace}.core.common.paging.PageResult`);
       controllerImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -63,16 +68,21 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortParser`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.sort.${sortDefinitionType}`);
       controllerImports.add(`${namespace}.core.common.paging.SortOrder`);
+      controllerImports.add("java.net.URI");
       controllerImports.add("java.util.List");
       controllerImports.add(identifierType.import);
+      controllerImports.add("org.springframework.http.ResponseEntity");
       controllerImports.add("org.springframework.web.bind.annotation.GetMapping");
+      controllerImports.add("org.springframework.web.bind.annotation.PostMapping");
       controllerImports.add("org.springframework.web.bind.annotation.PathVariable");
+      controllerImports.add("org.springframework.web.bind.annotation.RequestBody");
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
       controllerImports.add("org.springframework.web.bind.annotation.RequestParam");
       controllerImports.add("org.springframework.web.bind.annotation.RestController");
       controllerImports.add("io.swagger.v3.oas.annotations.Operation");
       controllerImports.add("io.swagger.v3.oas.annotations.Parameter");
       controllerImports.add("io.swagger.v3.oas.annotations.enums.ParameterIn");
+      controllerImports.add("io.swagger.v3.oas.annotations.headers.Header");
       controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponse");
       controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponses");
       controllerImports.add("io.swagger.v3.oas.annotations.media.ArraySchema");
@@ -126,6 +136,15 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         sortParserMethodName: "parse",
         sortDefinitionType: sortDefinitionType,
         sortDefinitionFactoryMethodName: "create",
+        createUseCaseType,
+        createUseCaseFieldName: toJavaFieldName(createUseCaseType),
+        createUseCaseExecuteMethodName: "execute",
+        createRequestType,
+        createRequestPackageName: `${namespace}.entrypoint.rest.domains.${domainName}.request`,
+        createMethodName: "create",
+        createOperationSummary: `Create ${entityType.toLowerCase()}`,
+        createOperationDescription: `Creates a ${entityType.toLowerCase()}.`,
+        createResponseStatus: "201",
       };
       const responseImports = new JavaImportCollector();
       responseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
@@ -150,6 +169,11 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       return [
         { templateId: "entrypoints-rest-controller", model: controller, outputVariables: { ...variables, className: controllerName } },
         { templateId: "entrypoints-rest-response", model: response, outputVariables: { ...variables, className: responseName } },
+        {
+          templateId: "entrypoints-rest-domain-create-request",
+          model: createRequestModel(entity.attributes, namespace, domainName, entityType, this.typeResolver),
+          outputVariables: { ...variables, domainName, className: createRequestType },
+        },
       ];
     });
     const packagePath = namespace.replaceAll(".", "/");
@@ -197,4 +221,30 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       }),
     ];
   }
+}
+
+function createRequestModel(
+  attributes: readonly { readonly name: string; readonly type: Parameters<JavaTypeResolver["resolve"]>[0] }[],
+  namespace: string,
+  domainName: string,
+  entityType: string,
+  typeResolver: JavaTypeResolver,
+): JavaCreateRestRequestTemplateModel {
+  const commandType = `Create${entityType}Command`;
+  const imports = new JavaImportCollector();
+  imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${commandType}`);
+  const components = attributes.map((attribute) => {
+    const type = typeResolver.resolve(attribute.type);
+    imports.add(type.import);
+    return { name: attribute.name, type: type.name };
+  });
+  return {
+    packageName: `${namespace}.entrypoint.rest.domains.${domainName}.request`,
+    imports: imports.values(),
+    recordName: `Create${entityType}Request`,
+    components,
+    commandType,
+    commandPackageName: `${namespace}.core.domains.${domainName}.usecase.create`,
+    commandArguments: attributes.map((attribute) => attribute.name),
+  };
 }

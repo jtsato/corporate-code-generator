@@ -1,0 +1,28 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+public final class {{ className }} implements {{ interfaceName }} {
+    private final {{ gatewayType }} {{ gatewayFieldName }};
+
+    public {{ className }}({{ gatewayType }} {{ gatewayFieldName }}) {
+        this.{{ gatewayFieldName }} = {{ gatewayFieldName }};
+    }
+
+    @Override
+    public {{ entityType }} {{ executeMethodName }}({{ commandType }} command) {
+        if (command == null) {
+            throw new ValidationException(List.of(new FieldViolation(
+                "command",
+                "{{ commandRequiredMessageKey }}",
+                "{{ commandRequiredDefaultMessage }}"
+            )));
+        }
+
+        {{ entityType }} entity = new {{ entityType }}(
+{% for argument in entityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        );
+
+        return {{ gatewayFieldName }}.{{ gatewayUpdateMethodName }}(entity);
+    }
+}

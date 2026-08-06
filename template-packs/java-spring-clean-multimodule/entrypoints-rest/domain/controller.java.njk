@@ -9,10 +9,12 @@ package {{ packageName }};
 public class {{ className }} {
     private final {{ useCaseType }} {{ useCaseFieldName }};
     private final {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }};
+    private final {{ createUseCaseType }} {{ createUseCaseFieldName }};
 
-    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}, {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }}) {
+    public {{ className }}({{ useCaseType }} {{ useCaseFieldName }}, {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }}, {{ createUseCaseType }} {{ createUseCaseFieldName }}) {
         this.{{ useCaseFieldName }} = {{ useCaseFieldName }};
         this.{{ byIdUseCaseFieldName }} = {{ byIdUseCaseFieldName }};
+        this.{{ createUseCaseFieldName }} = {{ createUseCaseFieldName }};
     }
 
     @GetMapping
@@ -59,5 +61,20 @@ public class {{ className }} {
     public {{ responseClassName }} {{ findByIdMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}) {
         {{ domainClassName }} result = {{ byIdUseCaseFieldName }}.{{ useCaseExecuteMethodName }}({{ identifierParameterName }});
         return {{ responseClassName }}.{{ responseFactoryMethodName }}(result);
+    }
+
+    @PostMapping
+    @Operation(summary = "{{ createOperationSummary }}", description = "{{ createOperationDescription }}")
+    @ApiResponses({
+        @ApiResponse(responseCode = "{{ createResponseStatus }}", description = "{{ domainClassName }} created", headers = @Header(name = "Location", description = "Location of the created resource", schema = @Schema(type = "string")), content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "409", description = "{{ domainClassName }} already exists", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    public ResponseEntity<{{ responseClassName }}> {{ createMethodName }}(@RequestBody {{ createRequestType }} request) {
+        {{ domainClassName }} created = {{ createUseCaseFieldName }}.{{ createUseCaseExecuteMethodName }}(request.toCommand());
+        return ResponseEntity
+            .created(URI.create("{{ requestMapping }}/" + created.getId()))
+            .body({{ responseClassName }}.{{ responseFactoryMethodName }}(created));
     }
 }

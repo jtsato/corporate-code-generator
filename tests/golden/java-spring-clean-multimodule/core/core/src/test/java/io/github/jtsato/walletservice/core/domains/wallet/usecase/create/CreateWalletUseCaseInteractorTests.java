@@ -43,6 +43,9 @@ class CreateWalletUseCaseInteractorTests {
             received = entity;
             return result;
         }
+
+        @Override
+        public Wallet update(Wallet entity) { return null; }
     }
 
     @Test

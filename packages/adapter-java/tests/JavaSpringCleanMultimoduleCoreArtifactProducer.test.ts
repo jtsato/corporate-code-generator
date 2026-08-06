@@ -91,6 +91,10 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       { templateId: "core-create-usecase" },
       { templateId: "core-create-usecase-interactor" },
       { templateId: "core-create-usecase-interactor-test" },
+      { templateId: "core-update-command" },
+      { templateId: "core-update-usecase" },
+      { templateId: "core-update-usecase-interactor" },
+      { templateId: "core-update-usecase-interactor-test" },
       {
         templateId: "core-find-usecase",
         outputVariables: { className: "FindWalletsUseCase" },

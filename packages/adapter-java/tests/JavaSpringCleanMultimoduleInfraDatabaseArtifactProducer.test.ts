@@ -145,6 +145,8 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         pageRequestMapperMethodName: "toPageable",
         pageResultMapperType: "SpringDataPageResultMapper",
         pageResultMapperMethodName: "toPageResult",
+        updateMethodName: "update",
+        updateParameterName: "wallet",
         sortPropertyMapping: [{ domainName: "id", persistenceName: "id" }, { domainName: "balance", persistenceName: "balance" }],
       },
       outputVariables: {

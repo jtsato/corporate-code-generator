@@ -1,0 +1,49 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@SpringBootTest
+@ActiveProfiles("{{ activeProfile }}")
+class {{ className }} {
+{% for fixture in declaredFixtures %}    private static final {{ fixture.type }} {{ fixture.constantName }} = {{ fixture.javaExpression }};
+{% endfor %}    @Autowired
+    private {{ useCaseType }} {{ useCaseFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @AfterEach
+    void cleanUp() {
+        {{ repositoryFieldName }}.deleteAll();
+    }
+
+    @Test
+    void shouldUpdateAndPersist{{ className | replace("UpdatePersistenceTests", "") }}() {
+        {{ repositoryFieldName }}.save(new {{ persistenceEntityType }}(
+{% for argument in originalEntityConstructorArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+        var result = {{ useCaseFieldName }}.execute(new {{ commandType }}(
+{% for argument in commandArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        ));
+
+{% for fixture in assertionFixtures %}        assertThat(result.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}
+        var persisted = {{ repositoryFieldName }}.findById({{ identifierExpression }}).orElseThrow();
+{% for fixture in assertionFixtures %}        assertThat(persisted.{{ fixture.accessorName }}()).isEqualTo({{ fixture.constantName }});
+{% endfor %}    }
+
+    @Test
+    void shouldRejectMissing{{ className | replace("UpdatePersistenceTests", "") }}WithoutCreatingNewRecord() {
+        var exception = org.junit.jupiter.api.Assertions.assertThrows({{ notFoundExceptionType }}.class, () -> {{ useCaseFieldName }}.execute(new {{ commandType }}(
+{% for argument in missingCommandArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
+{% endfor %}        )));
+
+        assertThat(exception.getMessageKey()).isEqualTo("{{ notFoundMessageKey }}");
+        assertThat(exception.getDefaultMessage()).isEqualTo("{{ notFoundDefaultMessage }}");
+
+        assertThat({{ repositoryFieldName }}.findById({{ missingIdentifierExpression }})).isEmpty();
+    }
+}

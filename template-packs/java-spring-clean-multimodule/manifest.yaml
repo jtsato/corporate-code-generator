@@ -50,6 +50,22 @@ templates:
     module: core
     template: core/usecase/create/interactor-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/create/{{ className }}.java
+  - id: core-update-command
+    module: core
+    template: core/usecase/update/command.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/update/{{ className }}.java
+  - id: core-update-usecase
+    module: core
+    template: core/usecase/update/usecase.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/update/{{ className }}.java
+  - id: core-update-usecase-interactor
+    module: core
+    template: core/usecase/update/interactor.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/update/{{ className }}.java
+  - id: core-update-usecase-interactor-test
+    module: core
+    template: core/usecase/update/interactor-test.java.njk
+    output: core/src/test/java/{{ packagePath }}/core/domains/{{ domainName }}/usecase/update/{{ className }}.java
   - id: core-find-usecase
     module: core
     template: core/usecase/find/usecase.java.njk
@@ -202,6 +218,10 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/domain/response.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: entrypoints-rest-domain-create-request
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/create-request.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/request/{{ className }}.java
   - id: entrypoints-rest-response-status
     module: entrypoints-rest
     template: entrypoints-rest/common/response-status.java.njk
@@ -430,6 +450,10 @@ templates:
     module: configuration
     template: configuration/http-find-by-id-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-http-create-test
+    module: configuration
+    template: configuration/http-create-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: configuration-http-filter-test
     module: configuration
     template: configuration/http-filter-test.java.njk
@@ -441,4 +465,8 @@ templates:
   - id: configuration-querydsl-filter-paging-persistence-test
     module: configuration
     template: configuration/querydsl-filter-paging-persistence-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+  - id: configuration-update-persistence-test
+    module: configuration
+    template: configuration/update-persistence-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java

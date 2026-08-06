@@ -48,4 +48,13 @@ export interface JavaDelegatingRestControllerTemplateModel {
   readonly sortParserMethodName: string;
   readonly sortDefinitionType: string;
   readonly sortDefinitionFactoryMethodName: string;
+  readonly createUseCaseType: string;
+  readonly createUseCaseFieldName: string;
+  readonly createUseCaseExecuteMethodName: string;
+  readonly createRequestType: string;
+  readonly createRequestPackageName: string;
+  readonly createMethodName: string;
+  readonly createOperationSummary: string;
+  readonly createOperationDescription: string;
+  readonly createResponseStatus: string;
 }

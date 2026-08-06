@@ -28,7 +28,7 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
       "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-architecture-test",
-      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test",
+      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-http-create-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test", "configuration-update-persistence-test",
     ]);
     /* Detailed legacy expectations retained below for fixture reference.
     expect(artifacts).toMatchObject([{
@@ -205,6 +205,9 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     });
     expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-find-by-id-test")).toMatchObject({
       model: { className: "WalletHttpFindByIdTests", endpointPath: "/wallets", identifierConstantName: "WALLET_ID" },
+    });
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-http-create-test")).toMatchObject({
+      model: { className: "WalletHttpCreateTests", endpointPath: "/wallets", entityType: "WalletEntity", repositoryType: "WalletRepository" },
     });
   });
 
