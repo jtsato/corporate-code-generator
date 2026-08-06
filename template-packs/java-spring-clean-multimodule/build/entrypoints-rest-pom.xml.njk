@@ -14,14 +14,10 @@
   <packaging>{{ packaging }}</packaging>
 
   <dependencies>
-{% for dependency in dependencies %}
-    <dependency>
+{% for dependency in dependencies %}    <dependency>
       <groupId>{{ dependency.groupId }}</groupId>
       <artifactId>{{ dependency.artifactId }}</artifactId>
-{% if dependency.version %}
-      <version>{{ dependency.version }}</version>
-{% endif %}
-    </dependency>
-{% endfor %}
-  </dependencies>
+{% if dependency.version %}      <version>{{ dependency.version }}</version>
+{% endif %}    </dependency>
+{% endfor %}  </dependencies>
 </project>

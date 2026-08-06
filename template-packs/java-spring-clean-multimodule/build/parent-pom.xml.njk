@@ -16,10 +16,8 @@
   <packaging>pom</packaging>
 
   <modules>
-{% for module in modules %}
-    <module>{{ module }}</module>
-{% endfor %}
-  </modules>
+{% for module in modules %}    <module>{{ module }}</module>
+{% endfor %}  </modules>
 
   <properties>
     <java.version>{{ javaVersion }}</java.version>

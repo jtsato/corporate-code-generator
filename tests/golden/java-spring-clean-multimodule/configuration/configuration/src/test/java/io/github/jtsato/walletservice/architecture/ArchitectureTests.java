@@ -48,6 +48,14 @@ class ArchitectureTests {
     }
 
     @Test
+    void noClassesShouldUseQuerydslPathBuilder() {
+        noClasses()
+            .should().dependOnClassesThat()
+            .haveFullyQualifiedName("com.querydsl.core.types.dsl.PathBuilder")
+            .check(importedClasses);
+    }
+
+    @Test
     void entrypointShouldNotDependOnInfra() {
         noClasses()
             .that().resideInAPackage(BASE_PACKAGE + ".entrypoint..")
