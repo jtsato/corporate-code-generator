@@ -93,6 +93,11 @@ function toJsonStringLiteral(
   attributes: readonly { readonly name: string }[],
   values: readonly string[],
 ): string {
-  const json = `{${attributes.map((attribute, index) => `${JSON.stringify(attribute.name)}:${values[index]}`).join(",")}}`;
+  const fields = attributes.map((attribute, index) => toJsonFieldLiteral(attribute.name, values[index]!));
+  const json = `{${fields.join(",")}}`;
   return JSON.stringify(json);
+}
+
+function toJsonFieldLiteral(name: string, value: string): string {
+  return `${JSON.stringify(name)}:${value}`;
 }

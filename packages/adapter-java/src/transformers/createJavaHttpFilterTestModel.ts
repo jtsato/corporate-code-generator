@@ -94,22 +94,152 @@ export function createJavaHttpFilterTestModel(
   const [firstIdentifierLiteral, , thirdIdentifierLiteral] = identifierLiterals as [string, string, string];
 
   const scenarios: JavaHttpFilterTestScenario[] = [
-    success("shouldReturnAllRecordsWhenFilterIsAbsent", [], [firstIdentifier, secondIdentifier, thirdIdentifier], "null", "null", 0, 20, 3, 1),
-    success(`shouldFilterBy${driverLabel}Equals`, [`${driver.name}:eq:${secondLiteral}`], [secondIdentifier], "null", "null", 0, 20, 1, 1),
-    success(`shouldFilterBy${toJavaTypeName(identifier.name)}In`, [`${identifier.name}:in:${firstIdentifierLiteral},${thirdIdentifierLiteral}`], [firstIdentifier, thirdIdentifier], "0", "20", 0, 20, 2, 1),
-    success("shouldReturnFirstPage", [], [firstIdentifier, secondIdentifier], "0", "2", 0, 2, 3, 2),
-    success("shouldReturnSecondPage", [], [thirdIdentifier], "1", "2", 1, 2, 3, 2),
-    success(`shouldSort${driverLabel}Ascending`, [], [firstIdentifier, secondIdentifier, thirdIdentifier], "0", "3", 0, 3, 3, 1, [`${driver.name}:asc`], true),
-    success(`shouldSort${driverLabel}Descending`, [], [thirdIdentifier, secondIdentifier, firstIdentifier], "0", "3", 0, 3, 3, 1, [`${driver.name}:desc`], true),
+    success({
+      methodName: "shouldReturnAllRecordsWhenFilterIsAbsent",
+      filterLiterals: [],
+      expectedIdentifierConstantNames: [firstIdentifier, secondIdentifier, thirdIdentifier],
+      pageExpression: "null",
+      sizeExpression: "null",
+      expectedPage: 0,
+      expectedSize: 20,
+      expectedTotalItems: 3,
+      expectedTotalPages: 1,
+    }),
+    success({
+      methodName: `shouldFilterBy${driverLabel}Equals`,
+      filterLiterals: [`${driver.name}:eq:${secondLiteral}`],
+      expectedIdentifierConstantNames: [secondIdentifier],
+      pageExpression: "null",
+      sizeExpression: "null",
+      expectedPage: 0,
+      expectedSize: 20,
+      expectedTotalItems: 1,
+      expectedTotalPages: 1,
+    }),
+    success({
+      methodName: `shouldFilterBy${toJavaTypeName(identifier.name)}In`,
+      filterLiterals: [`${identifier.name}:in:${firstIdentifierLiteral},${thirdIdentifierLiteral}`],
+      expectedIdentifierConstantNames: [firstIdentifier, thirdIdentifier],
+      pageExpression: "0",
+      sizeExpression: "20",
+      expectedPage: 0,
+      expectedSize: 20,
+      expectedTotalItems: 2,
+      expectedTotalPages: 1,
+    }),
+    success({
+      methodName: "shouldReturnFirstPage",
+      filterLiterals: [],
+      expectedIdentifierConstantNames: [firstIdentifier, secondIdentifier],
+      pageExpression: "0",
+      sizeExpression: "2",
+      expectedPage: 0,
+      expectedSize: 2,
+      expectedTotalItems: 3,
+      expectedTotalPages: 2,
+    }),
+    success({
+      methodName: "shouldReturnSecondPage",
+      filterLiterals: [],
+      expectedIdentifierConstantNames: [thirdIdentifier],
+      pageExpression: "1",
+      sizeExpression: "2",
+      expectedPage: 1,
+      expectedSize: 2,
+      expectedTotalItems: 3,
+      expectedTotalPages: 2,
+    }),
+    success({
+      methodName: `shouldSort${driverLabel}Ascending`,
+      filterLiterals: [],
+      expectedIdentifierConstantNames: [firstIdentifier, secondIdentifier, thirdIdentifier],
+      pageExpression: "0",
+      sizeExpression: "3",
+      expectedPage: 0,
+      expectedSize: 3,
+      expectedTotalItems: 3,
+      expectedTotalPages: 1,
+      sortLiterals: [`${driver.name}:asc`],
+      expectedOrdered: true,
+    }),
+    success({
+      methodName: `shouldSort${driverLabel}Descending`,
+      filterLiterals: [],
+      expectedIdentifierConstantNames: [thirdIdentifier, secondIdentifier, firstIdentifier],
+      pageExpression: "0",
+      sizeExpression: "3",
+      expectedPage: 0,
+      expectedSize: 3,
+      expectedTotalItems: 3,
+      expectedTotalPages: 1,
+      sortLiterals: [`${driver.name}:desc`],
+      expectedOrdered: true,
+    }),
     ...(driverIsComparable
       ? [
-        success(`shouldFilterBy${driverLabel}GreaterThan`, [`${driver.name}:gt:${firstLiteral}`], [secondIdentifier, thirdIdentifier], "0", "2", 0, 2, 2, 1),
-        success("shouldCombineRepeatedFiltersWithAnd", [`${driver.name}:gt:${firstLiteral}`, `${driver.name}:lt:${thirdLiteral}`], [secondIdentifier], "0", "2", 0, 2, 1, 1),
-        success("shouldCombineFilterPagingAndSort", [`${driver.name}:gt:${firstLiteral}`], [thirdIdentifier, secondIdentifier], "0", "2", 0, 2, 2, 1, [`${driver.name}:desc`], true),
+        success({
+          methodName: `shouldFilterBy${driverLabel}GreaterThan`,
+          filterLiterals: [`${driver.name}:gt:${firstLiteral}`],
+          expectedIdentifierConstantNames: [secondIdentifier, thirdIdentifier],
+          pageExpression: "0",
+          sizeExpression: "2",
+          expectedPage: 0,
+          expectedSize: 2,
+          expectedTotalItems: 2,
+          expectedTotalPages: 1,
+        }),
+        success({
+          methodName: "shouldCombineRepeatedFiltersWithAnd",
+          filterLiterals: [`${driver.name}:gt:${firstLiteral}`, `${driver.name}:lt:${thirdLiteral}`],
+          expectedIdentifierConstantNames: [secondIdentifier],
+          pageExpression: "0",
+          sizeExpression: "2",
+          expectedPage: 0,
+          expectedSize: 2,
+          expectedTotalItems: 1,
+          expectedTotalPages: 1,
+        }),
+        success({
+          methodName: "shouldCombineFilterPagingAndSort",
+          filterLiterals: [`${driver.name}:gt:${firstLiteral}`],
+          expectedIdentifierConstantNames: [thirdIdentifier, secondIdentifier],
+          pageExpression: "0",
+          sizeExpression: "2",
+          expectedPage: 0,
+          expectedSize: 2,
+          expectedTotalItems: 2,
+          expectedTotalPages: 1,
+          sortLiterals: [`${driver.name}:desc`],
+          expectedOrdered: true,
+        }),
       ]
       : []),
-    success("shouldAcceptRepeatedSort", [], [thirdIdentifier, secondIdentifier, firstIdentifier], "0", "3", 0, 3, 3, 1, [`${driver.name}:desc`, `${identifier.name}:asc`], true),
-    success("shouldPreserveFilterInCommaWithSort", [`${identifier.name}:in:${firstIdentifierLiteral},${thirdIdentifierLiteral}`], [firstIdentifier, thirdIdentifier], "0", "20", 0, 20, 2, 1, [`${driver.name}:asc`], true),
+    success({
+      methodName: "shouldAcceptRepeatedSort",
+      filterLiterals: [],
+      expectedIdentifierConstantNames: [thirdIdentifier, secondIdentifier, firstIdentifier],
+      pageExpression: "0",
+      sizeExpression: "3",
+      expectedPage: 0,
+      expectedSize: 3,
+      expectedTotalItems: 3,
+      expectedTotalPages: 1,
+      sortLiterals: [`${driver.name}:desc`, `${identifier.name}:asc`],
+      expectedOrdered: true,
+    }),
+    success({
+      methodName: "shouldPreserveFilterInCommaWithSort",
+      filterLiterals: [`${identifier.name}:in:${firstIdentifierLiteral},${thirdIdentifierLiteral}`],
+      expectedIdentifierConstantNames: [firstIdentifier, thirdIdentifier],
+      pageExpression: "0",
+      sizeExpression: "20",
+      expectedPage: 0,
+      expectedSize: 20,
+      expectedTotalItems: 2,
+      expectedTotalPages: 1,
+      sortLiterals: [`${driver.name}:asc`],
+      expectedOrdered: true,
+    }),
     failure("shouldRejectUnknownField", ["unknown:eq:1"], "null", "null"),
     failure(`shouldRejectDisallowedOperatorFor${driverLabel}`, [`${driver.name}:contains:1`], "null", "null"),
     ...(driver.type !== "string"
@@ -150,19 +280,34 @@ export function createJavaHttpFilterTestModel(
   };
 }
 
-function success(
-  methodName: string,
-  filterLiterals: readonly string[],
-  expectedIdentifierConstantNames: readonly string[],
-  pageExpression: string,
-  sizeExpression: string,
-  expectedPage: number,
-  expectedSize: number,
-  expectedTotalItems: number,
-  expectedTotalPages: number,
-  sortLiterals: readonly string[] = [],
-  expectedOrdered = false,
-): JavaHttpFilterTestScenario {
+interface SuccessScenarioOptions {
+  readonly methodName: string;
+  readonly filterLiterals: readonly string[];
+  readonly expectedIdentifierConstantNames: readonly string[];
+  readonly pageExpression: string;
+  readonly sizeExpression: string;
+  readonly expectedPage: number;
+  readonly expectedSize: number;
+  readonly expectedTotalItems: number;
+  readonly expectedTotalPages: number;
+  readonly sortLiterals?: readonly string[];
+  readonly expectedOrdered?: boolean;
+}
+
+function success(options: SuccessScenarioOptions): JavaHttpFilterTestScenario {
+  const {
+    methodName,
+    filterLiterals,
+    expectedIdentifierConstantNames,
+    pageExpression,
+    sizeExpression,
+    expectedPage,
+    expectedSize,
+    expectedTotalItems,
+    expectedTotalPages,
+    sortLiterals = [],
+    expectedOrdered = false,
+  } = options;
   return { methodName, filterLiterals, sortLiterals, pageExpression, sizeExpression, expectedStatusCode: 200, expectedIdentifierConstantNames, expectedPage, expectedSize, expectedTotalItems, expectedTotalPages, expectedOrdered };
 }
 
