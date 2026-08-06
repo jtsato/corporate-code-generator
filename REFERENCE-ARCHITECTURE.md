@@ -1,14 +1,3 @@
-Reference structure:
-- Maven multi-module
-- core
-- entrypoints/rest
-- configuration
-- infra/database
+# Reference Architecture bridge
 
-Reference technology versions:
-- Java 22
-- Spring Boot 3.4.2
-
-Generator Golden Path versions:
-- remain independently versioned
-- must not inherit reference versions implicitly
+The generated Java application reference architecture is maintained at [docs/target-architecture/REFERENCE-ARCHITECTURE.md](docs/target-architecture/REFERENCE-ARCHITECTURE.md).

@@ -1,29 +1,8 @@
 # Capability Taxonomy and Profile Options
 
-Configuration profiles and properties-driven CORS are implemented default capabilities of `java-spring-clean-multimodule`.
+This document defines the vocabulary used to describe generated-application capabilities and profile options. It does not record current artifact counts or milestone history; use [Current State](../project/CURRENT-STATE.md) for measured facts and [Roadmap](../../ROADMAP.md) for release status.
 
-Core self-validation is an implemented default capability: required attributes map to Jakarta Validation `@NotNull` and `SelfValidating<T>`. The Core is Jakarta-aware but Spring-free; provider dependencies remain runtime/test infrastructure. Its dedicated quality gate is `smoke:validation:java-multimodule`, while REST DTO validation remains future work. Find-by-id runtime integration is implemented through a Core use case, a Core gateway method, a persistence provider and a REST endpoint. Create runtime integration is implemented through a Core command/use case, a Core gateway method, a persistence provider, H2 persistence tests, and REST create integration; REST DTOs translate to Core commands without duplicating validation.
-
-Core Paging Common, Core Filter Common, the REST Filter Contract Foundation, the REST Sort Contract Foundation, the Spring Data Paging Adapter, the entity-aware Querydsl filter mapper foundation, the Querydsl filter runtime integration, the REST filter runtime integration, the paging runtime integration, the filtered paging runtime integration, the REST filtered paging runtime integration, REST sorting runtime integration, and the Generated Java CI Pipeline are implemented. REST Filter Contract is an `entrypoints-rest` default foundation: it parses lowercase REST aliases into the Core expression model using a per-entity public-to-domain field allowlist. REST Sort Contract parses strict repeatable `<field>:<direction>` expressions into allowlisted `SortOrder` values. Milestone 6.18 connects `filter`, `page`, and `size` to `Find<Entity>ByFilterPageUseCase` and returns a domain-specific page response with `items` and paging metadata. Milestone 6.19 adds `sort` and generated domain-to-persistence property mappings. The generic response design was replaced by the approved domain-specific fallback because Springdoc 3.0.3 emitted untyped generic items. OR/nested REST parsing, REST type conversion beyond string values, comma escaping, and advanced HTTP sorting remain future capabilities.
-
-Filtered paging runtime integration (Milestone 6.17) is implemented without HTTP/OpenAPI exposure. It combines `FilterExpression` and `PageRequest` in `Find<Entity>ByFilterPageUseCase`, reaches `<Entity>Gateway.findByFilterPage`, maps both with the existing Querydsl and Spring Data adapters, and calls `ListQuerydslPredicateExecutor.findAll(predicate, pageable)`. Empty filters use `findAll(pageable)`; repository contracts remain unchanged. Milestone 6.18 exposes this flow through REST with `WalletPageResponse`.
-
-## Status and scope
-
-This document records the initial Milestone 6.1 taxonomy and the implemented
-Milestone 6.2 ArchUnit foundation. It does not change the Application Model or
-Profile schema.
-
-The normative taxonomy decision is recorded in [ADR-017](../adr/ADR-017-capability-taxonomy-and-profile-options.md).
-The evidence base is [Extended Reference Architecture](EXTENDED-REFERENCE-ARCHITECTURE.md).
-
-Decision states used here:
-
-- **Baseline**: approved direction for future capability composition.
-- **Pending validation**: direction is preferred but requires a technical
-  proof or a later capability ADR.
-- **Opt-in**: never enabled implicitly by a profile.
-- **Not adopted**: explicitly excluded from the corporate default.
+The normative taxonomy decision is [ADR-017](../adr/ADR-017-capability-taxonomy-and-profile-options.md). The generated Java architecture is described in [Generated Java Reference Architecture](REFERENCE-ARCHITECTURE.md).
 
 ## Core mental model
 
@@ -32,329 +11,197 @@ The generator distinguishes five concepts:
 | Concept | Meaning | Examples |
 | --- | --- | --- |
 | Physical module | Maven/source ownership and dependency boundary | `core`, `entrypoints-rest`, `infra-database`, `configuration` |
-| Capability | Coherent generated behavior and artifact set | `archunit`, `openapi`, `global-error-handling`, `paging` |
-| Technology option | Implementation selected inside a capability | `persistence.type: jpa`, `security.provider: keycloak` |
+| Capability | Coherent generated behavior and artifact set | `archunit`, `openapi`, `global-error-handling`, `paging`, `filtering`, `crud` |
+| Technology option | Implementation selected inside a capability | `persistence.type: jpa`, `dynamicQueries: querydsl` |
 | Environment option | Runtime exposure/configuration by environment | `openapi.ui.enabled`, CORS origins, datasource variables |
-| Quality capability | Build/test verification behavior | `jacoco`, `pit`, `archunit`, `testcontainers` |
+| Quality capability | Build/test verification behavior | `jacoco`, `pit`, `archunit`, Maven reactor smoke |
 
-A capability is not an alias for a template and a physical module is not a
-capability. A capability may emit artifacts into several physical modules. A
-technology option may constrain which capabilities are valid.
+A capability is not an alias for a template, and a physical module is not a capability. A capability may emit artifacts into several physical modules. A technology option may constrain which capabilities are valid.
 
-The term **common artifact set** is documentary: it groups related artifacts
-that belong to existing layers. It does not introduce a new schema entity.
+The term common artifact set is documentary: it groups related artifacts that belong to existing layers. It does not introduce a new schema entity.
 
-## Golden Path defaults
+## Capability ownership
 
-The default rule is: enable only architecture or contract foundations that do
-not require external infrastructure or undeclared domain intent.
+| Capability area | Primary generated owner | Notes |
+| --- | --- | --- |
+| Domain model | `core` | Technology-neutral domain state and behavior. |
+| Use cases and ports | `core` | Application policy and inward-facing contracts. |
+| REST API | `entrypoints-rest` | HTTP representation and parsing. |
+| Persistence | `infra-database` | Technology-specific adapters implementing Core ports. |
+| Runtime wiring | `configuration` | Spring composition and environment configuration. |
+| Build | `build` | Reactor/build metadata. |
+| Quality | Usually `configuration` plus build metadata | Architecture tests, coverage configuration, generated CI. |
 
-### Baseline defaults
+## Baseline capabilities
 
-The implemented `java-spring-clean-multimodule` profile baseline before Milestone 6.20 was 99 artifacts (build 6, Core 34, entrypoints-rest 51, Infra 52, Configuration 99). After Milestone 6.20 it was 104 artifacts (build 6, Core 37, entrypoints-rest 54, Infra 55, Configuration 104). After Milestone 6.21 it was 109 artifacts (build 6, Core 41, entrypoints-rest 58, Infra 59, Configuration 109). After Milestone 6.22 it is 110 artifacts (build 6, Core 42, entrypoints-rest 59, Infra 60, Configuration 110). After Milestone 6.25 it is 112 artifacts (build 6, Core 42, entrypoints-rest 60, Infra 60, Configuration 112). After Milestone 6.26 it is 117 artifacts (build 6, Core 46, entrypoints-rest 64, Infra 64, Configuration 117). After Milestone 6.27 it is 119 artifacts (build 6, Core 46, entrypoints-rest 65, Infra 64, Configuration 119). After Milestone 6.28 it is 124 artifacts (build 6, Core 50, entrypoints-rest 69, Infra 68, Configuration 124). The build+core selection is 56 artifacts and build+configuration is 124. Selection counts for `entrypoints-rest` and `infra-database` include Core transitively, since both declare `requires: [core]`. Its baseline capabilities are:
+The current Java multi-module Golden Path includes a baseline set of architecture, runtime, and quality capabilities. Current support and counts are listed in [Current State](../project/CURRENT-STATE.md).
 
-- `archunit`;
-- `jacoco`;
-- `global-error-handling`;
-- basic `i18n`;
-- property-driven `cors`;
-- OpenAPI specification (not necessarily UI);
-- configuration profiles;
-- `core-paging` common artifacts.
-- `core-filter` common artifacts.
-- entity-aware Querydsl filter definition and mapper foundation.
-- Querydsl filter runtime integration through a filtered use case.
-- REST filter runtime integration (`filter` query parameter wired to the filtered use case and documented in OpenAPI).
-- paging runtime integration through a separate paginated use case (`Find<Entity>PageUseCase`, no HTTP exposure, no sorting).
-- individual read runtime integration through `Find<Entity>ByIdUseCase` and `GET /<entities>/{id}`.
-- create runtime integration through `Create<Entity>Command`, `Create<Entity>UseCase`, persistence conflict detection and `save`, plus REST create integration through `POST /<entities>`.
-- update runtime integration through `Update<Entity>Command`, `Update<Entity>UseCase`, and gateway `update(...)` with existence checking before `save`;
-- physical delete runtime integration through `Delete<Entity>Command`, `Delete<Entity>UseCase`, and gateway `deleteById(...)` with existence checking before `deleteById`;
-- REST update integration through full replacement `PUT /<entities>/{id}` with generated request DTOs, direct 200 response DTOs, OpenAPI documentation, and real H2/JDK HTTP tests. PATCH, DELETE, partial updates, locking, ETags, and conditional requests remain future capabilities.
+Conceptually, baseline capabilities include:
 
-`archunit` is implemented as the default architecture guardrail of
-`java-spring-clean-multimodule`: it generates production-only architecture
-tests in `configuration`. The remaining entries are future baseline decisions.
+- Maven reactor build foundation;
+- generated Core domain/application structure;
+- REST entrypoint foundation;
+- database infrastructure foundation;
+- explicit Spring wiring;
+- ArchUnit guardrails;
+- JaCoCo-oriented quality configuration;
+- global REST error handling;
+- basic i18n;
+- property-driven CORS;
+- OpenAPI specification;
+- environment configuration profiles;
+- Core self-validation;
+- Core paging model;
+- Spring Data paging adapter;
+- Core filter model;
+- REST filter contract;
+- Querydsl filter mapper and runtime integration;
+- filtered paging runtime;
+- REST filtered paging;
+- REST sorting;
+- find-by-id runtime and REST integration;
+- create runtime and REST integration;
+- update runtime and REST integration;
+- delete runtime without REST exposure.
 
-`global-error-handling` and basic `i18n` are implemented defaults of the
-multi-module Golden Path. They provide a REST error contract, core exceptions,
-message bundles and Accept-Language message resolution.
+## Explicit opt-in or future capabilities
 
-`self-validation` is **pending validation** for Milestone 6.6. Jakarta API
-policy is decided below, but the constructor-driven domain style and generated
-validation artifacts require a separate ADR before becoming a default.
+The following require explicit future profile selection, environment configuration, or independent ADRs before becoming defaults:
 
-These defaults must preserve existing generation behavior when the capability
-is not materially relevant to a selected module. They do not authorize adding
-implementation in 6.1.
-
-### Explicit opt-in capabilities
-
-The following require explicit profile selection or environment configuration:
-
-- Swagger UI, enabled by default only in local/dev/test environments;
-- PIT mutation testing;
-- Docker and Compose;
+- Swagger UI exposure beyond local/test policy;
+- PIT mutation testing as a mandatory gate;
+- Docker and Docker Compose;
 - Testcontainers;
-- security;
-- Keycloak;
-- Querydsl JPA;
+- security foundation;
+- resource server integration;
+- Keycloak provider integration;
+- additional databases;
 - Querydsl MongoDB;
-- Entity Graph;
+- JPA Entity Graph;
 - MapStruct;
-- P6Spy.
+- P6Spy;
+- PATCH;
+- soft delete;
+- optimistic locking;
+- auditing;
+- ETags and conditional requests;
+- relationship-driven generation;
+- deployment and infrastructure scaffolding.
 
-Security is split into a provider-neutral capability and provider options;
-Keycloak is never implied merely because security is enabled.
+Security is split into provider-neutral capabilities and provider options. Keycloak is not implied merely because security is enabled.
 
 ## Core dependency boundary
 
-**Baseline decision:** core may use stable Jakarta APIs but must not depend on
-Spring packages.
-
-Allowed candidates:
-
-- `jakarta.validation` API;
-- `jakarta.inject` API where injection semantics are needed.
-
-Not allowed in core:
+The Core may use stable, technology-neutral contracts where explicitly adopted, such as Jakarta Validation API. The Core must not depend on:
 
 - `org.springframework.*`;
-- direct design dependence on `org.hibernate.validator.*`;
-- persistence, web, security-provider or framework annotations.
+- JPA or Hibernate implementation details;
+- persistence, web, or security-provider annotations;
+- REST representation classes;
+- concrete database or framework runtime types.
 
-Hibernate Validator and EL may be supplied by runtime/test composition, but the
-core contract depends on Jakarta API types. This boundary requires
-`ADR-018` when SelfValidating is implemented.
+Provider dependencies such as Hibernate Validator can be supplied by runtime/test composition, but they must not define the Core contract.
 
-## Self-validation policy
+## Validation policy
 
-The proposed styles are intentionally tiered:
-
-| Validation context | Preferred style | Status |
+| Validation context | Preferred style | Support |
 | --- | --- | --- |
-| Simple immutable domain object | constructor-driven validation | pending ADR-018 |
-| Validation requiring service/configuration dependencies | factory/service-driven | baseline design guidance |
-| Validation requiring persistence or external infrastructure | port-driven | baseline design guidance |
+| Simple immutable domain object | Constructor-driven self-validation | Current Java baseline |
+| Validation requiring service/configuration dependencies | Factory or service driven | Future design guidance |
+| Validation requiring persistence/external infrastructure | Port driven | Future design guidance |
 
-The illustrative constructor pattern is:
-
-```java
-public final class Wallet extends SelfValidating<Wallet> {
-    public Wallet(...) {
-        // assign state
-        validateSelf();
-    }
-}
-```
-
-This is not a template contract yet. The implementation milestone must decide
-validator lifecycle, error mapping, factory reuse and whether validation runs
-on every construction.
+Generated validation must stay deterministic. REST DTO validation is separate from Core self-validation and must be adopted explicitly when expanded.
 
 ## Error response contract
 
-**Baseline decision:** the Java Golden Path uses `ResponseStatus` as its
-canonical REST error body. It has three required contract fields:
+The Java Golden Path uses `ResponseStatus` as the canonical REST error body. It belongs to `entrypoints-rest`, not Core. Core exceptions carry stable keys/defaults; REST translates them to HTTP-specific responses.
 
-```json
-{
-  "code": 400,
-  "message": "Invalid request.",
-  "fields": [{"name": "balance", "message": "Balance is required."}]
-}
-```
+The baseline response has:
 
-`code` is the numeric HTTP status. `message` is the general response message.
-`fields` is always present and is an empty list for errors without a specific
-field. When multiple request fields are invalid, every field error must appear
-in `fields` in deterministic order.
+- numeric HTTP status code;
+- general message;
+- deterministic field-level errors.
 
-The initial contract excludes `version`, `timestamp`, `path`, `traceId`,
-`details`, `exception` and `stackTrace`. Those may be evaluated later but are
-not part of the baseline contract. `ResponseStatus` belongs to
-`entrypoints-rest/common`; it is an HTTP representation and must not be placed
-in core.
-
-The future global handler maps core/application exceptions to this body. Error
-code/message-key naming, status mapping and i18n resolution remain Milestone
-6.3 decisions.
-
-When implemented, prefer an immutable Java record with a defensive copy of
-`fields`. The record belongs in `entrypoints-rest/common`, not in core. OpenAPI
-annotations are conditional on the OpenAPI capability; the `ResponseStatus`
-contract does not depend on Swagger UI. `message` and `Field.message` may later
-be localized using the locale policy in Milestone 6.3.
+Additional fields such as timestamp, path, trace ID, exception details, and stack traces are not default contract fields.
 
 ## Locale policy
 
-Baseline locales:
+Baseline locale policy:
 
-- default: `en`;
-- supported: `en`, `pt-BR`;
-- input: standard `Accept-Language`.
+- default locale: `en`;
+- supported locales documented by the generated message bundles;
+- input through standard `Accept-Language`;
+- fallback from exact locale to base language where applicable, then default.
 
-Fallback order:
+Cookie persistence and custom locale mutation headers or query parameters are not defaults.
 
-1. exact requested locale;
-2. base language where applicable;
-3. default `en`.
+## Paging, filtering, and sorting boundary
 
-Cookie persistence and custom header/query locale mutation are not defaults.
-They may be added as explicit environment options later.
+Core paging and filtering are technology-neutral. REST parsing is an entrypoint concern. Querydsl mapping is an infrastructure concern.
 
-## Paging and search boundary
-
-The common paging capability does not imply search operations.
-
-Baseline external paging policy:
+Baseline REST paging policy:
 
 - zero-based page numbering;
 - default page `0`;
 - default size `20`;
-- maximum size `100`;
-- mandatory sort allowlist.
+- deterministic validation through generated Core/rest paths;
+- sort fields restricted by an allowlist generated from entity attributes.
 
-Example contract:
-
-```http
-GET /wallets?page=0&size=20&sort=balance,asc
-```
-
-The common artifact set may be generated independently:
-
-```text
-core/common/paging/Page
-core/common/paging/Pageable
-core/common/paging/PageImpl
-infra/common/PageMapper
-infra/common/PageRequestHelper
-infra/common/predicate/PredicateBuilder
-infra/common/predicate/AbstractPredicateBuilderImpl
-```
-
-Entity-specific search requires explicit Application Model intent and is not
-generated from attributes alone. A future model shape may resemble:
-
-```yaml
-entities:
-  - name: Wallet
-    operations:
-      search:
-        enabled: true
-        pagination:
-          enabled: true
-          defaultSize: 20
-          maxSize: 100
-        sorting:
-          allowed: [balance, createdAt]
-        filters:
-          - attribute: id
-            operators: [equals, in]
-          - attribute: balance
-            operators: [equals, greaterThan, lessThan]
-```
-
-This YAML is illustrative only and does not alter the current schema.
+Search and advanced filtering intent are not inferred beyond adopted capability behavior. Future model extensions must declare richer search semantics explicitly.
 
 ## Persistence technology options
 
-The first dynamic query adapter is **Querydsl JPA** because JPA is already in
-the current multi-module Golden Path. Querydsl MongoDB remains
-`REQUIRES VALIDATION`: MongoDB was not active in the analyzed reactor and its
-reference stack needs an independent compatibility proof.
-
-Conceptual options:
+Current persistence support uses JPA-oriented infrastructure in the generated Java Golden Path. Conceptual future options include:
 
 ```text
 persistence.type: jpa | mongodb
-dynamicQueries: querydsl
-integrationTests: testcontainers
+dynamicQueries: none | querydsl
+integrationTests: h2 | testcontainers
 ```
 
-Entity Graph is an opt-in advanced JPA capability. Relationship-specific fetch
-plans cannot be generated until relationships are represented in the
-Application Model.
-
-The first Testcontainers target is provisionally **PostgreSQL**, with MySQL as
-an optional follow-up. This is a recommendation for a future validation
-milestone, not a change to the current H2-based Golden Path.
+Entity Graph and relationship-specific fetch plans require relationship semantics in the Application Model before they can be generated safely.
 
 ## Quality options
 
-JaCoCo is a baseline quality capability with both per-module reports and an
-aggregated report as the primary CI/Sonar view.
+| Quality capability | Default posture |
+| --- | --- |
+| ArchUnit | Baseline for generated multi-module architecture guardrails. |
+| JaCoCo | Baseline quality capability for coverage-oriented reporting. |
+| Maven reactor smoke | Baseline release/readiness gate for generated Java runtime. |
+| PIT | Opt-in; not a default pull-request gate. |
+| Testcontainers | Opt-in and technology-specific. |
+| Docker Compose | Local developer convenience, not the primary CI integration-test primitive. |
 
-PIT is opt-in and does not gate every pull request initially:
+Validation command policy is maintained in [Quality Gates](../project/QUALITY-GATES.md).
 
-- initial mutation score target: 60%;
-- execution: manual, nightly and before releases;
-- future target after maturity: 70–80% subject to measured cost.
+## OpenAPI, UI, and environment options
 
-ArchUnit is baseline for the corporate multi-module architecture. Its rules
-must be Golden Path-specific rather than copied from reference sample rules.
+OpenAPI specification generation is baseline for the Java multi-module Golden Path. Swagger UI is environment-gated and must not be assumed safe for production exposure by default.
 
-Testcontainers is technology-specific and opt-in. Compose is for local
-developer convenience; automated integration tests should prefer Testcontainers
-and should not make Compose the CI orchestration primitive.
+Illustrative option vocabulary:
 
-## OpenAPI, UI and environment options
-
-OpenAPI specification generation is baseline. Swagger UI is environment-gated:
-
-- local/dev/test: enabled by explicit local configuration;
-- production: disabled by default or protected by security policy.
-
-Illustrative configuration:
-
-```yaml
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: ${OPENAPI_UI_ENABLED:false}
+```text
+openapi.spec: enabled
+openapi.ui: local-only
+environment.local: openapi.ui
+environment.test: openapi.ui
+environment.prod: openapi.ui.disabled
 ```
-
-The final exposure and security scheme policy belongs to Milestone 6.5 and
-`ADR-020`.
 
 ## Security and authorization options
 
-Security is split into:
+Security remains future work. The conceptual split is:
 
 - `security-foundation`;
 - `security-resource-server`;
 - `security-keycloak`;
 - `security-test`.
 
-Authorization intent should not be hardcoded as arbitrary controller strings.
-A future model may declare:
-
-```yaml
-operations:
-  - name: findWallets
-    authorization:
-      required: true
-      scopes: [wallet:read]
-```
-
-The technology adapter may translate this into a provider-specific authority,
-for example `SCOPE_wallet:read`, without exposing provider details to core.
-The exact Application Model shape is deferred.
-
-Keycloak boundary:
-
-- generator may provide optional local/dev Compose, realm export and client
-  configuration documentation;
-- platform/deployment owns real production realms, clients and secrets.
-
-Keycloak is a provider option, not the security foundation and not an exclusive
-generator owner of production identity configuration. `ADR-021` belongs to the
-security milestone.
+Authorization intent should be modelled semantically, not hardcoded as framework/provider strings in templates. A technology adapter may translate semantic authorization intent into provider-specific authorities.
 
 ## Profile option vocabulary
 
-The following vocabulary is approved conceptually but is not yet schema:
+The following vocabulary is approved conceptually but is not a current schema contract:
 
 ```text
 capabilities:
@@ -366,6 +213,7 @@ capabilities:
   openapi.spec: enabled
   openapi.ui: local-only
   core-paging: enabled
+  core-filter: enabled
 
 options:
   persistence.type: jpa
@@ -376,44 +224,31 @@ options:
   sqlDiagnostics: disabled | p6spy
 
 environment:
-  local: openapi.ui, docker-compose
+  local: openapi.ui, developer conveniences
   test: h2, archunit
   prod: environment-supplied datasource/secrets
 ```
 
-The schema work must define validation for incompatible combinations, for
-example `security.provider: keycloak` without the security capability or
-`dynamicQueries: querydsl` with `persistence.type: none`.
+Future schema work must validate incompatible combinations, such as a provider option without its owning capability.
 
-## Decisions deferred to later ADRs
+## Support matrix
 
-Only taxonomy and option boundaries are decided by 6.1. The following ADRs are
-planned, not created by this milestone:
-
-- ADR-018 — Jakarta APIs and SelfValidating in core;
-- ADR-019 — error response contract and i18n policy;
-- ADR-020 — OpenAPI exposure policy;
-- ADR-021 — security capability and Keycloak boundary;
-- ADR-022 — JaCoCo, ArchUnit and PIT quality gates;
-- ADR-023 — Testcontainers versus Docker Compose.
+| Area | Current posture | Notes |
+| --- | --- | --- |
+| Java Clean Architecture single-module | Supported | Current measured facts are in Current State. |
+| Java Clean Architecture multi-module | Supported | Current measured facts are in Current State. |
+| REST read/filter/page/sort | Supported in Java multi-module | See Generated Java Reference Architecture. |
+| REST create/update | Supported in Java multi-module | Full replacement update only. |
+| Delete runtime | Supported in Java multi-module | REST delete remains planned. |
+| Security | Planned/future | Requires explicit model/profile decisions. |
+| Deployment/IaC | Planned/future | Not implied by current Java Golden Path. |
+| Additional languages/stacks | Planned/future | Must preserve technology-agnostic Core/model boundaries. |
 
 ## Compatibility and non-regression rules
 
-1. `java-spring-clean` remains intact.
-2. Existing `java-spring-clean-multimodule` defaults remain behaviorally
-   compatible until a later implementation milestone explicitly changes them.
-3. No capability is inferred merely from a library appearing in a reference
-   project.
-4. No capability may force undeclared domain intent into templates.
-5. Physical module boundaries remain explicit and inward-facing.
-6. Technology options remain outside the technology-agnostic Core model.
-7. Every implemented capability later requires tests and, where output changes,
-   Golden updates.
-
-## 6.1 conclusion
-
-Milestone 6.1 fixes the generator's composition language: physical modules own
-code, capabilities own behavior, technology options select implementations,
-environment options control exposure, and quality capabilities verify output.
-The next milestone may implement ArchUnit from this taxonomy; it must not
-silently introduce all listed options at once.
+1. Existing Golden Paths must remain compatible unless an approved milestone explicitly changes them.
+2. No capability is inferred merely from a library appearing in a reference project.
+3. No capability may force undeclared domain intent into templates.
+4. Physical module boundaries remain explicit and inward-facing.
+5. Technology options remain outside the technology-agnostic Core model.
+6. Every implemented capability requires tests and, where output changes, golden updates.
