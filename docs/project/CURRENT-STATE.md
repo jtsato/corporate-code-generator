@@ -165,6 +165,16 @@ Run context: main workspace, composite unique groups (ADR-054) QA closure; date:
 - Fixed a constraint-name collision defect found during independent QA review: `toJavaDatabaseUniqueConstraintName` previously joined column names with `_` regardless of arity, so a single-column attribute-level name (for example `tenant_code` from a `unique: true` attribute named `tenantCode`) could collide byte-for-byte with a composite group name (for example `uniqueGroups: [["tenant", "code"]]`), silently merging two distinct JPA `@UniqueConstraint`s into one weaker constraint. Multi-column group names now carry a `gN_` arity-disambiguating segment (for example `uk_product_g2_tenant_code_active_scope`) while single-column names remain byte-identical to prior output. Verified against real Hibernate-emitted DDL: before the fix the two constraints merged into `unique (tenant_code, deletion_scope, tenant, code)`; after the fix they render as two separate constraints, `unique (tenant_code, deletion_scope)` and `unique (tenant, code, deletion_scope)`.
 - Removed 152 unreferenced golden files under `tests/golden/java-spring-clean-multimodule/` that were accidentally committed alongside the real 148 (verified by diffing the full set of expected golden paths, derived from the actual generation plan, against every tracked file in that directory: 148 matched exactly with zero missing, and 152 were dead files under an unreachable path shape that no test ever reads).
 
+## Milestone 6.35 Validation
+
+Run context: main workspace, auditing (createdAt/updatedAt) capability; date: 2026-08-07.
+
+- `npm run typecheck` and `npm run build` - passed.
+- `npm test` - passed, 45 test files and 194 tests.
+- `npm run test:coverage` - passed; Statements 92%, Branches 80.09%, Functions 97.5%, Lines 92.95%.
+- Full-profile wallet-service dry-run produced 148 CREATE operations, unchanged from the 6.34 baseline because `examples/wallet-service` declares no `audited` entity. `npm run smoke:java-multimodule` (golden byte-comparison) passed, confirming non-regression.
+- Real Maven build of a freshly generated `examples/audited-wallet-service/model.yaml` project (`Wallet` entity, `audited: true`), generated to a scratch output directory and validated with `mvn -B test`: Reactor `BUILD SUCCESS`, 114 tests run, 0 failures, 0 errors, 0 skipped. This is new-capability evidence, not golden-covered, demonstrating the generated `GetLocalDateTime`/`GetLocalDateTimeImpl` clock port, `CreateWalletUseCaseInteractor` setting both timestamps, `UpdateWalletUseCaseInteractor`/`PatchWalletUseCaseInteractor` setting only `updatedAt`, and `WalletGatewayProvider.update()` preserving `createdAt` via `entity.setCreatedAt(existing.getCreatedAt())` work end-to-end.
+
 ## Documented facts
 
 The following facts are documented in ADRs and target-architecture docs and are treated as current unless superseded by measured facts:

@@ -101,6 +101,7 @@ Allowed milestone statuses are: Done, In progress, Planned, Deferred, Superseded
 | 6.32 | Soft Delete with Active Uniqueness | Done | Added persistence tombstones, active-row filtering, reusable attribute-level unique values, and generated H2/HTTP coverage while preserving the single-module profile. | [ADR-052](docs/adr/ADR-052-soft-delete-active-uniqueness.md) |
 | 6.33 | Restore and Deleted Queries | Done | Added explicit deleted-only query routes, tombstone representations, restore command semantics, conflict-safe persistence behavior, OpenAPI coverage, and generated runtime tests. | [ADR-053](docs/adr/ADR-053-restore-include-deleted-queries.md) |
 | 6.34 | Composite Unique Groups | Done | Added technology-agnostic composite uniqueness declarations with deterministic Core validation and active-row JPA constraints/conflict checks in the Java multi-module Golden Path. | [ADR-054](docs/adr/ADR-054-composite-unique-groups.md) |
+| 6.35 | Auditing (createdAt/updatedAt) | Done | Added an opt-in per-entity auditing capability with a Core clock port, infra-preserved creation timestamps, and read-only REST exposure in the Java multi-module Golden Path. | [Current State](docs/project/CURRENT-STATE.md) |
 
 ## Future optional work
 
