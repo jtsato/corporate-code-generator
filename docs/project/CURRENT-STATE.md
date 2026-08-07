@@ -1,7 +1,7 @@
 # Current State
 
 Verification date: 2026-08-06
-Baseline commit: current working tree (post-6.34 fix)
+Baseline commit: `578d148`
 
 This document centralizes current measured facts. Architecture intent and future work are documented separately in the [Solution Specification](../SOLUTION-SPECIFICATION.md), [Generated Java Reference Architecture](../target-architecture/REFERENCE-ARCHITECTURE.md), [Capability Taxonomy](../target-architecture/CAPABILITY-TAXONOMY.md), and [Roadmap](../../ROADMAP.md).
 
