@@ -222,6 +222,14 @@ templates:
     module: core
     template: core/common/self-validating.java.njk
     output: core/src/main/java/{{ packagePath }}/core/common/validation/{{ className }}.java
+  - id: core-get-local-date-time
+    module: core
+    template: core/common/get-local-date-time.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/time/{{ className }}.java
+  - id: core-get-local-date-time-impl
+    module: core
+    template: core/common/get-local-date-time-impl.java.njk
+    output: core/src/main/java/{{ packagePath }}/core/common/time/{{ className }}.java
   - id: core-sort-direction
     module: core
     template: core/paging/sort-direction.java.njk

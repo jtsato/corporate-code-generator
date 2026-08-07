@@ -280,4 +280,66 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
     expect(patchTestArtifact?.model.optionalNullCommandArguments).toContain("null");
     expect(patchTestArtifact?.model.omittedCommandArguments).toContain("false");
   });
+
+  it("emits the GetLocalDateTime port and implementation only when an entity is audited", () => {
+    const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
+
+    const withoutAudited = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "wallet-service",
+        namespace: "io.github.jtsato.walletservice",
+        entities: [{
+          name: "Wallet",
+          attributes: [
+            { name: "id", type: "uuid", required: true, identifier: true },
+            { name: "balance", type: "decimal", required: true, identifier: false },
+          ],
+          audited: false,
+        }],
+      },
+      profile: {
+        id: "java-spring-clean-multimodule",
+        version: "0.1.0",
+        technology: { language: "java", languageVersion: "25", framework: "spring-boot" },
+        architecture: { style: "clean-architecture" },
+        templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" },
+        modules: [{ id: "core", requires: [] }],
+      },
+      modules: [{ id: "core", requires: [] }],
+    });
+    expect(withoutAudited.some((artifact) => artifact.templateId === "core-get-local-date-time")).toBe(false);
+    expect(withoutAudited.some((artifact) => artifact.templateId === "core-get-local-date-time-impl")).toBe(false);
+
+    const withAudited = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "wallet-service",
+        namespace: "io.github.jtsato.walletservice",
+        entities: [{
+          name: "Wallet",
+          attributes: [
+            { name: "id", type: "uuid", required: true, identifier: true },
+            { name: "balance", type: "decimal", required: true, identifier: false },
+          ],
+          audited: true,
+        }],
+      },
+      profile: {
+        id: "java-spring-clean-multimodule",
+        version: "0.1.0",
+        technology: { language: "java", languageVersion: "25", framework: "spring-boot" },
+        architecture: { style: "clean-architecture" },
+        templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" },
+        modules: [{ id: "core", requires: [] }],
+      },
+      modules: [{ id: "core", requires: [] }],
+    });
+    const port = withAudited.find((artifact) => artifact.templateId === "core-get-local-date-time");
+    const impl = withAudited.find((artifact) => artifact.templateId === "core-get-local-date-time-impl");
+    expect(port?.model).toMatchObject({ packageName: "io.github.jtsato.walletservice.core.common.time" });
+    expect(port?.outputVariables).toMatchObject({ className: "GetLocalDateTime" });
+    expect(impl?.model).toMatchObject({ packageName: "io.github.jtsato.walletservice.core.common.time" });
+    expect(impl?.outputVariables).toMatchObject({ className: "GetLocalDateTimeImpl" });
+  });
 });

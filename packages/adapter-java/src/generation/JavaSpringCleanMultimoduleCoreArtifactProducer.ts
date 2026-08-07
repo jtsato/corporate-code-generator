@@ -1292,6 +1292,8 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
     const pagingPackageName = `${namespace}.core.common.paging`;
     const filterPackageName = `${namespace}.core.common.filter`;
     const pagingVariables = { packagePath: namespace.replaceAll(".", "/") };
+    const anyEntityAudited = request.application.entities.some((entity) => entity.audited === true);
+    const timePackageName = `${namespace}.core.common.time`;
     return [...entityArtifacts,
       { templateId: "core-application-exception", model: { packageName, className: "ApplicationException" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ApplicationException" } },
       { templateId: "core-field-violation", model: { packageName, className: "FieldViolation" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "FieldViolation" } },
@@ -1299,6 +1301,10 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       { templateId: "core-not-found-exception", model: { packageName, className: "NotFoundException", parentClassName: "ApplicationException" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "NotFoundException" } },
       { templateId: "core-conflict-exception", model: { packageName, className: "ConflictException", parentClassName: "ApplicationException" }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "ConflictException" } },
       { templateId: "core-self-validating", model: { packageName: `${namespace}.core.common.validation`, exceptionPackage: packageName }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "SelfValidating" } },
+      ...(anyEntityAudited ? [
+        { templateId: "core-get-local-date-time", model: { packageName: timePackageName }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "GetLocalDateTime" } },
+        { templateId: "core-get-local-date-time-impl", model: { packageName: timePackageName }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "GetLocalDateTimeImpl" } },
+      ] : []),
       ...["SortDirection", "SortOrder", "PageRequest", "PageResult"].map((className) => ({ templateId: `core-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`, model: { packageName: pagingPackageName, exceptionPackage: packageName, className }, outputVariables: { ...pagingVariables, className } })),
       ...request.application.entities.filter((entity) => entity.attributes.some((attribute) => attribute.required)).map((entity) => { const domainName = toJavaPackageSegment(entity.name); return { templateId: "core-domain-validation-test", model: { packageName: `${namespace}.core.domains.${domainName}.model`, exceptionPackage: packageName, className: `${entity.name}ValidationTests`, entityType: entity.name, nullArguments: entity.attributes, requiredFieldNames: entity.attributes.filter((attribute) => attribute.required).map((attribute) => attribute.name).sort((left, right) => left.localeCompare(right)) }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entity.name}ValidationTests` } }; }),
       ...["SortOrder", "PageRequest", "PageResult"].map((typeName) => ({ templateId: `core-${typeName.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`, model: { packageName: pagingPackageName, exceptionPackage: packageName, className: `${typeName}Tests`, typeName }, outputVariables: { ...pagingVariables, className: `${typeName}Tests` } })),

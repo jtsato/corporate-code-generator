@@ -113,6 +113,8 @@ describe("Java multi-module profile foundation", () => {
       "core-find-usecase-page-interactor-test",
       "core-application-exception", "core-field-violation", "core-validation-exception", "core-not-found-exception", "core-conflict-exception",
       "core-self-validating",
+      "core-get-local-date-time",
+      "core-get-local-date-time-impl",
       "core-sort-direction",
       "core-sort-order",
       "core-page-request",

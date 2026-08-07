@@ -1,0 +1,11 @@
+package {{ packageName }};
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+
+public class GetLocalDateTimeImpl implements GetLocalDateTime {
+    @Override
+    public LocalDateTime now() {
+        return LocalDateTime.now(Clock.systemDefaultZone());
+    }
+}
