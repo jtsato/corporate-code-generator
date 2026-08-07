@@ -14,6 +14,7 @@ import type { JavaOpenApiConfigurationTemplateModel } from "../model/JavaOpenApi
 import type { JavaOpenApiSmokeTestTemplateModel } from "../model/JavaOpenApiSmokeTestTemplateModel.js";
 import type { JavaArchUnitTestTemplateModel } from "../model/JavaArchUnitTestTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
+import type { JavaTimeConfigurationTemplateModel } from "../model/JavaTimeConfigurationTemplateModel.js";
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
 import type { JavaFindByIdPersistenceTestTemplateModel } from "../model/JavaFindByIdPersistenceTestTemplateModel.js";
 import type { JavaCreatePersistenceTestTemplateModel } from "../model/JavaCreatePersistenceTestTemplateModel.js";
@@ -91,6 +92,20 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
     const className = `${toJavaTypeName(request.application.name)}Application`;
     const model: JavaBootstrapTemplateModel = { packageName: namespace, className };
     const outputVariables = { packagePath: namespace.replaceAll(".", "/") };
+    const anyEntityAudited = request.application.entities.some((entity) => entity.audited === true);
+    const timeConfiguration: JavaTimeConfigurationTemplateModel = {
+      packageName: `${namespace}.configuration.time`,
+      imports: [
+        `${namespace}.core.common.time.GetLocalDateTime`,
+        `${namespace}.core.common.time.GetLocalDateTimeImpl`,
+        "org.springframework.context.annotation.Bean",
+        "org.springframework.context.annotation.Configuration",
+      ],
+      className: "TimeConfiguration",
+      timeProviderBeanMethodName: "getLocalDateTime",
+      timeProviderType: "GetLocalDateTime",
+      timeProviderImplementationType: "GetLocalDateTimeImpl",
+    };
 
     const applicationTest: JavaSpringBootApplicationTestTemplateModel = {
       packageName: namespace,
@@ -188,7 +203,6 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("org.springframework.context.annotation.Configuration");
         if (entity.audited === true) {
           imports.add(`${namespace}.core.common.time.GetLocalDateTime`);
-          imports.add(`${namespace}.core.common.time.GetLocalDateTimeImpl`);
         }
         const domainModel: JavaDomainConfigurationTemplateModel = {
           packageName: `${namespace}.configuration.domains.${domainName}`,
@@ -238,9 +252,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           restoreUseCaseImplementationType: `${restoreUseCaseType}Interactor`,
           audited: entity.audited === true,
           ...(entity.audited === true ? {
-            timeProviderBeanMethodName: "getLocalDateTime",
             timeProviderType: "GetLocalDateTime",
-            timeProviderImplementationType: "GetLocalDateTimeImpl",
             timeProviderParameterName: "getLocalDateTime",
           } : {}),
         };
@@ -255,6 +267,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           },
         };
       }),
+      ...(anyEntityAudited ? [
+        { templateId: "configuration-time", model: timeConfiguration, outputVariables: { ...outputVariables, className: timeConfiguration.className } },
+      ] : []),
       { templateId: "configuration-global-exception-handler", model: { packageName: exceptionPackage, responseStatusPackageName: `${namespace}.entrypoint.rest.common`, coreExceptionPackageName: `${namespace}.core.common.exception` }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandler" } },
       { templateId: "configuration-cors-properties", model: corsProperties, outputVariables: { ...outputVariables, className: corsProperties.className } },
       { templateId: "configuration-cors-web-configuration", model: corsWebConfiguration, outputVariables: { ...outputVariables, className: corsWebConfiguration.className } },

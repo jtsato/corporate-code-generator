@@ -45,8 +45,6 @@ export interface JavaDomainConfigurationTemplateModel {
   readonly restoreUseCaseType: string;
   readonly restoreUseCaseImplementationType: string;
   readonly audited: boolean;
-  readonly timeProviderBeanMethodName?: string;
   readonly timeProviderType?: string;
-  readonly timeProviderImplementationType?: string;
   readonly timeProviderParameterName?: string;
 }

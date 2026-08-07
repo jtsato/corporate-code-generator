@@ -369,22 +369,74 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     });
   });
 
-  it("threads a GetLocalDateTime bean into create/update/patch when audited", () => {
+  it("threads a GetLocalDateTime parameter into create/update/patch when audited, without redeclaring the bean per entity", () => {
     const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
 
     const audited = producer.produce(buildRequest({ audited: true }));
     const auditedWiring = audited.find((artifact) => artifact.templateId === "configuration-domain-wiring");
     expect(auditedWiring?.model).toMatchObject({
       audited: true,
+      timeProviderType: "GetLocalDateTime",
+      timeProviderParameterName: "getLocalDateTime",
+    });
+    expect((auditedWiring?.model as { readonly timeProviderBeanMethodName?: string })).not.toHaveProperty("timeProviderBeanMethodName");
+    expect((auditedWiring?.model as { readonly timeProviderImplementationType?: string })).not.toHaveProperty("timeProviderImplementationType");
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainWiring = notAudited.find((artifact) => artifact.templateId === "configuration-domain-wiring");
+    expect(plainWiring?.model).toMatchObject({ audited: false });
+    expect((plainWiring?.model as { readonly timeProviderType?: string } | undefined)?.timeProviderType).toBeUndefined();
+  });
+
+  it("emits a single application-level GetLocalDateTime bean (configuration-time) only when at least one entity is audited", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const timeArtifacts = audited.filter((artifact) => artifact.templateId === "configuration-time");
+    expect(timeArtifacts).toHaveLength(1);
+    expect(timeArtifacts[0]?.model).toMatchObject({
+      className: "TimeConfiguration",
       timeProviderBeanMethodName: "getLocalDateTime",
       timeProviderType: "GetLocalDateTime",
       timeProviderImplementationType: "GetLocalDateTimeImpl",
     });
 
     const notAudited = producer.produce(buildRequest({ audited: false }));
-    const plainWiring = notAudited.find((artifact) => artifact.templateId === "configuration-domain-wiring");
-    expect(plainWiring?.model).toMatchObject({ audited: false });
-    expect((plainWiring?.model as { readonly timeProviderType?: string } | undefined)?.timeProviderType).toBeUndefined();
+    expect(notAudited.filter((artifact) => artifact.templateId === "configuration-time")).toHaveLength(0);
+  });
+
+  it("emits exactly one configuration-time bean-declaring artifact when two entities are audited (no Spring bean-name collision)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+    const request = buildRequest({ audited: true });
+    const twoAuditedEntitiesRequest = {
+      ...request,
+      application: {
+        ...request.application,
+        entities: [
+          ...request.application.entities,
+          {
+            name: "Ledger",
+            attributes: [
+              { name: "id", type: "uuid" as const, required: true, identifier: true },
+              { name: "amount", type: "decimal" as const, required: true, identifier: false },
+            ],
+            audited: true,
+          },
+        ],
+      },
+    };
+
+    const artifacts = producer.produce(twoAuditedEntitiesRequest);
+
+    const timeArtifacts = artifacts.filter((artifact) => artifact.templateId === "configuration-time");
+    expect(timeArtifacts).toHaveLength(1);
+
+    const domainWirings = artifacts.filter((artifact) => artifact.templateId === "configuration-domain-wiring");
+    expect(domainWirings).toHaveLength(2);
+    for (const wiring of domainWirings) {
+      expect(wiring.model).not.toHaveProperty("timeProviderBeanMethodName");
+      expect(wiring.model).not.toHaveProperty("timeProviderImplementationType");
+    }
   });
 
   const auditedSuffix = [

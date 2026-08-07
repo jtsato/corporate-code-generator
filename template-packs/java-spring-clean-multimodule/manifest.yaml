@@ -462,6 +462,10 @@ templates:
     module: configuration
     template: configuration/domain-configuration.java.njk
     output: configuration/src/main/java/{{ packagePath }}/configuration/domains/{{ domainName }}/{{ className }}.java
+  - id: configuration-time
+    module: configuration
+    template: configuration/time-configuration.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/time/{{ className }}.java
   - id: configuration-global-exception-handler
     module: configuration
     template: configuration/global-exception-handler.java.njk

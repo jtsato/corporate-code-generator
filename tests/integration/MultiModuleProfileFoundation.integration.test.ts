@@ -173,6 +173,7 @@ describe("Java multi-module profile foundation", () => {
       "infra-database-querydsl-domain-filter-definition-test",
       "configuration-application",
       "configuration-domain-wiring",
+      "configuration-time",
       "configuration-global-exception-handler",
       "configuration-cors-properties", "configuration-cors-web-configuration", "configuration-rest-filter-web-configuration",
       "configuration-openapi-configuration",

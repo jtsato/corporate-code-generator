@@ -8,13 +8,6 @@ public class {{ className }} {
     public {{ gatewayType }} {{ gatewayBeanMethodName }}({{ repositoryType }} {{ repositoryParameterName }}) {
         return new {{ gatewayImplementationType }}({{ repositoryParameterName }});
     }
-{%- if audited %}
-
-    @Bean
-    public {{ timeProviderType }} {{ timeProviderBeanMethodName }}() {
-        return new {{ timeProviderImplementationType }}();
-    }
-{%- endif %}
 
     @Bean
     public {{ useCaseType }} {{ useCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {

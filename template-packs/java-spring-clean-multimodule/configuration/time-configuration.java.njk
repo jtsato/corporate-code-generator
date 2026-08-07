@@ -1,0 +1,11 @@
+package {{ packageName }};
+
+{% for import in imports %}import {{ import }};
+{% endfor %}
+@Configuration
+public class {{ className }} {
+    @Bean
+    public {{ timeProviderType }} {{ timeProviderBeanMethodName }}() {
+        return new {{ timeProviderImplementationType }}();
+    }
+}
