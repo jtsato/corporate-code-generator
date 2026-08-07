@@ -386,4 +386,246 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     expect(plainWiring?.model).toMatchObject({ audited: false });
     expect((plainWiring?.model as { readonly timeProviderType?: string } | undefined)?.timeProviderType).toBeUndefined();
   });
+
+  const auditedSuffix = [
+    'LocalDateTime.parse("2026-01-15T10:30:00")',
+    'LocalDateTime.parse("2026-01-15T10:31:00")',
+  ];
+
+  it("extends entityConstructorArguments and the expected JSON body with createdAt/updatedAt only when audited (configuration-http-persistence-read-test)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedRead = audited.find((artifact) => artifact.templateId === "configuration-http-persistence-read-test");
+    expect((auditedRead?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual([
+      "WALLET_ID", "WALLET_BALANCE", ...auditedSuffix,
+    ]);
+    expect(JSON.parse((auditedRead?.model as { expectedItemsBodyExpression: string }).expectedItemsBodyExpression)).toBe(
+      '[{"id":"11111111-1111-1111-1111-111111111111","balance":123.45,"createdAt":"2026-01-15T10:30:00","updatedAt":"2026-01-15T10:31:00"}]',
+    );
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainRead = notAudited.find((artifact) => artifact.templateId === "configuration-http-persistence-read-test");
+    expect((plainRead?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+    expect(JSON.parse((plainRead?.model as { expectedItemsBodyExpression: string }).expectedItemsBodyExpression)).toBe(
+      '[{"id":"11111111-1111-1111-1111-111111111111","balance":123.45}]',
+    );
+  });
+
+  it("declares createdAt/updatedAt fixtures with accessor assertions only when audited (configuration-find-by-id-persistence-test)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedFindById = audited.find((artifact) => artifact.templateId === "configuration-find-by-id-persistence-test");
+    expect((auditedFindById?.model as { fixtures: unknown[] }).fixtures).toEqual(expect.arrayContaining([
+      expect.objectContaining({ constantName: "WALLET_CREATED_AT", accessorName: "getCreatedAt", javaExpression: 'LocalDateTime.parse("2026-01-15T10:30:00")' }),
+      expect.objectContaining({ constantName: "WALLET_UPDATED_AT", accessorName: "getUpdatedAt", javaExpression: 'LocalDateTime.parse("2026-01-15T10:31:00")' }),
+    ]));
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainFindById = notAudited.find((artifact) => artifact.templateId === "configuration-find-by-id-persistence-test");
+    expect((plainFindById?.model as { fixtures: { constantName: string }[] }).fixtures.map((fixture) => fixture.constantName)).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+  });
+
+  it("declares createdAt/updatedAt json-name fixtures with non-zero-second literals only when audited (configuration-http-find-by-id-test)", () => {
+    // These fixtures deliberately use non-zero seconds: the generated assertion compares
+    // String.valueOf(LocalDateTime) against Jackson's JSON text, and LocalDateTime#toString()
+    // drops a trailing ":00" that Jackson's serializer does not.
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedHttpFindById = audited.find((artifact) => artifact.templateId === "configuration-http-find-by-id-test");
+    expect((auditedHttpFindById?.model as { fixtures: unknown[] }).fixtures).toEqual(expect.arrayContaining([
+      expect.objectContaining({ constantName: "WALLET_CREATED_AT", jsonName: "createdAt", javaExpression: 'LocalDateTime.parse("2026-01-15T10:30:15")' }),
+      expect.objectContaining({ constantName: "WALLET_UPDATED_AT", jsonName: "updatedAt", javaExpression: 'LocalDateTime.parse("2026-01-15T10:31:45")' }),
+    ]));
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainHttpFindById = notAudited.find((artifact) => artifact.templateId === "configuration-http-find-by-id-test");
+    expect((plainHttpFindById?.model as { fixtures: { jsonName: string }[] }).fixtures.map((fixture) => fixture.jsonName)).toEqual(["id", "balance"]);
+  });
+
+  it("extends originalEntityConstructorArguments but leaves commandArguments untouched only when audited (configuration-update-persistence-test)", () => {
+    // UpdateWalletCommand never gains createdAt/updatedAt parameters (updatedAt is server-recomputed,
+    // createdAt is preserved by infra) — only the pre-seeded WalletEntity construction needs the fixtures.
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedUpdate = audited.find((artifact) => artifact.templateId === "configuration-update-persistence-test");
+    expect((auditedUpdate?.model as { originalEntityConstructorArguments: string[] }).originalEntityConstructorArguments).toEqual([
+      "WALLET_ID", "WALLET_BALANCE", ...auditedSuffix,
+    ]);
+    expect((auditedUpdate?.model as { commandArguments: string[] }).commandArguments).toHaveLength(2);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainUpdate = notAudited.find((artifact) => artifact.templateId === "configuration-update-persistence-test");
+    expect((plainUpdate?.model as { originalEntityConstructorArguments: string[] }).originalEntityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+  });
+
+  it("extends entityConstructorArguments only when audited (configuration-delete-persistence-test)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedDelete = audited.find((artifact) => artifact.templateId === "configuration-delete-persistence-test");
+    expect((auditedDelete?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual([
+      "WALLET_ID", "WALLET_BALANCE", ...auditedSuffix,
+    ]);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainDelete = notAudited.find((artifact) => artifact.templateId === "configuration-delete-persistence-test");
+    expect((plainDelete?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+  });
+
+  it("extends entityConstructorArguments and conflictingEntityConstructorArguments across the deleted-query/restore family only when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+    const templateIds = [
+      "configuration-deleted-query-persistence-test",
+      "configuration-restore-persistence-test",
+      "configuration-http-deleted-query-test",
+      "configuration-http-restore-test",
+    ];
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    for (const templateId of templateIds) {
+      const artifact = audited.find((candidate) => candidate.templateId === templateId);
+      expect((artifact?.model as { entityConstructorArguments: string[] }).entityConstructorArguments.slice(-2)).toEqual(auditedSuffix);
+    }
+    const auditedRestore = audited.find((artifact) => artifact.templateId === "configuration-restore-persistence-test");
+    expect((auditedRestore?.model as { conflictingEntityConstructorArguments: string[] }).conflictingEntityConstructorArguments.slice(-2)).toEqual(auditedSuffix);
+    const auditedHttpRestore = audited.find((artifact) => artifact.templateId === "configuration-http-restore-test");
+    expect((auditedHttpRestore?.model as { conflictingEntityConstructorArguments: string[] }).conflictingEntityConstructorArguments.slice(-2)).toEqual(auditedSuffix);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    for (const templateId of templateIds) {
+      const artifact = notAudited.find((candidate) => candidate.templateId === templateId);
+      expect((artifact?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+    }
+  });
+
+  it("extends entityConstructorArguments but not the create-response fixtures only when audited (createJavaHttpCreateTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedCreate = audited.find((artifact) => artifact.templateId === "configuration-http-create-test");
+    expect((auditedCreate?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual([
+      "WALLET_ID", "WALLET_BALANCE", ...auditedSuffix,
+    ]);
+    // createdAt/updatedAt are server-generated on create, so the JSON/accessor assertion fixtures
+    // must NOT include them (they'd assert a fixed literal against a real GetLocalDateTime.now() value).
+    expect((auditedCreate?.model as { fixtures: unknown[] }).fixtures).toHaveLength(2);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainCreate = notAudited.find((artifact) => artifact.templateId === "configuration-http-create-test");
+    expect((plainCreate?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+  });
+
+  it("extends entityConstructorArguments but not fixtures/updatedFixtures only when audited (createJavaHttpUpdateTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedUpdate = audited.find((artifact) => artifact.templateId === "configuration-http-update-test");
+    expect((auditedUpdate?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual([
+      "WALLET_ID", "WALLET_BALANCE", ...auditedSuffix,
+    ]);
+    expect((auditedUpdate?.model as { fixtures: unknown[] }).fixtures).toHaveLength(2);
+    expect((auditedUpdate?.model as { updatedFixtures: unknown[] }).updatedFixtures).toHaveLength(1);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainUpdate = notAudited.find((artifact) => artifact.templateId === "configuration-http-update-test");
+    expect((plainUpdate?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+  });
+
+  it("extends entityConstructorArguments but not fixtures/updatedFixtures only when audited (createJavaHttpPatchTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedPatch = audited.find((artifact) => artifact.templateId === "configuration-http-patch-test");
+    expect((auditedPatch?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual([
+      "WALLET_ID", "WALLET_BALANCE", ...auditedSuffix,
+    ]);
+    expect((auditedPatch?.model as { fixtures: unknown[] }).fixtures).toHaveLength(2);
+    expect((auditedPatch?.model as { updatedFixtures: unknown[] }).updatedFixtures).toHaveLength(1);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainPatch = notAudited.find((artifact) => artifact.templateId === "configuration-http-patch-test");
+    expect((plainPatch?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+  });
+
+  it("extends entityConstructorArguments only when audited (createJavaHttpDeleteTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedDelete = audited.find((artifact) => artifact.templateId === "configuration-http-delete-test");
+    expect((auditedDelete?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual([
+      "WALLET_ID", "WALLET_BALANCE", ...auditedSuffix,
+    ]);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainDelete = notAudited.find((artifact) => artifact.templateId === "configuration-http-delete-test");
+    expect((plainDelete?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(["WALLET_ID", "WALLET_BALANCE"]);
+  });
+
+  it("extends every seeded record's constructorArguments only when audited (createJavaHttpFilterTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedFilter = audited.find((artifact) => artifact.templateId === "configuration-http-filter-test");
+    const auditedRecords = (auditedFilter?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(auditedRecords.length).toBeGreaterThan(0);
+    for (const record of auditedRecords) expect(record.constructorArguments.slice(-2)).toEqual(auditedSuffix);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainFilter = notAudited.find((artifact) => artifact.templateId === "configuration-http-filter-test");
+    const plainRecords = (plainFilter?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(plainRecords.length).toBeGreaterThan(0);
+    for (const record of plainRecords) expect(record.constructorArguments).toHaveLength(2);
+  });
+
+  it("extends every seeded record's constructorArguments only when audited (createJavaPagingPersistenceTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedPaging = audited.find((artifact) => artifact.templateId === "configuration-paging-persistence-test");
+    const auditedRecords = (auditedPaging?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(auditedRecords.length).toBeGreaterThan(0);
+    for (const record of auditedRecords) expect(record.constructorArguments.slice(-2)).toEqual(auditedSuffix);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainPaging = notAudited.find((artifact) => artifact.templateId === "configuration-paging-persistence-test");
+    const plainRecords = (plainPaging?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(plainRecords.length).toBeGreaterThan(0);
+    for (const record of plainRecords) expect(record.constructorArguments).toHaveLength(2);
+  });
+
+  it("extends every seeded record's constructorArguments only when audited (createJavaFilteredPagingPersistenceTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedFilteredPaging = audited.find((artifact) => artifact.templateId === "configuration-querydsl-filter-paging-persistence-test");
+    const auditedRecords = (auditedFilteredPaging?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(auditedRecords.length).toBeGreaterThan(0);
+    for (const record of auditedRecords) expect(record.constructorArguments.slice(-2)).toEqual(auditedSuffix);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainFilteredPaging = notAudited.find((artifact) => artifact.templateId === "configuration-querydsl-filter-paging-persistence-test");
+    const plainRecords = (plainFilteredPaging?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(plainRecords.length).toBeGreaterThan(0);
+    for (const record of plainRecords) expect(record.constructorArguments).toHaveLength(2);
+  });
+
+  it("extends every seeded record's constructorArguments only when audited (createJavaQuerydslFilterPersistenceTestModel)", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedQuerydsl = audited.find((artifact) => artifact.templateId === "configuration-querydsl-filter-persistence-test");
+    const auditedRecords = (auditedQuerydsl?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(auditedRecords.length).toBeGreaterThan(0);
+    for (const record of auditedRecords) expect(record.constructorArguments.slice(-2)).toEqual(auditedSuffix);
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainQuerydsl = notAudited.find((artifact) => artifact.templateId === "configuration-querydsl-filter-persistence-test");
+    const plainRecords = (plainQuerydsl?.model as { records: { constructorArguments: string[] }[] }).records;
+    expect(plainRecords.length).toBeGreaterThan(0);
+    for (const record of plainRecords) expect(record.constructorArguments).toHaveLength(2);
+  });
 });
