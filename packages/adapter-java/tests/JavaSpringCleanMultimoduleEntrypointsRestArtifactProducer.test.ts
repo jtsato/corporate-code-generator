@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
+import type { GenerationRequest } from "@corporate-code-generator/core";
 import { JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer } from "../src/index.js";
+
+function buildRequest(overrides?: Partial<GenerationRequest>): GenerationRequest {
+  const appOverrides = overrides?.application;
+  const entities = appOverrides?.entities ?? [{ name: "Wallet", attributes: [{ name: "id", type: "uuid", identifier: true }, { name: "balance", type: "decimal", identifier: false }] }];
+  return {
+    application: {
+      schemaVersion: appOverrides?.schemaVersion ?? "1.0",
+      name: appOverrides?.name ?? "wallet-service",
+      namespace: appOverrides?.namespace ?? "io.github.jtsato.walletservice",
+      entities,
+    },
+    profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [], ...overrides?.profile },
+    modules: overrides?.modules ?? [{ id: "entrypoints-rest", requires: [] }],
+  };
+}
 
 describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
   it("produces a delegating controller then a response with a domain factory", () => {
@@ -244,5 +260,28 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
       "entrypoints-rest-tombstone-response",
       "entrypoints-rest-tombstone-page-response",
     ]));
+  });
+
+  it("adds createdAt/updatedAt to WalletResponse and WalletTombstoneResponse when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer();
+    const artifacts = producer.produce(buildRequest({ application: { entities: [{ name: "Wallet", attributes: [{ name: "id", type: "uuid", identifier: true }, { name: "balance", type: "decimal", identifier: false }], audited: true }] } }));
+
+    const response = artifacts.find((artifact) => artifact.templateId === "entrypoints-rest-response");
+    expect(response?.model).toMatchObject({
+      components: expect.arrayContaining([
+        { name: "createdAt", type: "LocalDateTime", description: "Wallet createdAt." },
+        { name: "updatedAt", type: "LocalDateTime", description: "Wallet updatedAt." },
+      ]),
+      factoryArguments: expect.arrayContaining(["wallet.getCreatedAt()", "wallet.getUpdatedAt()"]),
+    });
+
+    const tombstoneResponse = artifacts.find((artifact) => artifact.templateId === "entrypoints-rest-tombstone-response");
+    expect(tombstoneResponse?.model).toMatchObject({
+      components: expect.arrayContaining([
+        { name: "createdAt", type: "LocalDateTime", description: "Wallet createdAt." },
+        { name: "updatedAt", type: "LocalDateTime", description: "Wallet updatedAt." },
+        expect.objectContaining({ name: "deletedAt" }),
+      ]),
+    });
   });
 });

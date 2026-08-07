@@ -225,6 +225,13 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         responseImports.add(type.import);
         return { name: attribute.name, type: type.name, description: `${entityType} ${attribute.name}.` };
       });
+      if (entity.audited === true) {
+        responseImports.add("java.time.LocalDateTime");
+        components.push(
+          { name: "createdAt", type: "LocalDateTime", description: `${entityType} createdAt.` },
+          { name: "updatedAt", type: "LocalDateTime", description: `${entityType} updatedAt.` },
+        );
+      }
       const response: JavaFactoryRestResponseTemplateModel = {
         packageName,
         imports: responseImports.values(),
@@ -233,9 +240,15 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         factoryMethodName: "from",
         factoryParameterType: entityType,
         factoryParameterName: toJavaFieldName(entityType),
-        factoryArguments: entity.attributes.map((attribute) =>
-          `${toJavaFieldName(entityType)}.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`,
-        ),
+        factoryArguments: entity.audited === true
+          ? [
+              ...entity.attributes.map((attribute) => `${toJavaFieldName(entityType)}.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`),
+              `${toJavaFieldName(entityType)}.getCreatedAt()`,
+              `${toJavaFieldName(entityType)}.getUpdatedAt()`,
+            ]
+          : entity.attributes.map((attribute) =>
+              `${toJavaFieldName(entityType)}.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`,
+            ),
       };
       const tombstoneResponseImports = new JavaImportCollector();
       tombstoneResponseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
