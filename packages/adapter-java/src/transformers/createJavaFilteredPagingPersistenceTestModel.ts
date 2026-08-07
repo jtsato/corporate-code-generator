@@ -45,15 +45,21 @@ export function createJavaFilteredPagingPersistenceTestModel(
   imports.add("org.springframework.boot.test.context.SpringBootTest");
   imports.add("org.springframework.test.context.ActiveProfiles");
 
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
   const identifierJavaType = typeResolver.resolve(identifier.type);
   const records = Array.from({ length: recordCount }, (_, index) => {
     const identifierConstantName = toJavaConstantName(`${entity.name}_${identifier.name}_${index + 1}`);
-    const constructorArguments = entity.attributes.map((attribute) => {
+    const attributeConstructorArguments = entity.attributes.map((attribute) => {
       const javaType = typeResolver.resolve(attribute.type);
       imports.add(javaType.import);
       if (attribute === identifier) return identifierConstantName;
       return fixtureResolver.resolve(attribute.type, attribute === driver ? index : 0).javaExpression;
     });
+    const constructorArguments = entity.audited === true
+      ? [...attributeConstructorArguments, 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+      : attributeConstructorArguments;
     return {
       identifierConstantName,
       identifierExpression: fixtureResolver.resolve(identifier.type, index).javaExpression,

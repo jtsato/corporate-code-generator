@@ -56,7 +56,7 @@ class {{ className }} {
 
         var exception = assertThrows(
             ValidationException.class,
-            () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null)
+            () -> new {{ interactorType }}(gateway{% if secondaryDependencyFixtureExpression %}, {{ secondaryDependencyFixtureExpression }}{% endif %}).{{ executeMethodName }}(null)
         );
 
         assertEquals("command", exception.getFields().getFirst().name());
@@ -84,7 +84,7 @@ class {{ className }} {
 {% endfor %}        );
         var command = new {{ commandType }}({{ commandArguments | join(", ") }});
 
-        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(command);
+        var result = new {{ interactorType }}(gateway{% if secondaryDependencyFixtureExpression %}, {{ secondaryDependencyFixtureExpression }}{% endif %}).{{ executeMethodName }}(command);
 
 {% for assertion in fieldAssertions %}        assertEquals({{ assertion.expectedExpression }}, gateway.received.{{ assertion.accessorName }}());
 {% endfor %}

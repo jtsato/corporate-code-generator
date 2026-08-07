@@ -69,13 +69,23 @@ export function createJavaHttpPatchTestModel(
   const omittedAttribute = valueAttributes.length > 1 ? valueAttributes[0] : undefined;
   const value = (attribute: typeof entity.attributes[number]) => updatedByName.get(attribute.name)!.jsonLiteral;
 
+  // Seeds the pre-existing WalletEntity the PATCH targets; updatedAt is server-recomputed on patch, so
+  // only entityConstructorArguments needs the audited extension (fixtures/updatedFixtures, which drive
+  // the JSON/accessor assertions, are intentionally left untouched).
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
+  const entityConstructorArguments = entity.audited === true
+    ? [...fixtures.map((fixture) => fixture.constantName), 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+    : fixtures.map((fixture) => fixture.constantName);
+
   return {
     packageName: namespace, imports: imports.values(), className: `${entityType}HttpPatchTests`, activeProfile: "test",
     endpointPath: toRestCollectionPath(entity.name), entityType: `${entityType}Entity`, persistenceEntityType: `${entityType}Entity`,
     repositoryType: `${entityType}Repository`, repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
     identifierConstantName: fixtures[identifierIndex]!.constantName,
     missingIdentifierExpression: fixtureResolver.resolve(identifier.type, occurrences.get(identifier.type) ?? 1).javaExpression,
-    entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+    entityConstructorArguments,
     validPatchPayloadExpression: json(valueAttributes, value), emptyPatchPayloadExpression: JSON.stringify("{}"),
     requiredNullPayloadExpression: requiredAttribute === undefined ? JSON.stringify("{}") : json(valueAttributes, (attribute) => attribute === requiredAttribute ? "null" : value(attribute)),
     hasRequiredNullScenario: requiredAttribute !== undefined,

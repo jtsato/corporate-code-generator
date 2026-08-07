@@ -87,6 +87,9 @@ export function createJavaQuerydslFilterPersistenceTestModel(
   imports.add("org.springframework.boot.test.context.SpringBootTest");
   imports.add("org.springframework.test.context.ActiveProfiles");
 
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
   const identifierJavaType = typeResolver.resolve(identifier.type);
   const identifierConstantNames: string[] = [];
 
@@ -96,13 +99,16 @@ export function createJavaQuerydslFilterPersistenceTestModel(
     );
     identifierConstantNames.push(identifierConstantName);
 
-    const constructorArguments = entity.attributes.map((attribute) => {
+    const attributeConstructorArguments = entity.attributes.map((attribute) => {
       const javaType = typeResolver.resolve(attribute.type);
       imports.add(javaType.import);
       if (attribute === identifier) return identifierConstantName;
       const varies = attribute === driver;
       return fixtureResolver.resolve(attribute.type, varies ? index : 0).javaExpression;
     });
+    const constructorArguments = entity.audited === true
+      ? [...attributeConstructorArguments, 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+      : attributeConstructorArguments;
 
     return {
       identifierConstantName,

@@ -30,7 +30,7 @@ class {{ className }} {
     @Test
     void shouldRejectNullCommand() {
         var gateway = new {{ fakeGatewayType }}();
-        var exception = assertThrows(ValidationException.class, () -> new {{ interactorType }}(gateway).{{ executeMethodName }}(null));
+        var exception = assertThrows(ValidationException.class, () -> new {{ interactorType }}(gateway{% if secondaryDependencyFixtureExpression %}, {{ secondaryDependencyFixtureExpression }}{% endif %}).{{ executeMethodName }}(null));
         assertEquals("command", exception.getFields().getFirst().name());
         assertEquals("{{ commandRequiredMessageKey }}", exception.getFields().getFirst().messageKey());
         assertEquals(0, gateway.findByIdCallCount);
@@ -60,7 +60,7 @@ class {{ className }} {
         gateway.result = new {{ entityType }}(
 {% for argument in currentEntityArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
 {% endfor %}        );
-        var result = new {{ interactorType }}(gateway).{{ executeMethodName }}(new {{ commandType }}({{ updatedCommandArguments | join(", ") }}));
+        var result = new {{ interactorType }}(gateway{% if secondaryDependencyFixtureExpression %}, {{ secondaryDependencyFixtureExpression }}{% endif %}).{{ executeMethodName }}(new {{ commandType }}({{ updatedCommandArguments | join(", ") }}));
 {% for assertion in updatedFieldAssertions %}        assertEquals({{ assertion.expectedExpression }}, gateway.received.{{ assertion.accessorName }}());
 {% endfor %}        assertSame(gateway.result, result);
         assertEquals(1, gateway.findByIdCallCount);
@@ -79,7 +79,7 @@ class {{ className }} {
 {% for argument in currentEntityArguments %}            {{ argument }}{% if not loop.last %},{% endif %}
 {% endfor %}        );
         gateway.result = gateway.current;
-        new {{ interactorType }}(gateway).{{ executeMethodName }}(new {{ commandType }}({{ omittedCommandArguments | join(", ") }}));
+        new {{ interactorType }}(gateway{% if secondaryDependencyFixtureExpression %}, {{ secondaryDependencyFixtureExpression }}{% endif %}).{{ executeMethodName }}(new {{ commandType }}({{ omittedCommandArguments | join(", ") }}));
         assertEquals({{ omittedExpectedExpression }}, gateway.received.get{{ omittedFieldName }}());
     }
 {% endif %}

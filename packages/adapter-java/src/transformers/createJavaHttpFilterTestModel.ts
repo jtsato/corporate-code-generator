@@ -62,6 +62,10 @@ export function createJavaHttpFilterTestModel(
   const identifierJavaType = typeResolver.resolve(identifier.type);
   imports.add(identifierJavaType.import);
 
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
+
   const identifierConstantNames: string[] = [];
   const identifierLiterals: string[] = [];
 
@@ -70,13 +74,16 @@ export function createJavaHttpFilterTestModel(
     identifierConstantNames.push(identifierConstantName);
     identifierLiterals.push(toRawLiteral(fixtureResolver.resolve(identifier.type, index)));
 
-    const constructorArguments = entity.attributes.map((attribute) => {
+    const attributeConstructorArguments = entity.attributes.map((attribute) => {
       const javaType = typeResolver.resolve(attribute.type);
       imports.add(javaType.import);
       if (attribute === identifier) return identifierConstantName;
       const varies = attribute === driver;
       return fixtureResolver.resolve(attribute.type, varies ? index : 0).javaExpression;
     });
+    const constructorArguments = entity.audited === true
+      ? [...attributeConstructorArguments, 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+      : attributeConstructorArguments;
 
     return {
       identifierConstantName,

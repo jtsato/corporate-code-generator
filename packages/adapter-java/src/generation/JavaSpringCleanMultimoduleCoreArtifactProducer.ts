@@ -42,6 +42,21 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
     private readonly fixtureResolver: JavaTestFixtureValueResolver = new JavaTestFixtureValueResolver(),
   ) {}
 
+  private auditedFixtureArguments(): readonly string[] {
+    return [
+      'LocalDateTime.parse("2026-01-15T10:30:00")',
+      'LocalDateTime.parse("2026-01-15T10:31:00")',
+    ];
+  }
+
+  private auditedSecondaryDependencyFixtureExpression(): string {
+    return '() -> LocalDateTime.parse("2026-01-15T10:30:00")';
+  }
+
+  private auditedTombstoneFixtureArgument(): string {
+    return 'Instant.parse("2026-01-15T10:32:00Z")';
+  }
+
   public produce(request: GenerationRequest): readonly TemplateInvocation[] {
     const namespace = request.application.namespace;
     if (namespace === undefined) {
@@ -206,6 +221,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       for (const attribute of entity.attributes) {
         byIdInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
       }
+      if (entity.audited === true) {
+        byIdInteractorTestImports.add("java.time.LocalDateTime");
+      }
       const createCommandImports = new JavaImportCollector();
       createCommandImports.add(`${exceptionPackage}.FieldViolation`);
       createCommandImports.add(`${exceptionPackage}.ValidationException`);
@@ -239,6 +257,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       createInteractorTestImports.add("org.junit.jupiter.api.Test");
       for (const attribute of entity.attributes) {
         createInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
+      }
+      if (entity.audited === true) {
+        createInteractorTestImports.add("java.time.LocalDateTime");
       }
       const updateCommandImports = new JavaImportCollector();
       updateCommandImports.add(`${exceptionPackage}.FieldViolation`);
@@ -274,6 +295,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       for (const attribute of entity.attributes) {
         updateInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
       }
+      if (entity.audited === true) {
+        updateInteractorTestImports.add("java.time.LocalDateTime");
+      }
       const patchCommandImports = new JavaImportCollector();
       patchCommandImports.add(`${exceptionPackage}.FieldViolation`);
       patchCommandImports.add(`${exceptionPackage}.ValidationException`);
@@ -304,6 +328,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       patchInteractorTestImports.add("java.util.List");
       patchInteractorTestImports.add("org.junit.jupiter.api.Test");
       for (const attribute of entity.attributes) patchInteractorTestImports.add(this.typeResolver.resolve(attribute.type).import);
+      if (entity.audited === true) {
+        patchInteractorTestImports.add("java.time.LocalDateTime");
+      }
       const deleteCommandImports = new JavaImportCollector();
       deleteCommandImports.add(`${exceptionPackage}.FieldViolation`);
       deleteCommandImports.add(`${exceptionPackage}.ValidationException`);
@@ -409,12 +436,18 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           ],
         } : {}),
       };
-      const fixtureArguments = entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
+      const attributeFixtureArguments = entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
+      const fixtureArguments = entity.audited === true
+        ? [...attributeFixtureArguments, ...this.auditedFixtureArguments()]
+        : attributeFixtureArguments;
+      // requiredFields[].nullArguments build the create/update command constructor call (CreateWalletCommand/
+      // UpdateWalletCommand), which never gains createdAt/updatedAt parameters (those are server-generated via
+      // GetLocalDateTime, not client-supplied) — so this must stay attribute-length even when entity.audited.
       const requiredFields = entity.attributes.filter((attribute) => attribute.required).map((attribute) => ({
         fieldName: attribute.name,
         messageKey: attribute.identifier ? "common.identifier.required" : `${domainName}.${attribute.name}.required`,
         testMethodSuffix: toJavaTypeName(attribute.name),
-        nullArguments: entity.attributes.map((candidate, index) => candidate === attribute ? "null" : fixtureArguments[index]!),
+        nullArguments: entity.attributes.map((candidate, index) => candidate === attribute ? "null" : attributeFixtureArguments[index]!),
       }));
       const createInteractorTestModel: JavaCreateUseCaseInteractorTestTemplateModel = {
         packageName: `${domainPackage}.usecase.create`,
@@ -427,7 +460,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         commandType: createCommandType,
         identifierType: identifierType.name,
         entityConstructorArguments: fixtureArguments,
-        commandArguments: fixtureArguments,
+        commandArguments: attributeFixtureArguments,
         fieldAssertions: entity.attributes.map((attribute, index) => ({
           accessorName: `get${toJavaTypeName(attribute.name)}`,
           expectedExpression: fixtureArguments[index]!,
@@ -436,6 +469,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         executeMethodName: "execute",
         gatewayCreateMethodName: "create",
         commandRequiredMessageKey: "common.command.required",
+        ...(entity.audited === true ? {
+          secondaryDependencyFixtureExpression: this.auditedSecondaryDependencyFixtureExpression(),
+        } : {}),
       };
       const updateCommandModel: JavaUpdateCommandTemplateModel = {
         packageName: `${domainPackage}.usecase.update`,
@@ -484,7 +520,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         commandType: updateCommandType,
         identifierType: identifierType.name,
         entityConstructorArguments: fixtureArguments,
-        commandArguments: fixtureArguments,
+        commandArguments: attributeFixtureArguments,
         fieldAssertions: entity.attributes.map((attribute, index) => ({
           accessorName: `get${toJavaTypeName(attribute.name)}`,
           expectedExpression: fixtureArguments[index]!,
@@ -493,6 +529,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         executeMethodName: "execute",
         gatewayUpdateMethodName: "update",
         commandRequiredMessageKey: "common.command.required",
+        ...(entity.audited === true ? {
+          secondaryDependencyFixtureExpression: this.auditedSecondaryDependencyFixtureExpression(),
+        } : {}),
       };
       const patchValueFields = entity.attributes.filter((attribute) => !attribute.identifier).map((attribute) => {
         const javaType = this.typeResolver.resolve(attribute.type);
@@ -566,7 +605,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           preStatements: ["final LocalDateTime updatedAt = getLocalDateTime.now();"],
         } : {}),
       };
-      const patchFixtureArguments = entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
+      const patchFixtureArguments = entity.audited === true
+        ? [...entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression), ...this.auditedFixtureArguments()]
+        : entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
       const patchCommandArguments = entity.attributes.flatMap((attribute, index) => attribute.identifier ? [patchFixtureArguments[index]!] : [patchFixtureArguments[index]!, "true"]);
       const patchUpdatedArguments = entity.attributes.flatMap((attribute, index) => attribute.identifier
         ? [patchFixtureArguments[index]!]
@@ -627,6 +668,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         omittedFieldName: omittedAttribute === undefined ? "Field" : toJavaTypeName(omittedAttribute.name),
         omittedExpectedExpression: omittedAttribute === undefined ? "null" : patchFixtureArguments[entity.attributes.indexOf(omittedAttribute)]!,
         omittedCommandArguments: patchOmittedArguments,
+        ...(entity.audited === true ? {
+          secondaryDependencyFixtureExpression: this.auditedSecondaryDependencyFixtureExpression(),
+        } : {}),
       };
       const deleteCommandModel: JavaDeleteCommandTemplateModel = {
         packageName: `${domainPackage}.usecase.delete`,
@@ -1016,9 +1060,9 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             identifierType: identifierType.name,
             identifierParameterName: identifier.name,
             identifierValueExpression: this.fixtureResolver.resolve(identifier.type, 0).javaExpression,
-            entityConstructorArguments: entity.attributes.map((attribute, index) =>
-              this.fixtureResolver.resolve(attribute.type, index).javaExpression,
-            ),
+            entityConstructorArguments: entity.audited === true
+              ? [...entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression), ...this.auditedFixtureArguments()]
+              : entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression),
             executeMethodName: "execute",
             gatewayFindAllMethodName: "findAll",
             gatewayFindByFilterMethodName: "findByFilter",
@@ -1361,7 +1405,22 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         { templateId: "core-get-local-date-time-impl", model: { packageName: timePackageName }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), className: "GetLocalDateTimeImpl" } },
       ] : []),
       ...["SortDirection", "SortOrder", "PageRequest", "PageResult"].map((className) => ({ templateId: `core-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`, model: { packageName: pagingPackageName, exceptionPackage: packageName, className }, outputVariables: { ...pagingVariables, className } })),
-      ...request.application.entities.filter((entity) => entity.attributes.some((attribute) => attribute.required)).map((entity) => { const domainName = toJavaPackageSegment(entity.name); return { templateId: "core-domain-validation-test", model: { packageName: `${namespace}.core.domains.${domainName}.model`, exceptionPackage: packageName, className: `${entity.name}ValidationTests`, entityType: entity.name, nullArguments: entity.attributes, requiredFieldNames: entity.attributes.filter((attribute) => attribute.required).map((attribute) => attribute.name).sort((left, right) => left.localeCompare(right)) }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entity.name}ValidationTests` } }; }),
+      ...request.application.entities.filter((entity) => entity.attributes.some((attribute) => attribute.required)).map((entity) => {
+        const domainName = toJavaPackageSegment(entity.name);
+        return {
+          templateId: "core-domain-validation-test",
+          model: {
+            packageName: `${namespace}.core.domains.${domainName}.model`,
+            exceptionPackage: packageName,
+            className: `${entity.name}ValidationTests`,
+            entityType: entity.name,
+            nullArguments: entity.audited === true ? [...entity.attributes, ...this.auditedFixtureArguments()] : entity.attributes,
+            requiredFieldNames: entity.attributes.filter((attribute) => attribute.required).map((attribute) => attribute.name).sort((left, right) => left.localeCompare(right)),
+            audited: entity.audited === true,
+          },
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entity.name}ValidationTests` },
+        };
+      }),
       ...["SortOrder", "PageRequest", "PageResult"].map((typeName) => ({ templateId: `core-${typeName.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`, model: { packageName: pagingPackageName, exceptionPackage: packageName, className: `${typeName}Tests`, typeName }, outputVariables: { ...pagingVariables, className: `${typeName}Tests` } })),
       ...["FilterOperator", "FilterCondition", "FilterGroupOperator", "FilterGroup", "FilterExpression"].map((className) => ({ templateId: `core-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`, model: { packageName: filterPackageName, exceptionPackage: packageName, className }, outputVariables: { ...pagingVariables, className } })),
       ...["FilterCondition", "FilterGroup", "FilterExpression"].map((typeName) => ({ templateId: `core-${typeName.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`, model: { packageName: filterPackageName, exceptionPackage: packageName, className: `${typeName}Tests`, typeName }, outputVariables: { ...pagingVariables, className: `${typeName}Tests` } })),

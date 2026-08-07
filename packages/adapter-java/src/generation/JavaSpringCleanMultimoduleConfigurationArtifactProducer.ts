@@ -51,6 +51,40 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
     private readonly fixtureResolver: JavaTestFixtureValueResolver = new JavaTestFixtureValueResolver(),
   ) {}
 
+  // Persistence/HTTP integration tests in this producer construct the infra `*Entity` type directly
+  // (to seed fixtures via the repository). When audited, that entity's constructor gains two trailing
+  // LocalDateTime parameters (createdAt, updatedAt) — see JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer.
+  // These fixed literals keep those direct-construction call sites compiling without introducing
+  // non-deterministic `.now()`-based values into fixture data.
+  private auditedEntityFixtureArguments(): readonly string[] {
+    return [
+      'LocalDateTime.parse("2026-01-15T10:30:00")',
+      'LocalDateTime.parse("2026-01-15T10:31:00")',
+    ];
+  }
+
+  // Same two fixed timestamps as auditedEntityFixtureArguments(), but as named constants (with an
+  // accessorName) for sites that also assert on the round-tripped createdAt/updatedAt values.
+  private auditedDeclaredFixturesWithAccessor(entityName: string): readonly { constantName: string; type: string; javaExpression: string; accessorName: string }[] {
+    return [
+      { constantName: toJavaConstantName(`${entityName}_created_at`), type: "LocalDateTime", javaExpression: 'LocalDateTime.parse("2026-01-15T10:30:00")', accessorName: "getCreatedAt" },
+      { constantName: toJavaConstantName(`${entityName}_updated_at`), type: "LocalDateTime", javaExpression: 'LocalDateTime.parse("2026-01-15T10:31:00")', accessorName: "getUpdatedAt" },
+    ];
+  }
+
+  // Same, but with a jsonName instead of accessorName, for sites asserting on serialized REST JSON fields.
+  // These use non-zero seconds (unlike the other audited fixtures) because the generated assertion compares
+  // `String.valueOf(LocalDateTime)` against the JSON text: java.time.LocalDateTime#toString() drops a
+  // trailing ":00" seconds component, but Jackson's LocalDateTime serialization does not — with whole-minute
+  // literals the two representations diverge ("2026-01-15T10:30" vs "2026-01-15T10:30:00") and the assertion
+  // fails even though the value round-tripped correctly.
+  private auditedDeclaredFixturesWithJsonName(entityName: string): readonly { constantName: string; type: string; javaExpression: string; jsonName: string }[] {
+    return [
+      { constantName: toJavaConstantName(`${entityName}_created_at`), type: "LocalDateTime", javaExpression: 'LocalDateTime.parse("2026-01-15T10:30:15")', jsonName: "createdAt" },
+      { constantName: toJavaConstantName(`${entityName}_updated_at`), type: "LocalDateTime", javaExpression: 'LocalDateTime.parse("2026-01-15T10:31:45")', jsonName: "updatedAt" },
+    ];
+  }
+
   public produce(request: GenerationRequest): readonly TemplateInvocation[] {
     const namespace = request.application.namespace;
     if (namespace === undefined) throw new Error("Java bootstrap generation requires an application namespace.");
@@ -362,10 +396,22 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
             constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
           };
         });
+        if (entity.audited === true) {
+          imports.add("java.time.LocalDateTime");
+        }
+        const auditedBodyFields = entity.audited === true
+          ? [
+              `"createdAt":"2026-01-15T10:30:00"`,
+              `"updatedAt":"2026-01-15T10:31:00"`,
+            ]
+          : [];
         const expectedBody = `[{${
-          fixtureValues.map(({ attribute, value }) =>
-            `${JSON.stringify(attribute.name)}:${value.jsonLiteral}`,
-          ).join(",")
+          [
+            ...fixtureValues.map(({ attribute, value }) =>
+              `${JSON.stringify(attribute.name)}:${value.jsonLiteral}`,
+            ),
+            ...auditedBodyFields,
+          ].join(",")
         }}]`;
         const persistenceReadModel: JavaHttpPersistenceReadTestTemplateModel = {
           packageName: namespace,
@@ -377,7 +423,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
             javaExpression: value.javaExpression,
           })),
           entityType: persistenceEntityType,
-          entityConstructorArguments: fixtureValues.map(({ constantName }) => constantName),
+          entityConstructorArguments: entity.audited === true
+            ? [...fixtureValues.map(({ constantName }) => constantName), ...this.auditedEntityFixtureArguments()]
+            : fixtureValues.map(({ constantName }) => constantName),
           repositoryType,
           repositoryFieldName,
           repositoryCleanupMethodName: "deleteAll",
@@ -428,16 +476,22 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("org.springframework.beans.factory.annotation.Autowired");
         imports.add("org.springframework.boot.test.context.SpringBootTest");
         imports.add("org.springframework.test.context.ActiveProfiles");
-        const fixtures = entity.attributes.map((attribute, index) => {
-          const javaType = this.typeResolver.resolve(attribute.type);
-          imports.add(javaType.import);
-          return {
-            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
-            type: javaType.name,
-            javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
-            accessorName: `get${toJavaTypeName(attribute.name)}`,
-          };
-        });
+        if (entity.audited === true) {
+          imports.add("java.time.LocalDateTime");
+        }
+        const fixtures = [
+          ...entity.attributes.map((attribute, index) => {
+            const javaType = this.typeResolver.resolve(attribute.type);
+            imports.add(javaType.import);
+            return {
+              constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+              type: javaType.name,
+              javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+              accessorName: `get${toJavaTypeName(attribute.name)}`,
+            };
+          }),
+          ...(entity.audited === true ? this.auditedDeclaredFixturesWithAccessor(entity.name) : []),
+        ];
         const persistenceModel: JavaFindByIdPersistenceTestTemplateModel = {
           packageName: namespace,
           imports: imports.values(),
@@ -534,16 +588,22 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("org.springframework.boot.test.context.SpringBootTest");
         imports.add("org.springframework.boot.test.web.server.LocalServerPort");
         imports.add("org.springframework.test.context.ActiveProfiles");
-        const fixtures = entity.attributes.map((attribute, index) => {
-          const javaType = this.typeResolver.resolve(attribute.type);
-          imports.add(javaType.import);
-          return {
-            constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
-            type: javaType.name,
-            javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
-            jsonName: attribute.name,
-          };
-        });
+        if (entity.audited === true) {
+          imports.add("java.time.LocalDateTime");
+        }
+        const fixtures = [
+          ...entity.attributes.map((attribute, index) => {
+            const javaType = this.typeResolver.resolve(attribute.type);
+            imports.add(javaType.import);
+            return {
+              constantName: toJavaConstantName(`${entity.name}_${attribute.name}`),
+              type: javaType.name,
+              javaExpression: this.fixtureResolver.resolve(attribute.type, index).javaExpression,
+              jsonName: attribute.name,
+            };
+          }),
+          ...(entity.audited === true ? this.auditedDeclaredFixturesWithJsonName(entity.name) : []),
+        ];
         const httpModel: JavaHttpFindByIdTestTemplateModel = {
           packageName: namespace,
           imports: imports.values(),
@@ -731,6 +791,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           missingIdentifierFixture,
         ];
         const identifierFixture = originalFixtures.find((fixture) => fixture.attribute.identifier)!;
+        if (entity.audited === true) {
+          imports.add("java.time.LocalDateTime");
+        }
 
         const persistenceModel: JavaUpdatePersistenceTestTemplateModel = {
           packageName: namespace,
@@ -744,7 +807,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
           persistenceEntityType: `${entityType}Entity`,
           declaredFixtures,
-          originalEntityConstructorArguments: originalFixtures.map((fixture) => fixture.constantName),
+          originalEntityConstructorArguments: entity.audited === true
+            ? [...originalFixtures.map((fixture) => fixture.constantName), ...this.auditedEntityFixtureArguments()]
+            : originalFixtures.map((fixture) => fixture.constantName),
           commandArguments: updatedFixtures.map((fixture) => fixture.constantName),
           assertionFixtures: updatedFixtures.map((fixture) => ({ constantName: fixture.constantName, accessorName: fixture.accessorName })),
           identifierExpression: identifierFixture.constantName,
@@ -792,6 +857,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
             javaExpression: this.fixtureResolver.resolve(attribute.type, occurrenceIndex).javaExpression,
           };
         });
+        if (entity.audited === true) {
+          imports.add("java.time.LocalDateTime");
+        }
         const persistenceModel: JavaDeletePersistenceTestTemplateModel = {
           packageName: namespace,
           imports: imports.values(),
@@ -804,7 +872,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
           persistenceEntityType: `${entityType}Entity`,
           declaredFixtures: fixtures,
-          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          entityConstructorArguments: entity.audited === true
+            ? [...fixtures.map((fixture) => fixture.constantName), ...this.auditedEntityFixtureArguments()]
+            : fixtures.map((fixture) => fixture.constantName),
           identifierExpression: toJavaConstantName(`${entity.name}_${identifier.name}`),
           missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
           notFoundExceptionType: "NotFoundException",
@@ -846,6 +916,12 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           imports.add(javaType.import);
           return { constantName: toJavaConstantName(`${entity.name}_${attribute.name}`), type: javaType.name, javaExpression: this.fixtureResolver.resolve(attribute.type, occurrenceIndex).javaExpression };
         });
+        if (entity.audited === true) {
+          imports.add("java.time.LocalDateTime");
+        }
+        const entityConstructorArguments = entity.audited === true
+          ? [...fixtures.map((fixture) => fixture.constantName), ...this.auditedEntityFixtureArguments()]
+          : fixtures.map((fixture) => fixture.constantName);
         const deletedModel: JavaDeletedQueryPersistenceTestTemplateModel = {
           packageName: namespace,
           imports: imports.values(),
@@ -862,7 +938,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
           persistenceEntityType: `${entityType}Entity`,
           declaredFixtures: fixtures,
-          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          entityConstructorArguments,
           identifierExpression: toJavaConstantName(`${entity.name}_${identifier.name}`),
           missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
           pageRequestExpression: "PageRequest.of(0, 20, List.of())",
@@ -884,12 +960,24 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         restoreImports.add("org.springframework.boot.test.context.SpringBootTest");
         restoreImports.add("org.springframework.test.context.ActiveProfiles");
         for (const attribute of entity.attributes) restoreImports.add(this.typeResolver.resolve(attribute.type).import);
+        if (entity.audited === true) {
+          restoreImports.add("java.time.LocalDateTime");
+        }
         const uniqueGroupAttributes = new Set((entity.uniqueGroups ?? []).flat());
-        const conflictingEntityConstructorArguments = entity.attributes.map((attribute, index) => {
-          if (attribute.identifier) return this.fixtureResolver.resolve(attribute.type, 1).javaExpression;
-          if (attribute.unique || uniqueGroupAttributes.has(attribute.name)) return toJavaConstantName(`${entity.name}_${attribute.name}`);
-          return this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression;
-        });
+        const conflictingEntityConstructorArguments = entity.audited === true
+          ? [
+              ...entity.attributes.map((attribute, index) => {
+                if (attribute.identifier) return this.fixtureResolver.resolve(attribute.type, 1).javaExpression;
+                if (attribute.unique || uniqueGroupAttributes.has(attribute.name)) return toJavaConstantName(`${entity.name}_${attribute.name}`);
+                return this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression;
+              }),
+              ...this.auditedEntityFixtureArguments(),
+            ]
+          : entity.attributes.map((attribute, index) => {
+              if (attribute.identifier) return this.fixtureResolver.resolve(attribute.type, 1).javaExpression;
+              if (attribute.unique || uniqueGroupAttributes.has(attribute.name)) return toJavaConstantName(`${entity.name}_${attribute.name}`);
+              return this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression;
+            });
         const restoreModel: JavaRestorePersistenceTestTemplateModel = {
           packageName: namespace,
           imports: restoreImports.values(),
@@ -905,7 +993,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
           persistenceEntityType: `${entityType}Entity`,
           declaredFixtures: fixtures,
-          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          entityConstructorArguments,
           identifierExpression: toJavaConstantName(`${entity.name}_${identifier.name}`),
           missingIdentifierExpression: this.fixtureResolver.resolve(identifier.type, 1).javaExpression,
           conflictingEntityConstructorArguments,
@@ -930,6 +1018,9 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         httpImports.add("org.springframework.boot.test.web.server.LocalServerPort");
         httpImports.add("org.springframework.test.context.ActiveProfiles");
         for (const fixture of fixtures) httpImports.add(fixture.type === "UUID" ? "java.util.UUID" : this.typeResolver.resolve(entity.attributes.find((attribute) => toJavaConstantName(`${entity.name}_${attribute.name}`) === fixture.constantName)!.type).import);
+        if (entity.audited === true) {
+          httpImports.add("java.time.LocalDateTime");
+        }
         const httpDeletedModel: JavaHttpDeletedQueryTestTemplateModel = {
           packageName: namespace,
           imports: insertUriImport(httpImports.values()),
@@ -940,7 +1031,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           repositoryType: `${entityType}Repository`,
           repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
           identifierConstantName: toJavaConstantName(`${entity.name}_${identifier.name}`),
-          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          entityConstructorArguments,
           fixtures,
         };
         const httpRestoreModel: JavaHttpRestoreTestTemplateModel = {
@@ -953,7 +1044,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           repositoryType: `${entityType}Repository`,
           repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
           identifierConstantName: toJavaConstantName(`${entity.name}_${identifier.name}`),
-          entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+          entityConstructorArguments,
           conflictingEntityConstructorArguments,
           fixtures,
           restoreResponseStatus: 204,

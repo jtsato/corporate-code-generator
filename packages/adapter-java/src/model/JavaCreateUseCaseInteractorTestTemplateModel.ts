@@ -23,4 +23,5 @@ export interface JavaCreateUseCaseInteractorTestTemplateModel {
   readonly executeMethodName: string;
   readonly gatewayCreateMethodName: string;
   readonly commandRequiredMessageKey: string;
+  readonly secondaryDependencyFixtureExpression?: string;
 }

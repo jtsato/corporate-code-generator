@@ -70,6 +70,18 @@ export function createJavaHttpCreateTestModel(
   const nullValueValues = fixtures.map((fixture, index) => index === entity.attributes.indexOf(valueAttribute) ? "null" : fixture.jsonLiteral);
   const invalidIdentifierValues = fixtures.map((fixture, index) => index === entity.attributes.indexOf(identifier) ? JSON.stringify("not-a-uuid") : fixture.jsonLiteral);
 
+  // The "reject duplicate" scenario seeds an already-persisted WalletEntity directly (not through the
+  // create use case), so createdAt/updatedAt are NOT server-generated here — fixed literals are required
+  // to satisfy the audited entity's constructor arity. This must stay separate from `fixtures`, which also
+  // drives createdAt/updatedAt-free per-field JSON/accessor assertions against the actually-created record
+  // (whose real timestamps come from GetLocalDateTime.now() at test time, not these fixtures).
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
+  const entityConstructorArguments = entity.audited === true
+    ? [...fixtures.map((fixture) => fixture.constantName), 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+    : fixtures.map((fixture) => fixture.constantName);
+
   return {
     packageName: namespace,
     imports: imports.values(),
@@ -83,7 +95,7 @@ export function createJavaHttpCreateTestModel(
     repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
     identifierType: typeResolver.resolve(identifier.type).name,
     identifierConstantName: toJavaConstantName(`${entity.name}_${identifier.name}`),
-    entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+    entityConstructorArguments,
     validPayloadExpression: toJsonStringLiteral(entity.attributes, validValues),
     duplicatePayloadExpression: toJsonStringLiteral(entity.attributes, duplicateValues),
     hasUniqueAttribute,

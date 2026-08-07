@@ -27,4 +27,5 @@ export interface JavaPatchUseCaseInteractorTestTemplateModel {
   readonly omittedFieldName: string;
   readonly omittedExpectedExpression: string;
   readonly omittedCommandArguments: readonly string[];
+  readonly secondaryDependencyFixtureExpression?: string;
 }

@@ -446,4 +446,19 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
     });
     expect((auditedPatch?.model as { mergedEntityArguments: readonly string[] }).mergedEntityArguments.slice(-2)).toEqual(["null", "updatedAt"]);
   });
+
+  it("appends audited fixture arguments to every direct Wallet-construction test fixture", () => {
+    const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
+    const artifacts = producer.produce(buildRequest({ audited: true }));
+
+    const createTest = artifacts.find((artifact) => artifact.templateId === "core-create-usecase-interactor-test");
+    expect((createTest?.model as { entityConstructorArguments: string[] }).entityConstructorArguments).toEqual(
+      expect.arrayContaining(['LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']),
+    );
+
+    const patchTest = artifacts.find((artifact) => artifact.templateId === "core-patch-usecase-interactor-test");
+    expect((patchTest?.model as { currentEntityArguments: string[] }).currentEntityArguments).toEqual(
+      expect.arrayContaining(['LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']),
+    );
+  });
 });

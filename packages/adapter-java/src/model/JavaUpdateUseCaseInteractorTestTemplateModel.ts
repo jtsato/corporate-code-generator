@@ -23,4 +23,5 @@ export interface JavaUpdateUseCaseInteractorTestTemplateModel {
   readonly executeMethodName: string;
   readonly gatewayUpdateMethodName: string;
   readonly commandRequiredMessageKey: string;
+  readonly secondaryDependencyFixtureExpression?: string;
 }

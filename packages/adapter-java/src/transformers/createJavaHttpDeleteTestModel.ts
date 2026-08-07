@@ -50,6 +50,13 @@ export function createJavaHttpDeleteTestModel(
     } satisfies JavaHttpDeleteTestFixture;
   });
 
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
+  const entityConstructorArguments = entity.audited === true
+    ? [...fixtures.map((fixture) => fixture.constantName), 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+    : fixtures.map((fixture) => fixture.constantName);
+
   return {
     packageName: namespace,
     imports: imports.values(),
@@ -62,7 +69,7 @@ export function createJavaHttpDeleteTestModel(
     repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
     identifierConstantName: fixtures[identifierIndex]!.constantName,
     missingIdentifierExpression: fixtureResolver.resolve(identifier.type, (occurrences.get(identifier.type) ?? 1)).javaExpression,
-    entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+    entityConstructorArguments,
     fixtures,
   };
 }

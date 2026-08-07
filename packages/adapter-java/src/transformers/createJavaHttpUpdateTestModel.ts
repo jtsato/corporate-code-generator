@@ -77,6 +77,17 @@ export function createJavaHttpUpdateTestModel(
     .map((attribute) => updatedFixtures[entity.attributes.indexOf(attribute)]!.jsonLiteral);
   const missingValueAttributes = entity.attributes.filter((attribute) => !attribute.identifier && attribute !== valueAttribute);
 
+  // Seeds the pre-existing WalletEntity that the HTTP PUT will update. createdAt/updatedAt on the entity
+  // returned by the API are NOT asserted against these literals (updatedAt is server-recomputed on update),
+  // so only entityConstructorArguments needs the audited extension — `fixtures`/`updatedFixtures` (which
+  // drive the JSON/accessor assertions) are intentionally left untouched.
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
+  const entityConstructorArguments = entity.audited === true
+    ? [...fixtures.map((fixture) => fixture.constantName), 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+    : fixtures.map((fixture) => fixture.constantName);
+
   return {
     packageName: namespace,
     imports: imports.values(),
@@ -89,7 +100,7 @@ export function createJavaHttpUpdateTestModel(
     repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
     identifierConstantName: fixtures[identifierIndex]!.constantName,
     missingIdentifierExpression: fixtureResolver.resolve(identifier.type, (occurrences.get(identifier.type) ?? 1)).javaExpression,
-    entityConstructorArguments: fixtures.map((fixture) => fixture.constantName),
+    entityConstructorArguments,
     validUpdatePayloadExpression: toJsonStringLiteral(entity.attributes.filter((attribute) => !attribute.identifier), updatedValues.filter((_, index) => entity.attributes[index]?.identifier !== true)),
     missingValuePayloadExpression: toJsonStringLiteral(missingValueAttributes, missingValueValues),
     invalidJsonPayloadExpression: JSON.stringify("{not-json"),

@@ -3,7 +3,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import {{ exceptionPackage }}.ValidationException;
-import java.util.List;
+{% if audited %}import java.time.LocalDateTime;
+{% endif %}import java.util.List;
 import org.junit.jupiter.api.Test;
 class {{ className }} {
     @Test void rejectsMissingRequiredFields() {

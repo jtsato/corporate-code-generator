@@ -43,13 +43,21 @@ export function createJavaPagingPersistenceTestModel(
   imports.add("org.springframework.boot.test.context.SpringBootTest");
   imports.add("org.springframework.test.context.ActiveProfiles");
 
-  const records = Array.from({ length: recordCount }, (unused, index) => ({
-    constructorArguments: entity.attributes.map((attribute) => {
+  if (entity.audited === true) {
+    imports.add("java.time.LocalDateTime");
+  }
+  const records = Array.from({ length: recordCount }, (unused, index) => {
+    const attributeConstructorArguments = entity.attributes.map((attribute) => {
       const javaType = typeResolver.resolve(attribute.type);
       imports.add(javaType.import);
       return fixtureResolver.resolve(attribute.type, index).javaExpression;
-    }),
-  }));
+    });
+    return {
+      constructorArguments: entity.audited === true
+        ? [...attributeConstructorArguments, 'LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']
+        : attributeConstructorArguments,
+    };
+  });
 
   const scenarios: JavaPagingPersistenceTestScenario[] = [
     scenario("shouldReturnFirstPage", 0),
