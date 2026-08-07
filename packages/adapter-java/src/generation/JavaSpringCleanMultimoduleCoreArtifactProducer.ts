@@ -724,14 +724,21 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         return { name: attribute.name, type: type.name, modifiers: ["private", "final"] };
       });
       tombstoneImports.add("java.time.Instant");
+      const auditedTombstoneFields = entity.audited === true
+        ? [
+            { name: "createdAt", type: "LocalDateTime", modifiers: ["private", "final"] },
+            { name: "updatedAt", type: "LocalDateTime", modifiers: ["private", "final"] },
+          ]
+        : [];
+      if (entity.audited === true) tombstoneImports.add("java.time.LocalDateTime");
       const tombstoneModel: JavaEntityTemplateModel = {
         packageName: `${domainPackage}.model`,
         imports: tombstoneImports.values(),
         className: `${entityType}Tombstone`,
         modifiers: ["public"],
-        fields: [...tombstoneFields, { name: "deletedAt", type: "Instant", modifiers: ["private", "final"] }],
-        constructorParameters: [...tombstoneFields.map(({ name, type }) => ({ name, type })), { name: "deletedAt", type: "Instant" }],
-        getters: [...tombstoneFields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })), { name: "getDeletedAt", returnType: "Instant", fieldName: "deletedAt" }],
+        fields: [...tombstoneFields, ...auditedTombstoneFields, { name: "deletedAt", type: "Instant", modifiers: ["private", "final"] }],
+        constructorParameters: [...tombstoneFields.map(({ name, type }) => ({ name, type })), ...auditedTombstoneFields.map(({ name, type }) => ({ name, type })), { name: "deletedAt", type: "Instant" }],
+        getters: [...tombstoneFields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })), ...auditedTombstoneFields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })), { name: "getDeletedAt", returnType: "Instant", fieldName: "deletedAt" }],
       };
       const outputVariables = {
         packagePath: namespace.replaceAll(".", "/"),
@@ -746,6 +753,12 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             `${domainPackage}.model`,
             undefined,
             true,
+            entity.audited === true
+              ? [
+                  { name: "createdAt", type: "LocalDateTime", import: "java.time.LocalDateTime" },
+                  { name: "updatedAt", type: "LocalDateTime", import: "java.time.LocalDateTime" },
+                ]
+              : [],
           ),
           outputVariables: { ...outputVariables, className: entityType },
         },

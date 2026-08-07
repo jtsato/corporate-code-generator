@@ -1,6 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { JavaSpringCleanMultimoduleCoreArtifactProducer } from "../src/index.js";
 
+function buildRequest({ audited = false }: { readonly audited?: boolean } = {}) {
+  return {
+    application: {
+      schemaVersion: "1.0",
+      name: "wallet-service",
+      namespace: "io.github.jtsato.walletservice",
+      entities: [{
+        name: "Wallet",
+        attributes: [
+          { name: "id", type: "uuid" as const, required: true, identifier: true },
+          { name: "balance", type: "decimal" as const, required: true, identifier: false },
+        ],
+        audited,
+      }],
+    },
+    profile: {
+      id: "java-spring-clean-multimodule",
+      version: "0.1.0",
+      technology: { language: "java", languageVersion: "25", framework: "spring-boot" },
+      architecture: { style: "clean-architecture" },
+      templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" },
+      modules: [{ id: "core", requires: [] }],
+    },
+    modules: [{ id: "core", requires: [] }],
+  };
+}
+
 describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
   it("produces deterministic core domain, port, use case and interactor invocations", () => {
     const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
@@ -341,5 +368,28 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
     expect(port?.outputVariables).toMatchObject({ className: "GetLocalDateTime" });
     expect(impl?.model).toMatchObject({ packageName: "io.github.jtsato.walletservice.core.common.time" });
     expect(impl?.outputVariables).toMatchObject({ className: "GetLocalDateTimeImpl" });
+  });
+
+  it("adds createdAt/updatedAt to the Wallet model and tombstone only when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
+    const artifacts = producer.produce(buildRequest({ audited: true }));
+
+    const domainEntity = artifacts.find((artifact) => artifact.templateId === "core-domain-entity");
+    expect(domainEntity?.model).toMatchObject({
+      fields: expect.arrayContaining([
+        expect.objectContaining({ name: "createdAt", type: "LocalDateTime" }),
+        expect.objectContaining({ name: "updatedAt", type: "LocalDateTime" }),
+      ]),
+    });
+    expect((domainEntity?.model as { fields: { validationAnnotation?: string }[] }).fields.find((field) => field.name === "createdAt")?.validationAnnotation).toBeUndefined();
+
+    const tombstone = artifacts.find((artifact) => artifact.templateId === "core-domain-tombstone");
+    expect(tombstone?.model).toMatchObject({
+      fields: expect.arrayContaining([
+        expect.objectContaining({ name: "createdAt" }),
+        expect.objectContaining({ name: "updatedAt" }),
+        expect.objectContaining({ name: "deletedAt" }),
+      ]),
+    });
   });
 });
