@@ -256,6 +256,10 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       updateInteractorImports.add(`${domainPackage}.model.${entityType}`);
       updateInteractorImports.add(`${domainPackage}.usecase.update.${updateCommandType}`);
       updateInteractorImports.add("java.util.List");
+      if (entity.audited === true) {
+        updateInteractorImports.add("java.time.LocalDateTime");
+        updateInteractorImports.add(`${namespace}.core.common.time.GetLocalDateTime`);
+      }
       const updateInteractorTestImports = new JavaImportCollector();
       updateInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
       updateInteractorTestImports.add(`${filterPackage}.FilterExpression`);
@@ -452,11 +456,18 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         gatewayType,
         gatewayFieldName: `${domainName}Gateway`,
         entityType,
-        entityConstructorArguments: entity.attributes.map((attribute) => `command.${attribute.name}()`),
+        entityConstructorArguments: entity.audited === true
+          ? [...entity.attributes.map((attribute) => `command.${attribute.name}()`), "null", "updatedAt"]
+          : entity.attributes.map((attribute) => `command.${attribute.name}()`),
         executeMethodName: "execute",
         gatewayUpdateMethodName: "update",
         commandRequiredMessageKey: "common.command.required",
         commandRequiredDefaultMessage: "Command is required.",
+        ...(entity.audited === true ? {
+          secondaryDependencyType: "GetLocalDateTime",
+          secondaryDependencyFieldName: "getLocalDateTime",
+          preStatements: ["final LocalDateTime updatedAt = getLocalDateTime.now();"],
+        } : {}),
       };
       const updateInteractorTestModel: JavaUpdateUseCaseInteractorTestTemplateModel = {
         packageName: `${domainPackage}.usecase.update`,
