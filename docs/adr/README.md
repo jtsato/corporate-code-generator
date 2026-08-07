@@ -52,3 +52,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [052](ADR-052-soft-delete-active-uniqueness.md) | Soft Delete with Active Uniqueness | Accepted — Milestone 6.32. | Milestone 6.32 | Not recorded | Not recorded |
 | [053](ADR-053-restore-include-deleted-queries.md) | Restore and Deleted-Only Queries | Accepted — Milestone 6.33. | Milestone 6.33 | Not recorded | Not recorded |
 | [054](ADR-054-composite-unique-groups.md) | Composite Unique Groups | Accepted - Milestone 6.34. | Milestone 6.34 | Not recorded | Not recorded |
+| [055](ADR-055-auditing-created-updated-at.md) | Auditing (createdAt/updatedAt) | Accepted — Milestone 6.35. | Milestone 6.35 | Not recorded | Not recorded |
