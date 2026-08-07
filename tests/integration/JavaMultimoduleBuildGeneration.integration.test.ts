@@ -59,6 +59,58 @@ describe("Java multi-module generation", () => {
     expect(provider?.content).toContain("ENTITY.externalId.eq(product.getExternalId())");
   });
 
+  it("preserves createdAt across update only when the entity is audited", async () => {
+    const profile = await new ProfileResolver(resolve(rootDirectory, "profiles")).resolve("java-spring-clean-multimodule");
+    const modules = new ModuleResolver().resolveAll(profile.modules);
+    const resolvedPack = await new TemplatePackResolver(resolve(rootDirectory, "template-packs")).resolve(profile.templatePack);
+    const buildPlan = async (audited: boolean) => new GenerationPlanner(
+      new NunjucksTemplateEngine([resolvedPack.directory]),
+      new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer(),
+      resolvedPack.templatePack,
+    ).plan({
+      application: {
+        schemaVersion: "1.0",
+        name: "wallet-service",
+        namespace: "io.github.jtsato.walletservice",
+        entities: [{
+          name: "Wallet",
+          audited,
+          attributes: [
+            { name: "id", type: "uuid", identifier: true, required: true },
+            { name: "balance", type: "decimal", identifier: false, required: true },
+          ],
+        }],
+      },
+      profile,
+      modules,
+    });
+
+    const auditedPlan = await buildPlan(true);
+    const auditedProvider = auditedPlan.operations.find((operation) => operation.targetPath.endsWith("WalletGatewayProvider.java"));
+    const auditedContent = auditedProvider?.content ?? "";
+    expect(auditedContent).toContain("WalletEntity existing = walletRepository.findById(wallet.getId())");
+    expect(auditedContent).toContain("entity.setCreatedAt(existing.getCreatedAt());");
+
+    const updateMethodStart = auditedContent.indexOf("public Wallet update(Wallet wallet)");
+    expect(updateMethodStart).toBeGreaterThan(-1);
+    const updateMethodBody = auditedContent.slice(updateMethodStart);
+
+    const mapperCallIndex = updateMethodBody.indexOf("WalletPersistenceMapper.toEntity(wallet)");
+    const setCreatedAtIndex = updateMethodBody.indexOf("entity.setCreatedAt(existing.getCreatedAt());");
+    const saveCallIndex = updateMethodBody.indexOf("walletRepository.save(entity)");
+    expect(mapperCallIndex).toBeGreaterThan(-1);
+    expect(setCreatedAtIndex).toBeGreaterThan(-1);
+    expect(saveCallIndex).toBeGreaterThan(-1);
+    expect(setCreatedAtIndex).toBeGreaterThan(mapperCallIndex);
+    expect(setCreatedAtIndex).toBeLessThan(saveCallIndex);
+
+    const notAuditedPlan = await buildPlan(false);
+    const notAuditedProvider = notAuditedPlan.operations.find((operation) => operation.targetPath.endsWith("WalletGatewayProvider.java"));
+    const notAuditedContent = notAuditedProvider?.content ?? "";
+    expect(notAuditedContent).not.toContain("setCreatedAt");
+    expect(notAuditedContent).not.toContain("existing");
+  });
+
   it("renders the one hundred and forty-eight complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
