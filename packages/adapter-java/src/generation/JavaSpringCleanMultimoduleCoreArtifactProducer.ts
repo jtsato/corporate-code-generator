@@ -222,6 +222,10 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       createInteractorImports.add(`${domainPackage}.model.${entityType}`);
       createInteractorImports.add(`${domainPackage}.usecase.create.${createCommandType}`);
       createInteractorImports.add("java.util.List");
+      if (entity.audited === true) {
+        createInteractorImports.add("java.time.LocalDateTime");
+        createInteractorImports.add(`${namespace}.core.common.time.GetLocalDateTime`);
+      }
       const createInteractorTestImports = new JavaImportCollector();
       createInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
       createInteractorTestImports.add(`${filterPackage}.FilterExpression`);
@@ -381,11 +385,21 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         gatewayType,
         gatewayFieldName: `${domainName}Gateway`,
         entityType,
-        entityConstructorArguments: entity.attributes.map((attribute) => `command.${attribute.name}()`),
+        entityConstructorArguments: entity.audited === true
+          ? [...entity.attributes.map((attribute) => `command.${attribute.name}()`), "createdAt", "updatedAt"]
+          : entity.attributes.map((attribute) => `command.${attribute.name}()`),
         executeMethodName: "execute",
         gatewayCreateMethodName: "create",
         commandRequiredMessageKey: "common.command.required",
         commandRequiredDefaultMessage: "Command is required.",
+        ...(entity.audited === true ? {
+          secondaryDependencyType: "GetLocalDateTime",
+          secondaryDependencyFieldName: "getLocalDateTime",
+          preStatements: [
+            "final LocalDateTime createdAt = getLocalDateTime.now();",
+            "final LocalDateTime updatedAt = getLocalDateTime.now();",
+          ],
+        } : {}),
       };
       const fixtureArguments = entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
       const requiredFields = entity.attributes.filter((attribute) => attribute.required).map((attribute) => ({

@@ -392,4 +392,24 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       ]),
     });
   });
+
+  it("threads GetLocalDateTime into the create interactor only when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainCreate = notAudited.find((artifact) => artifact.templateId === "core-create-usecase-interactor");
+    expect((plainCreate?.model as { secondaryDependencyType?: string } | undefined)?.secondaryDependencyType).toBeUndefined();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedCreate = audited.find((artifact) => artifact.templateId === "core-create-usecase-interactor");
+    expect(auditedCreate?.model).toMatchObject({
+      secondaryDependencyType: "GetLocalDateTime",
+      secondaryDependencyFieldName: "getLocalDateTime",
+      preStatements: [
+        "final LocalDateTime createdAt = getLocalDateTime.now();",
+        "final LocalDateTime updatedAt = getLocalDateTime.now();",
+      ],
+      entityConstructorArguments: expect.arrayContaining(["createdAt", "updatedAt"]),
+    });
+  });
 });

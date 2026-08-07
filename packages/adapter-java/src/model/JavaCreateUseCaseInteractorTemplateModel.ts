@@ -12,4 +12,7 @@ export interface JavaCreateUseCaseInteractorTemplateModel {
   readonly gatewayCreateMethodName: string;
   readonly commandRequiredMessageKey: string;
   readonly commandRequiredDefaultMessage: string;
+  readonly secondaryDependencyType?: string;
+  readonly secondaryDependencyFieldName?: string;
+  readonly preStatements?: readonly string[];
 }
