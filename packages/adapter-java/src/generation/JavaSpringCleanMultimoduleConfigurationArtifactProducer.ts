@@ -152,6 +152,10 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
         imports.add("org.springframework.context.annotation.Configuration");
+        if (entity.audited === true) {
+          imports.add(`${namespace}.core.common.time.GetLocalDateTime`);
+          imports.add(`${namespace}.core.common.time.GetLocalDateTimeImpl`);
+        }
         const domainModel: JavaDomainConfigurationTemplateModel = {
           packageName: `${namespace}.configuration.domains.${domainName}`,
           imports: imports.values(),
@@ -198,6 +202,13 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           restoreUseCaseBeanMethodName: `restore${entityType}UseCase`,
           restoreUseCaseType,
           restoreUseCaseImplementationType: `${restoreUseCaseType}Interactor`,
+          audited: entity.audited === true,
+          ...(entity.audited === true ? {
+            timeProviderBeanMethodName: "getLocalDateTime",
+            timeProviderType: "GetLocalDateTime",
+            timeProviderImplementationType: "GetLocalDateTimeImpl",
+            timeProviderParameterName: "getLocalDateTime",
+          } : {}),
         };
 
         return {

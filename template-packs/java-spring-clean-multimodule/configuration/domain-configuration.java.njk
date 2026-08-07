@@ -8,6 +8,13 @@ public class {{ className }} {
     public {{ gatewayType }} {{ gatewayBeanMethodName }}({{ repositoryType }} {{ repositoryParameterName }}) {
         return new {{ gatewayImplementationType }}({{ repositoryParameterName }});
     }
+{%- if audited %}
+
+    @Bean
+    public {{ timeProviderType }} {{ timeProviderBeanMethodName }}() {
+        return new {{ timeProviderImplementationType }}();
+    }
+{%- endif %}
 
     @Bean
     public {{ useCaseType }} {{ useCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
@@ -35,18 +42,18 @@ public class {{ className }} {
     }
 
     @Bean
-    public {{ createUseCaseType }} {{ createUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
-        return new {{ createUseCaseImplementationType }}({{ gatewayParameterName }});
+    public {{ createUseCaseType }} {{ createUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}{% if audited %}, {{ timeProviderType }} {{ timeProviderParameterName }}{% endif %}) {
+        return new {{ createUseCaseImplementationType }}({{ gatewayParameterName }}{% if audited %}, {{ timeProviderParameterName }}{% endif %});
     }
 
     @Bean
-    public {{ updateUseCaseType }} {{ updateUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
-        return new {{ updateUseCaseImplementationType }}({{ gatewayParameterName }});
+    public {{ updateUseCaseType }} {{ updateUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}{% if audited %}, {{ timeProviderType }} {{ timeProviderParameterName }}{% endif %}) {
+        return new {{ updateUseCaseImplementationType }}({{ gatewayParameterName }}{% if audited %}, {{ timeProviderParameterName }}{% endif %});
     }
 
     @Bean
-    public {{ patchUseCaseType }} {{ patchUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}) {
-        return new {{ patchUseCaseImplementationType }}({{ gatewayParameterName }});
+    public {{ patchUseCaseType }} {{ patchUseCaseBeanMethodName }}({{ gatewayType }} {{ gatewayParameterName }}{% if audited %}, {{ timeProviderType }} {{ timeProviderParameterName }}{% endif %}) {
+        return new {{ patchUseCaseImplementationType }}({{ gatewayParameterName }}{% if audited %}, {{ timeProviderParameterName }}{% endif %});
     }
 
     @Bean

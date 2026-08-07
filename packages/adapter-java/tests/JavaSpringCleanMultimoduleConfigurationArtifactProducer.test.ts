@@ -1,6 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { JavaSpringCleanMultimoduleConfigurationArtifactProducer } from "../src/index.js";
 
+function buildRequest({ audited = false }: { readonly audited?: boolean } = {}) {
+  return {
+    application: {
+      schemaVersion: "1.0",
+      name: "wallet-service",
+      namespace: "io.github.jtsato.walletservice",
+      entities: [{
+        name: "Wallet",
+        attributes: [
+          { name: "id", type: "uuid" as const, required: true, identifier: true },
+          { name: "balance", type: "decimal" as const, required: true, identifier: false },
+        ],
+        audited,
+      }],
+    },
+    profile: {
+      id: "java-spring-clean-multimodule",
+      version: "0.1.0",
+      technology: { language: "java", languageVersion: "25", framework: "spring-boot" },
+      architecture: { style: "clean-architecture" },
+      templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" },
+      modules: [{ id: "configuration", requires: [] }],
+    },
+    modules: [{ id: "configuration", requires: [] }],
+  };
+}
+
 describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
   it("produces the root application followed by deterministic domain wiring", () => {
     const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
@@ -340,5 +367,23 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       endpointPath: "/wallets",
       restoreResponseStatus: 204,
     });
+  });
+
+  it("threads a GetLocalDateTime bean into create/update/patch when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedWiring = audited.find((artifact) => artifact.templateId === "configuration-domain-wiring");
+    expect(auditedWiring?.model).toMatchObject({
+      audited: true,
+      timeProviderBeanMethodName: "getLocalDateTime",
+      timeProviderType: "GetLocalDateTime",
+      timeProviderImplementationType: "GetLocalDateTimeImpl",
+    });
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainWiring = notAudited.find((artifact) => artifact.templateId === "configuration-domain-wiring");
+    expect(plainWiring?.model).toMatchObject({ audited: false });
+    expect((plainWiring?.model as { readonly timeProviderType?: string } | undefined)?.timeProviderType).toBeUndefined();
   });
 });
