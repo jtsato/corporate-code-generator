@@ -53,10 +53,6 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
     return '() -> LocalDateTime.parse("2026-01-15T10:30:00")';
   }
 
-  private auditedTombstoneFixtureArgument(): string {
-    return 'Instant.parse("2026-01-15T10:32:00Z")';
-  }
-
   public produce(request: GenerationRequest): readonly TemplateInvocation[] {
     const namespace = request.application.namespace;
     if (namespace === undefined) {
@@ -432,7 +428,7 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           secondaryDependencyFieldName: "getLocalDateTime",
           preStatements: [
             "final LocalDateTime createdAt = getLocalDateTime.now();",
-            "final LocalDateTime updatedAt = getLocalDateTime.now();",
+            "final LocalDateTime updatedAt = createdAt;",
           ],
         } : {}),
       };
@@ -1414,9 +1410,13 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
             exceptionPackage: packageName,
             className: `${entity.name}ValidationTests`,
             entityType: entity.name,
-            nullArguments: entity.audited === true ? [...entity.attributes, ...this.auditedFixtureArguments()] : entity.attributes,
+            // The rejects-missing-required-fields test invokes the constructor with every argument set to
+            // the literal `null` (see validation-test.java.njk), so only the argument COUNT matters here —
+            // audited entities' constructors gain two trailing createdAt/updatedAt parameters. A neutral,
+            // uniformly-typed placeholder (rather than mixing Attribute objects with Java-expression strings)
+            // keeps this array's element type consistent and avoids implying the values are ever read.
+            nullArguments: Array.from({ length: entity.attributes.length + (entity.audited === true ? 2 : 0) }, () => null),
             requiredFieldNames: entity.attributes.filter((attribute) => attribute.required).map((attribute) => attribute.name).sort((left, right) => left.localeCompare(right)),
-            audited: entity.audited === true,
           },
           outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entity.name}ValidationTests` },
         };

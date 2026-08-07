@@ -407,7 +407,7 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
       secondaryDependencyFieldName: "getLocalDateTime",
       preStatements: [
         "final LocalDateTime createdAt = getLocalDateTime.now();",
-        "final LocalDateTime updatedAt = getLocalDateTime.now();",
+        "final LocalDateTime updatedAt = createdAt;",
       ],
       entityConstructorArguments: expect.arrayContaining(["createdAt", "updatedAt"]),
     });
@@ -460,5 +460,20 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
     expect((patchTest?.model as { currentEntityArguments: string[] }).currentEntityArguments).toEqual(
       expect.arrayContaining(['LocalDateTime.parse("2026-01-15T10:30:00")', 'LocalDateTime.parse("2026-01-15T10:31:00")']),
     );
+  });
+
+  it("pads the domain validation test's nullArguments by count only, without requiring a LocalDateTime import", () => {
+    const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainValidationTest = notAudited.find((artifact) => artifact.templateId === "core-domain-validation-test");
+    expect((plainValidationTest?.model as { nullArguments: readonly unknown[] }).nullArguments).toEqual([null, null]);
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedValidationTest = audited.find((artifact) => artifact.templateId === "core-domain-validation-test");
+    const nullArguments = (auditedValidationTest?.model as { nullArguments: readonly unknown[] }).nullArguments;
+    expect(nullArguments).toHaveLength(4);
+    expect(nullArguments.every((argument) => argument === null)).toBe(true);
+    expect(auditedValidationTest?.model).not.toHaveProperty("audited");
   });
 });
