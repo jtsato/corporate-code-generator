@@ -14,6 +14,13 @@ export interface JavaPersistenceUniqueConstraintTemplateModel {
   readonly columnNames: readonly string[];
 }
 
+export interface JavaPersistenceSetterTemplateModel {
+  readonly name: string;
+  readonly type: string;
+  readonly parameterName: string;
+  readonly fieldName: string;
+}
+
 export interface JavaPersistenceEntityTemplateModel {
   readonly packageName: string;
   readonly imports: readonly string[];
@@ -33,4 +40,5 @@ export interface JavaPersistenceEntityTemplateModel {
   readonly restoreMethodName: string;
   readonly isActiveMethodName: string;
   readonly uniqueConstraints: readonly JavaPersistenceUniqueConstraintTemplateModel[];
+  readonly setters: readonly JavaPersistenceSetterTemplateModel[];
 }

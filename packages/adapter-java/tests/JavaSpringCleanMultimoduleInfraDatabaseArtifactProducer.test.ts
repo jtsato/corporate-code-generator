@@ -32,7 +32,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       model: {
         packageName: "io.github.jtsato.walletservice.infra.domains.wallet.entity",
         imports: ["jakarta.persistence.Column", "jakarta.persistence.Entity", "jakarta.persistence.Id", "jakarta.persistence.Table", "java.math.BigDecimal", "java.time.Instant", "java.util.UUID"],
-        className: "WalletEntity", tableName: "wallet", deletionTimestampFieldName: "deletedAt", deletionTimestampColumnName: "deleted_at", deletionTimestampGetterName: "getDeletedAt", deletionScopeFieldName: "deletionScope", deletionScopeColumnName: "deletion_scope", activeScopeConstantName: "ACTIVE_SCOPE", activeScopeValue: "ACTIVE", markDeletedMethodName: "markDeleted", restoreMethodName: "restore", isActiveMethodName: "isActive", uniqueConstraints: [],
+        className: "WalletEntity", tableName: "wallet", deletionTimestampFieldName: "deletedAt", deletionTimestampColumnName: "deleted_at", deletionTimestampGetterName: "getDeletedAt", deletionScopeFieldName: "deletionScope", deletionScopeColumnName: "deletion_scope", activeScopeConstantName: "ACTIVE_SCOPE", activeScopeValue: "ACTIVE", markDeletedMethodName: "markDeleted", restoreMethodName: "restore", isActiveMethodName: "isActive", uniqueConstraints: [], setters: [],
         fields: [
           { name: "id", type: "UUID", columnName: "id", nullable: false, identifier: true },
           { name: "balance", type: "BigDecimal", columnName: "balance", nullable: false, identifier: false },
@@ -378,5 +378,37 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       persistenceEntityRestoreMethodName: "restore",
     });
     expect((provider?.model as { imports: string[] }).imports).toContain("org.springframework.transaction.annotation.Transactional");
+  });
+
+  it("adds createdAt/updatedAt columns and a setCreatedAt setter when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    const buildRequest = (audited: boolean) => ({
+      application: {
+        schemaVersion: "1.0",
+        name: "wallet-service",
+        namespace: "io.github.jtsato.walletservice",
+        entities: [{ name: "Wallet", audited, attributes: [
+          { name: "id", type: "uuid", identifier: true, required: true },
+          { name: "balance", type: "decimal", identifier: false, required: true },
+        ] }],
+      },
+      profile: { id: "java-spring-clean-multimodule", version: "0.1.0", technology: { language: "java", languageVersion: "25" }, architecture: { style: "clean-architecture" }, templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" }, modules: [] },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    });
+
+    const artifacts = producer.produce(buildRequest(true));
+    const entity = artifacts.find((artifact) => artifact.templateId === "infra-database-persistence-entity");
+
+    expect(entity?.model).toMatchObject({
+      fields: expect.arrayContaining([
+        expect.objectContaining({ name: "createdAt", type: "LocalDateTime", columnName: "created_at", nullable: false }),
+        expect.objectContaining({ name: "updatedAt", type: "LocalDateTime", columnName: "updated_at", nullable: false }),
+      ]),
+      setters: [{ name: "setCreatedAt", type: "LocalDateTime", parameterName: "createdAt", fieldName: "createdAt" }],
+    });
+
+    const notAudited = producer.produce(buildRequest(false));
+    const plainEntity = notAudited.find((artifact) => artifact.templateId === "infra-database-persistence-entity");
+    expect(plainEntity?.model).toMatchObject({ setters: [] });
   });
 });

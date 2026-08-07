@@ -62,14 +62,22 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           ...(attribute.unique === true ? { unique: true } : {}),
         };
       });
+      if (entity.audited === true) persistenceImports.add("java.time.LocalDateTime");
+      const auditedFields = entity.audited === true
+        ? [
+            { name: "createdAt", type: "LocalDateTime", columnName: "created_at", nullable: false, identifier: false },
+            { name: "updatedAt", type: "LocalDateTime", columnName: "updated_at", nullable: false, identifier: false },
+          ]
+        : [];
+      const allFields = [...fields, ...auditedFields];
       const persistenceModel: JavaPersistenceEntityTemplateModel = {
         packageName: `${namespace}.infra.domains.${domainName}.entity`,
         imports: persistenceImports.values(),
         className: `${entityType}Entity`,
         tableName: toJavaDatabaseTableName(entityType),
-        fields,
-        constructorParameters: fields.map(({ name, type }) => ({ name, type })),
-        getters: fields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })),
+        fields: allFields,
+        constructorParameters: allFields.map(({ name, type }) => ({ name, type })),
+        getters: allFields.map(({ name, type }) => ({ name: `get${toJavaTypeName(name)}`, returnType: type, fieldName: name })),
         deletionTimestampFieldName: "deletedAt",
         deletionTimestampColumnName: "deleted_at",
         deletionTimestampGetterName: "getDeletedAt",
@@ -96,6 +104,9 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
             columnNames: [...group.map((attributeName) => toJavaDatabaseColumnName(attributeName)), "deletion_scope"],
           })),
         ],
+        setters: entity.audited === true
+          ? [{ name: "setCreatedAt", type: "LocalDateTime", parameterName: "createdAt", fieldName: "createdAt" }]
+          : [],
       };
       const gatewayType = `${entityType}Gateway`;
       const mapperImports = new JavaImportCollector();

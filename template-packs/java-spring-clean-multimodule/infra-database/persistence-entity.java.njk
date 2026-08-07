@@ -25,6 +25,11 @@ public class {{ className }} {
         return {{ getter.fieldName }};
     }
 {% endfor %}
+{%- for setter in setters %}
+    public void {{ setter.name }}({{ setter.type }} {{ setter.parameterName }}) {
+        this.{{ setter.fieldName }} = {{ setter.parameterName }};
+    }
+{% endfor %}
     public Instant {{ deletionTimestampGetterName }}() {
         return {{ deletionTimestampFieldName }};
     }
