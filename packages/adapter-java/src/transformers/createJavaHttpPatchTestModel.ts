@@ -60,8 +60,10 @@ export function createJavaHttpPatchTestModel(
   });
   const originalByName = new Map(entity.attributes.map((attribute, index) => [attribute.name, fixtures[index]! ]));
   const updatedByName = new Map(entity.attributes.map((attribute, index) => [attribute.name, updatedFixtures[index]! ]));
+  const jsonField = (attribute: typeof entity.attributes[number], value: (attribute: typeof entity.attributes[number]) => string) =>
+    `${JSON.stringify(attribute.name)}:${value(attribute)}`;
   const json = (attributes: readonly typeof entity.attributes[number][], value: (attribute: typeof entity.attributes[number]) => string) =>
-    JSON.stringify(`{${attributes.map((attribute) => `${JSON.stringify(attribute.name)}:${value(attribute)}`).join(",")}}`);
+    JSON.stringify(`{${attributes.map((attribute) => jsonField(attribute, value)).join(",")}}`);
   const requiredAttribute = valueAttributes.find((attribute) => attribute.required);
   const optionalAttribute = valueAttributes.find((attribute) => !attribute.required);
   const omittedAttribute = valueAttributes.length > 1 ? valueAttributes[0] : undefined;

@@ -534,14 +534,18 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         expectedExpression: attribute.identifier ? patchFixtureArguments[index]! : this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression,
       }));
       const optionalAttribute = entity.attributes.find((attribute) => !attribute.identifier && !attribute.required);
-      const patchOptionalNullArguments = optionalAttribute === undefined ? [] : entity.attributes.flatMap((attribute, index) => attribute.identifier
-        ? [patchFixtureArguments[index]!]
-        : attribute === optionalAttribute ? ["null", "true"] : [patchFixtureArguments[index]!, "true"]);
-      const omittedAttribute = entity.attributes.filter((attribute) => !attribute.identifier)[0];
+      const patchOptionalNullArguments = optionalAttribute === undefined ? [] : entity.attributes.flatMap((attribute, index) => {
+        if (attribute.identifier) return [patchFixtureArguments[index]!];
+        if (attribute === optionalAttribute) return ["null", "true"];
+        return [patchFixtureArguments[index]!, "true"];
+      });
+      const omittedAttribute = entity.attributes.find((attribute) => !attribute.identifier);
       const hasOmittedFieldScenario = entity.attributes.filter((attribute) => !attribute.identifier).length > 1;
-      const patchOmittedArguments = !hasOmittedFieldScenario || omittedAttribute === undefined ? [] : entity.attributes.flatMap((attribute, index) => attribute.identifier
-        ? [patchFixtureArguments[index]!]
-        : attribute === omittedAttribute ? ["null", "false"] : [patchFixtureArguments[index]!, "true"]);
+      const patchOmittedArguments = !hasOmittedFieldScenario || omittedAttribute === undefined ? [] : entity.attributes.flatMap((attribute, index) => {
+        if (attribute.identifier) return [patchFixtureArguments[index]!];
+        if (attribute === omittedAttribute) return ["null", "false"];
+        return [patchFixtureArguments[index]!, "true"];
+      });
       const patchEmptyCommandArguments = entity.attributes.flatMap((attribute, index) => attribute.identifier ? [patchFixtureArguments[index]!] : ["null", "false"]);
       const patchInteractorTestModel: JavaPatchUseCaseInteractorTestTemplateModel = {
         packageName: `${domainPackage}.usecase.patch`,
@@ -562,9 +566,11 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
           fieldName: attribute.name,
           messageKey: attribute.identifier ? "common.identifier.required" : `${domainName}.${attribute.name}.required`,
           testMethodSuffix: toJavaTypeName(attribute.name),
-          nullArguments: entity.attributes.flatMap((candidate, candidateIndex) => candidate === attribute
-            ? ["null", ...(candidate.identifier ? [] : ["true"])]
-            : candidate.identifier ? [patchFixtureArguments[candidateIndex]!] : [patchFixtureArguments[candidateIndex]!, "true"]),
+          nullArguments: entity.attributes.flatMap((candidate, candidateIndex) => {
+            if (candidate === attribute) return ["null", ...(candidate.identifier ? [] : ["true"])];
+            if (candidate.identifier) return [patchFixtureArguments[candidateIndex]!];
+            return [patchFixtureArguments[candidateIndex]!, "true"];
+          }),
         })),
         emptyCommandArguments: patchEmptyCommandArguments,
         executeMethodName: "execute",

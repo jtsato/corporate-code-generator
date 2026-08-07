@@ -112,7 +112,7 @@ export class SemanticValidator {
 
     const groups = new Map<string, number>();
     entity.uniqueGroups?.forEach((group, groupIndex) => {
-      const canonicalGroup = [...new Set(group)].sort().join("\u0000");
+      const canonicalGroup = [...new Set(group)].sort((left, right) => left.localeCompare(right, "en")).join("\u0000");
       const previousIndex = groups.get(canonicalGroup);
       if (previousIndex !== undefined) {
         issues.push({
