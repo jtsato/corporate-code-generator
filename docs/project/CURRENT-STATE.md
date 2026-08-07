@@ -1,7 +1,7 @@
 # Current State
 
 Verification date: 2026-08-06
-Baseline commit: `07c70dc`
+Baseline commit: current working tree (post-6.34 fix)
 
 This document centralizes current measured facts. Architecture intent and future work are documented separately in the [Solution Specification](../SOLUTION-SPECIFICATION.md), [Generated Java Reference Architecture](../target-architecture/REFERENCE-ARCHITECTURE.md), [Capability Taxonomy](../target-architecture/CAPABILITY-TAXONOMY.md), and [Roadmap](../../ROADMAP.md).
 
@@ -46,14 +46,14 @@ Multi-module dependencies:
 | --- | ---: |
 | `java-spring-clean --module domain` | 1 CREATE |
 | `java-spring-clean` full profile | 6 CREATE |
-| `java-spring-clean-multimodule` full profile | 131 CREATE |
+| `java-spring-clean-multimodule` full profile | 148 CREATE |
 | `java-spring-clean-multimodule --module build` | 6 CREATE |
-| `java-spring-clean-multimodule --module core` | 54 CREATE |
-| `java-spring-clean-multimodule --module entrypoints-rest` | 74 CREATE |
-| `java-spring-clean-multimodule --module infra-database` | 72 CREATE |
-| `java-spring-clean-multimodule --module configuration` | 131 CREATE |
-| `java-spring-clean-multimodule --module build --module core` | 60 CREATE |
-| `java-spring-clean-multimodule --module build --module configuration` | 131 CREATE |
+| `java-spring-clean-multimodule --module core` | 65 CREATE |
+| `java-spring-clean-multimodule --module entrypoints-rest` | 87 CREATE |
+| `java-spring-clean-multimodule --module infra-database` | 83 CREATE |
+| `java-spring-clean-multimodule --module configuration` | 148 CREATE |
+| `java-spring-clean-multimodule --module build --module core` | 71 CREATE |
+| `java-spring-clean-multimodule --module build --module configuration` | 148 CREATE |
 
 The `entrypoints-rest` and `infra-database` selections include `core` transitively. The `configuration` selection includes all required modules transitively.
 
@@ -152,6 +152,18 @@ Run context: main workspace, restore and deleted-only queries; date: 2026-08-06.
 - Focused Core, REST, persistence, and configuration producer tests - passed, 15 tests.
 - Full generated wallet-service Maven reactor (`mvn -q test`) - passed, including generated OpenAPI, deleted-query, restore, and unique-conflict tests.
 - Full-profile generation produced 148 CREATE operations; the single-module profile was not changed.
+
+## Milestone 6.34 Validation
+
+Run context: main workspace, composite unique groups (ADR-054) QA closure; date: 2026-08-06.
+
+- `npm run typecheck` and `npm run build` - passed.
+- `npm test` - passed, 44 test files and 163 tests.
+- `npm run test:coverage` - passed; Statements 91.64%, Branches 76.13%, Functions 97.57%, Lines 92.6%.
+- Full-profile wallet-service dry-run produced 148 CREATE operations, unchanged from the 6.33 baseline because `examples/wallet-service` declares no `uniqueGroups`. `npm run smoke:java-multimodule` (golden byte-comparison) passed, confirming non-regression.
+- Real Maven build of a freshly generated `examples/composite-unique-service/model.yaml` project (`uniqueGroups: [[balance, externalId]]`), generated to a scratch output directory and validated with `mvn -B test`: Reactor `BUILD SUCCESS`, 117 tests run, 0 failures, 0 errors, 0 skipped. This is new-capability evidence, not golden-covered, demonstrating the generated `@UniqueConstraint(name = "uk_product_g2_balance_external_id_active_scope", columnNames = { "balance", "external_id", "deletion_scope" })` and the `ProductGatewayProvider.hasActiveUniqueConflict` active-row conflict predicate work end-to-end. `ProductHttpCreateTests.shouldReuseUniqueValueAfterSoftDelete` proves the group predicate is scoped to active rows, and `ProductRestorePersistenceTests.shouldKeepTheTombstoneWhenRestoreConflictsWithAnActiveUniqueValue` proves the group conflict predicate fires against a live database.
+- Fixed a constraint-name collision defect found during independent QA review: `toJavaDatabaseUniqueConstraintName` previously joined column names with `_` regardless of arity, so a single-column attribute-level name (for example `tenant_code` from a `unique: true` attribute named `tenantCode`) could collide byte-for-byte with a composite group name (for example `uniqueGroups: [["tenant", "code"]]`), silently merging two distinct JPA `@UniqueConstraint`s into one weaker constraint. Multi-column group names now carry a `gN_` arity-disambiguating segment (for example `uk_product_g2_tenant_code_active_scope`) while single-column names remain byte-identical to prior output. Verified against real Hibernate-emitted DDL: before the fix the two constraints merged into `unique (tenant_code, deletion_scope, tenant, code)`; after the fix they render as two separate constraints, `unique (tenant_code, deletion_scope)` and `unique (tenant, code, deletion_scope)`.
+- Removed 152 unreferenced golden files under `tests/golden/java-spring-clean-multimodule/` that were accidentally committed alongside the real 148 (verified by diffing the full set of expected golden paths, derived from the actual generation plan, against every tracked file in that directory: 148 matched exactly with zero missing, and 152 were dead files under an unreachable path shape that no test ever reads).
 
 ## Documented facts
 

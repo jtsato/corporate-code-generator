@@ -35,6 +35,7 @@ This decision applies to schema version 1.0 and the Java Spring Clean multi-modu
 - Invalid references fail before generation with stable diagnostics.
 - Generated JPA constraints protect active-row uniqueness under concurrent writes, while provider prechecks preserve the standard conflict response for normal requests.
 - Golden output changes only when a model declares `uniqueGroups`; existing generated models remain behaviorally unchanged.
+- Known limitation: constraint names are derived by joining column names with `_`, which is not an injective encoding. An entity whose attribute-level `unique: true` column name coincides with a `uniqueGroups` column join (for example attribute `tenantCode` alongside `uniqueGroups: [["tenant", "code"]]`) is disambiguated by an arity segment (`gN_`), but two composite groups whose column joins coincide at the same arity, or a pathologically named attribute that happens to match a group's disambiguated segment, are not yet detected and would silently merge into one weaker constraint. No shipped example or golden triggers this. Closing it fully (an injective encoding, or a producer-level duplicate-name guard) is tracked as follow-up work, not part of this milestone.
 
 ## Validation
 

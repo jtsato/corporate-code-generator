@@ -82,7 +82,6 @@ The following require explicit future profile selection, environment configurati
 - JPA Entity Graph;
 - MapStruct;
 - P6Spy;
-- composite unique groups;
 - optimistic locking;
 - auditing;
 - ETags and conditional requests;

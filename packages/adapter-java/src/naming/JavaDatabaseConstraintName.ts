@@ -4,7 +4,9 @@ export function toJavaDatabaseUniqueConstraintName(
   tableName: string,
   columnNames: readonly string[],
 ): string {
-  const baseName = `uk_${tableName}_${columnNames.join("_")}_active_scope`;
+  const segment =
+    columnNames.length > 1 ? `g${columnNames.length}_${columnNames.join("_")}` : columnNames.join("_");
+  const baseName = `uk_${tableName}_${segment}_active_scope`;
   if (baseName.length <= databaseIdentifierLimit) return baseName;
 
   const hash = stableHash(baseName);

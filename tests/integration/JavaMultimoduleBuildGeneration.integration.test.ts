@@ -53,7 +53,7 @@ describe("Java multi-module generation", () => {
 
     const entity = plan.operations.find((operation) => operation.targetPath.endsWith("ProductEntity.java"));
     const provider = plan.operations.find((operation) => operation.targetPath.endsWith("ProductGatewayProvider.java"));
-    expect(entity?.content).toContain('@UniqueConstraint(name = "uk_product_tenant_id_external_id_active_scope", columnNames = { "tenant_id", "external_id", "deletion_scope" })');
+    expect(entity?.content).toContain('@UniqueConstraint(name = "uk_product_g2_tenant_id_external_id_active_scope", columnNames = { "tenant_id", "external_id", "deletion_scope" })');
     expect(provider?.content).toContain("product.getTenantId() != null && product.getExternalId() != null");
     expect(provider?.content).toContain("ENTITY.tenantId.eq(product.getTenantId())");
     expect(provider?.content).toContain("ENTITY.externalId.eq(product.getExternalId())");

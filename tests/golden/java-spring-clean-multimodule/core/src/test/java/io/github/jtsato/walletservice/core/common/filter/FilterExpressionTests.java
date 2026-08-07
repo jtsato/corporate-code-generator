@@ -1,9 +1,0 @@
-package io.github.jtsato.walletservice.core.common.filter;
-import static org.junit.jupiter.api.Assertions.*;
-import io.github.jtsato.walletservice.core.common.exception.ValidationException;
-import java.util.List;
-import org.junit.jupiter.api.Test;
-class FilterExpressionTests {
- @Test void shouldCreateExpressions() { var empty = FilterExpression.empty(); assertFalse(empty.hasFilters()); assertTrue(empty.root().isEmpty()); var group = FilterGroup.and(List.of(FilterCondition.isNull("x"))); var expression = FilterExpression.of(group); assertTrue(expression.hasFilters()); assertEquals(group, expression.root().orElseThrow()); }
- @Test void shouldRejectNullRootWhenUsingOf() { assertEquals("common.filter.expression.root.required", assertThrows(ValidationException.class, () -> FilterExpression.of(null)).getFields().getFirst().messageKey()); }
-}

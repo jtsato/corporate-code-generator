@@ -335,7 +335,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     const entity = artifacts.find((artifact) => artifact.templateId === "infra-database-persistence-entity");
     expect(entity?.model).toMatchObject({
       uniqueConstraints: [{
-        name: "uk_product_tenant_id_external_id_active_scope",
+        name: "uk_product_g2_tenant_id_external_id_active_scope",
         columnNames: ["tenant_id", "external_id", "deletion_scope"],
       }],
     });
