@@ -282,6 +282,34 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
         { name: "updatedAt", type: "LocalDateTime", description: "Wallet updatedAt." },
         expect.objectContaining({ name: "deletedAt" }),
       ]),
+      factoryArguments: expect.arrayContaining(["walletTombstone.getCreatedAt()", "walletTombstone.getUpdatedAt()", "walletTombstone.getDeletedAt()"]),
     });
+  });
+
+  it("does NOT add createdAt/updatedAt when entity is not audited", () => {
+    const producer = new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer();
+    const artifacts = producer.produce(buildRequest({ application: { entities: [{ name: "Wallet", attributes: [{ name: "id", type: "uuid", identifier: true }, { name: "balance", type: "decimal", identifier: false }], audited: false }] } }));
+
+    const response = artifacts.find((artifact) => artifact.templateId === "entrypoints-rest-response");
+    expect(response?.model?.components).not.toEqual(
+      expect.arrayContaining([
+        { name: "createdAt", type: "LocalDateTime" },
+        { name: "updatedAt", type: "LocalDateTime" },
+      ]),
+    );
+    expect(response?.model?.factoryArguments).not.toEqual(
+      expect.arrayContaining(["wallet.getCreatedAt()", "wallet.getUpdatedAt()"]),
+    );
+
+    const tombstoneResponse = artifacts.find((artifact) => artifact.templateId === "entrypoints-rest-tombstone-response");
+    expect(tombstoneResponse?.model?.components).not.toEqual(
+      expect.arrayContaining([
+        { name: "createdAt", type: "LocalDateTime" },
+        { name: "updatedAt", type: "LocalDateTime" },
+      ]),
+    );
+    expect(tombstoneResponse?.model?.factoryArguments).not.toEqual(
+      expect.arrayContaining(["walletTombstone.getCreatedAt()", "walletTombstone.getUpdatedAt()"]),
+    );
   });
 });

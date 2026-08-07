@@ -254,6 +254,9 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       tombstoneResponseImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
       tombstoneResponseImports.add("java.time.Instant");
       for (const attribute of entity.attributes) tombstoneResponseImports.add(this.typeResolver.resolve(attribute.type).import);
+      if (entity.audited === true) {
+        tombstoneResponseImports.add("java.time.LocalDateTime");
+      }
       const tombstoneResponse: JavaFactoryRestResponseTemplateModel = {
         packageName,
         imports: tombstoneResponseImports.values(),
@@ -262,10 +265,17 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
         factoryMethodName: "from",
         factoryParameterType: `${entityType}Tombstone`,
         factoryParameterName: `${toJavaFieldName(entityType)}Tombstone`,
-        factoryArguments: [
-          ...entity.attributes.map((attribute) => `${toJavaFieldName(entityType)}Tombstone.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`),
-          `${toJavaFieldName(entityType)}Tombstone.getDeletedAt()`,
-        ],
+        factoryArguments: entity.audited === true
+          ? [
+              ...entity.attributes.map((attribute) => `${toJavaFieldName(entityType)}Tombstone.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`),
+              `${toJavaFieldName(entityType)}Tombstone.getCreatedAt()`,
+              `${toJavaFieldName(entityType)}Tombstone.getUpdatedAt()`,
+              `${toJavaFieldName(entityType)}Tombstone.getDeletedAt()`,
+            ]
+          : [
+              ...entity.attributes.map((attribute) => `${toJavaFieldName(entityType)}Tombstone.get${attribute.name[0]?.toUpperCase() ?? ""}${attribute.name.slice(1)}()`),
+              `${toJavaFieldName(entityType)}Tombstone.getDeletedAt()`,
+            ],
       };
       const variables = { packagePath: namespace.replaceAll(".", "/"), domainName };
       return [
