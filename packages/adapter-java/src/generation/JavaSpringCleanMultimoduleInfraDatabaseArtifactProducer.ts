@@ -118,9 +118,15 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       const mapperModel: JavaPersistenceMapperTemplateModel = {
         packageName: `${namespace}.infra.domains.${domainName}.mapper`, imports: mapperImports.values(), className: `${entityType}PersistenceMapper`, constructorName: `${entityType}PersistenceMapper`,
         domainType: entityType, entityType: `${entityType}Entity`, tombstoneType: `${entityType}Tombstone`, domainParameterName, entityParameterName, toEntityMethodName: "toEntity", toDomainMethodName: "toDomain", toTombstoneMethodName: "toTombstone",
-        toEntityArguments: entity.attributes.map((attribute) => `${domainParameterName}.get${toJavaTypeName(attribute.name)}()`),
-        toDomainArguments: entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`),
-        toTombstoneArguments: [...entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`), `${entityParameterName}.getDeletedAt()`],
+        toEntityArguments: entity.audited === true
+          ? [...entity.attributes.map((attribute) => `${domainParameterName}.get${toJavaTypeName(attribute.name)}()`), `${domainParameterName}.getCreatedAt()`, `${domainParameterName}.getUpdatedAt()`]
+          : entity.attributes.map((attribute) => `${domainParameterName}.get${toJavaTypeName(attribute.name)}()`),
+        toDomainArguments: entity.audited === true
+          ? [...entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`), `${entityParameterName}.getCreatedAt()`, `${entityParameterName}.getUpdatedAt()`]
+          : entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`),
+        toTombstoneArguments: entity.audited === true
+          ? [...entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`), `${entityParameterName}.getCreatedAt()`, `${entityParameterName}.getUpdatedAt()`, `${entityParameterName}.getDeletedAt()`]
+          : [...entity.attributes.map((attribute) => `${entityParameterName}.get${toJavaTypeName(attribute.name)}()`), `${entityParameterName}.getDeletedAt()`],
       };
       const identifiers = entity.attributes.filter((attribute) => attribute.identifier);
       if (identifiers.length === 0) {

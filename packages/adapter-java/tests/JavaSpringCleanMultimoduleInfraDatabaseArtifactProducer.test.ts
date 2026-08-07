@@ -411,4 +411,35 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     const plainEntity = notAudited.find((artifact) => artifact.templateId === "infra-database-persistence-entity");
     expect(plainEntity?.model).toMatchObject({ setters: [] });
   });
+
+  it("carries createdAt/updatedAt through the persistence mapper when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    const artifacts = producer.produce({
+      application: {
+        schemaVersion: "1.0",
+        name: "wallet-service",
+        namespace: "io.github.jtsato.walletservice",
+        entities: [{ name: "Wallet", attributes: [
+          { name: "id", type: "uuid", identifier: true, required: true },
+          { name: "balance", type: "decimal", identifier: false, required: true },
+        ], audited: true }],
+      },
+      profile: {
+        id: "java-spring-clean-multimodule",
+        version: "0.1.0",
+        technology: { language: "java", languageVersion: "25", framework: "spring-boot" },
+        architecture: { style: "clean-architecture" },
+        templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" },
+        modules: [{ id: "infra-database", requires: ["core"] }],
+      },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    });
+    const mapper = artifacts.find((artifact) => artifact.templateId === "infra-database-persistence-mapper");
+
+    expect(mapper?.model).toMatchObject({
+      toEntityArguments: expect.arrayContaining(["wallet.getCreatedAt()", "wallet.getUpdatedAt()"]),
+      toDomainArguments: expect.arrayContaining(["walletEntity.getCreatedAt()", "walletEntity.getUpdatedAt()"]),
+      toTombstoneArguments: ["walletEntity.getId()", "walletEntity.getBalance()", "walletEntity.getCreatedAt()", "walletEntity.getUpdatedAt()", "walletEntity.getDeletedAt()"],
+    });
+  });
 });
