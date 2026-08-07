@@ -68,6 +68,10 @@
           "items": {
             "$ref": "#/$defs/uniqueGroup"
           }
+        },
+        "audited": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

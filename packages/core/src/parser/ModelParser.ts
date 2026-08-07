@@ -30,6 +30,7 @@ export class ModelParser {
         this.parseAttribute(attribute),
       ),
       uniqueGroups: document.uniqueGroups?.map((group) => [...group]) ?? [],
+      audited: document.audited ?? false,
     };
   }
 

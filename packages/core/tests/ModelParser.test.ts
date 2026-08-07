@@ -48,6 +48,7 @@ describe("ModelParser", () => {
         {
           name: "Wallet",
           uniqueGroups: [],
+          audited: false,
           attributes: [
             {
               name: "id",
@@ -119,6 +120,33 @@ describe("ModelParser", () => {
       identifier: false,
       unique: true,
     });
+  });
+
+  it("should default audited to false when omitted", () => {
+    const document: ApplicationModelDocument = {
+      schemaVersion: "1.0",
+      application: { name: "wallet-service" },
+      entities: [{
+        name: "Wallet",
+        attributes: [{ name: "balance", type: "decimal" }],
+      }],
+    };
+
+    expect(new ModelParser().parse(document).entities[0]?.audited).toBe(false);
+  });
+
+  it("should parse an explicit audited flag", () => {
+    const document: ApplicationModelDocument = {
+      schemaVersion: "1.0",
+      application: { name: "wallet-service" },
+      entities: [{
+        name: "Wallet",
+        attributes: [{ name: "balance", type: "decimal" }],
+        audited: true,
+      }],
+    };
+
+    expect(new ModelParser().parse(document).entities[0]?.audited).toBe(true);
   });
 
   it("should parse composite unique groups", () => {
