@@ -42,6 +42,7 @@ describe("Application Model Pipeline", () => {
         {
           name: "Wallet",
           uniqueGroups: [],
+          audited: false,
           attributes: [
             {
               name: "id",
