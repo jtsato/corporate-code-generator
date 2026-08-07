@@ -429,4 +429,21 @@ describe("JavaSpringCleanMultimoduleCoreArtifactProducer", () => {
     });
     expect((auditedUpdate?.model as { entityConstructorArguments: readonly string[] }).entityConstructorArguments.slice(-2)).toEqual(["null", "updatedAt"]);
   });
+
+  it("threads GetLocalDateTime into the patch interactor only when audited, deferring createdAt to infra", () => {
+    const producer = new JavaSpringCleanMultimoduleCoreArtifactProducer();
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainPatch = notAudited.find((artifact) => artifact.templateId === "core-patch-usecase-interactor");
+    expect((plainPatch?.model as { secondaryDependencyType?: string } | undefined)?.secondaryDependencyType).toBeUndefined();
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedPatch = audited.find((artifact) => artifact.templateId === "core-patch-usecase-interactor");
+    expect(auditedPatch?.model).toMatchObject({
+      secondaryDependencyType: "GetLocalDateTime",
+      secondaryDependencyFieldName: "getLocalDateTime",
+      preStatements: ["final LocalDateTime updatedAt = getLocalDateTime.now();"],
+    });
+    expect((auditedPatch?.model as { mergedEntityArguments: readonly string[] }).mergedEntityArguments.slice(-2)).toEqual(["null", "updatedAt"]);
+  });
 });

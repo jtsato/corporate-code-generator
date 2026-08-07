@@ -288,6 +288,10 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
       patchInteractorImports.add(`${domainPackage}.model.${entityType}`);
       patchInteractorImports.add(`${domainPackage}.usecase.patch.${patchCommandType}`);
       patchInteractorImports.add("java.util.List");
+      if (entity.audited === true) {
+        patchInteractorImports.add("java.time.LocalDateTime");
+        patchInteractorImports.add(`${namespace}.core.common.time.GetLocalDateTime`);
+      }
       const patchInteractorTestImports = new JavaImportCollector();
       patchInteractorTestImports.add(`${exceptionPackage}.ValidationException`);
       patchInteractorTestImports.add(`${filterPackage}.FilterExpression`);
@@ -540,14 +544,27 @@ export class JavaSpringCleanMultimoduleCoreArtifactProducer implements Generatio
         gatewayType,
         gatewayFieldName: `${domainName}Gateway`,
         entityType,
-        mergedEntityArguments: entity.attributes.map((attribute) => attribute.identifier
-          ? `command.${attribute.name}()`
-          : `command.${attribute.name}Provided() ? command.${attribute.name}() : current.get${toJavaTypeName(attribute.name)}()`),
+        mergedEntityArguments: entity.audited === true
+          ? [
+              ...entity.attributes.map((attribute) => attribute.identifier
+                ? `command.${attribute.name}()`
+                : `command.${attribute.name}Provided() ? command.${attribute.name}() : current.get${toJavaTypeName(attribute.name)}()`),
+              "null",
+              "updatedAt",
+            ]
+          : entity.attributes.map((attribute) => attribute.identifier
+              ? `command.${attribute.name}()`
+              : `command.${attribute.name}Provided() ? command.${attribute.name}() : current.get${toJavaTypeName(attribute.name)}()`),
         executeMethodName: "execute",
         gatewayFindByIdMethodName: "findById",
         gatewayUpdateMethodName: "update",
         commandRequiredMessageKey: "common.command.required",
         commandRequiredDefaultMessage: "Command is required.",
+        ...(entity.audited === true ? {
+          secondaryDependencyType: "GetLocalDateTime",
+          secondaryDependencyFieldName: "getLocalDateTime",
+          preStatements: ["final LocalDateTime updatedAt = getLocalDateTime.now();"],
+        } : {}),
       };
       const patchFixtureArguments = entity.attributes.map((attribute, index) => this.fixtureResolver.resolve(attribute.type, index).javaExpression);
       const patchCommandArguments = entity.attributes.flatMap((attribute, index) => attribute.identifier ? [patchFixtureArguments[index]!] : [patchFixtureArguments[index]!, "true"]);

@@ -4,9 +4,15 @@ package {{ packageName }};
 {% endfor %}
 public final class {{ className }} implements {{ interfaceName }} {
     private final {{ gatewayType }} {{ gatewayFieldName }};
+{%- if secondaryDependencyType %}
+    private final {{ secondaryDependencyType }} {{ secondaryDependencyFieldName }};
+{%- endif %}
 
-    public {{ className }}({{ gatewayType }} {{ gatewayFieldName }}) {
+    public {{ className }}({{ gatewayType }} {{ gatewayFieldName }}{% if secondaryDependencyType %}, {{ secondaryDependencyType }} {{ secondaryDependencyFieldName }}{% endif %}) {
         this.{{ gatewayFieldName }} = {{ gatewayFieldName }};
+{%- if secondaryDependencyType %}
+        this.{{ secondaryDependencyFieldName }} = {{ secondaryDependencyFieldName }};
+{%- endif %}
     }
 
     @Override
@@ -18,6 +24,9 @@ public final class {{ className }} implements {{ interfaceName }} {
                 "{{ commandRequiredDefaultMessage }}"
             )));
         }
+{%- for statement in preStatements %}
+        {{ statement }}
+{%- endfor %}
 
         {{ entityType }} current = {{ gatewayFieldName }}.{{ gatewayFindByIdMethodName }}(command.id());
         {{ entityType }} merged = new {{ entityType }}(

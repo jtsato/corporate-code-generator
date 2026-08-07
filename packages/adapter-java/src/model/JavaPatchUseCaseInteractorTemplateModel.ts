@@ -13,4 +13,7 @@ export interface JavaPatchUseCaseInteractorTemplateModel {
   readonly gatewayUpdateMethodName: string;
   readonly commandRequiredMessageKey: string;
   readonly commandRequiredDefaultMessage: string;
+  readonly secondaryDependencyType?: string;
+  readonly secondaryDependencyFieldName?: string;
+  readonly preStatements?: readonly string[];
 }
