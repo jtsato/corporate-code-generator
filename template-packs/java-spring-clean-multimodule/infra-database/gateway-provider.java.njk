@@ -64,6 +64,15 @@ public class {{ className }} implements {{ gatewayType }} {
     @Override
     public {{ entityType }} {{ updateMethodName }}({{ entityType }} {{ updateParameterName }}) {
         Objects.requireNonNull({{ updateParameterName }}, "{{ updateParameterName }}");
+{%- if audited %}
+
+        {{ persistenceEntityType }} existing = {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ updateParameterName }}.{{ identifierAccessorName }}())
+            .filter({{ persistenceEntityType }}::{{ persistenceEntityActiveMethodName }})
+            .orElseThrow(() -> new {{ notFoundExceptionType }}(
+                "{{ notFoundMessageKey }}",
+                "{{ notFoundDefaultMessage }}"
+            ));
+{%- else %}
 
         {{ repositoryFieldName }}.{{ repositoryFindByIdMethodName }}({{ updateParameterName }}.{{ identifierAccessorName }}())
             .filter({{ persistenceEntityType }}::{{ persistenceEntityActiveMethodName }})
@@ -71,6 +80,7 @@ public class {{ className }} implements {{ gatewayType }} {
                 "{{ notFoundMessageKey }}",
                 "{{ notFoundDefaultMessage }}"
             ));
+{%- endif %}
 
         if (hasActiveUniqueConflict({{ updateParameterName }}, {{ updateParameterName }}.{{ identifierAccessorName }}())) {
             throw new {{ conflictExceptionType }}(
@@ -80,6 +90,9 @@ public class {{ className }} implements {{ gatewayType }} {
         }
 
         {{ persistenceEntityType }} entity = {{ mapperType }}.{{ mapperToEntityMethodName }}({{ updateParameterName }});
+{%- if audited %}
+        entity.setCreatedAt(existing.getCreatedAt());
+{%- endif %}
         {{ persistenceEntityType }} saved = {{ repositoryFieldName }}.{{ repositorySaveMethodName }}(entity);
 
         return {{ mapperType }}.{{ mapperToDomainMethodName }}(saved);

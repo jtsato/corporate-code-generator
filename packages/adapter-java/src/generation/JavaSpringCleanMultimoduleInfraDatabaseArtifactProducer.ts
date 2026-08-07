@@ -261,6 +261,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         persistenceEntityMarkDeletedMethodName: "markDeleted",
         persistenceEntityRestoreMethodName: "restore",
         repositoryExistsMethodName: "exists",
+        audited: entity.audited === true,
         sortPropertyMapping: entity.attributes.map((attribute) => ({
           domainName: attribute.name,
           persistenceName: toJavaFieldName(attribute.name),

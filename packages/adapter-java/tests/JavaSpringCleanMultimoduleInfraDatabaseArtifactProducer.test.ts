@@ -169,6 +169,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
         persistenceEntityMarkDeletedMethodName: "markDeleted",
         persistenceEntityRestoreMethodName: "restore",
         repositoryExistsMethodName: "exists",
+        audited: false,
         sortPropertyMapping: [{ domainName: "id", persistenceName: "id" }, { domainName: "balance", persistenceName: "balance" }],
       },
       outputVariables: {
@@ -441,5 +442,37 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       toDomainArguments: expect.arrayContaining(["walletEntity.getCreatedAt()", "walletEntity.getUpdatedAt()"]),
       toTombstoneArguments: ["walletEntity.getId()", "walletEntity.getBalance()", "walletEntity.getCreatedAt()", "walletEntity.getUpdatedAt()", "walletEntity.getDeletedAt()"],
     });
+  });
+
+  it("preserves createdAt on update only when audited", () => {
+    const producer = new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
+    const buildRequest = ({ audited }: { audited: boolean }) => ({
+      application: {
+        schemaVersion: "1.0",
+        name: "wallet-service",
+        namespace: "io.github.jtsato.walletservice",
+        entities: [{ name: "Wallet", audited, attributes: [
+          { name: "id", type: "uuid", identifier: true, required: true },
+          { name: "balance", type: "decimal", identifier: false, required: true },
+        ] }],
+      },
+      profile: {
+        id: "java-spring-clean-multimodule",
+        version: "0.1.0",
+        technology: { language: "java", languageVersion: "25", framework: "spring-boot" },
+        architecture: { style: "clean-architecture" },
+        templatePack: { id: "java-spring-clean-multimodule", version: "0.1.0" },
+        modules: [{ id: "infra-database", requires: ["core"] }],
+      },
+      modules: [{ id: "infra-database", requires: ["core"] }],
+    });
+
+    const audited = producer.produce(buildRequest({ audited: true }));
+    const auditedGateway = audited.find((artifact) => artifact.templateId === "infra-database-gateway-provider");
+    expect(auditedGateway?.model).toMatchObject({ audited: true });
+
+    const notAudited = producer.produce(buildRequest({ audited: false }));
+    const plainGateway = notAudited.find((artifact) => artifact.templateId === "infra-database-gateway-provider");
+    expect(plainGateway?.model).toMatchObject({ audited: false });
   });
 });

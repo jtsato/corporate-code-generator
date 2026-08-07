@@ -83,4 +83,5 @@ export interface JavaGatewayProviderTemplateModel {
   readonly persistenceEntityMarkDeletedMethodName: string;
   readonly persistenceEntityRestoreMethodName: string;
   readonly repositoryExistsMethodName: string;
+  readonly audited: boolean;
 }
