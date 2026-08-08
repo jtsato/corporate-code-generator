@@ -55,7 +55,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-validation" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
-      { groupId: "com.h2database", artifactId: "h2", scope: "test" },
+      { groupId: "com.h2database", artifactId: "h2", scope: "runtime" },
       { groupId: "com.tngtech.archunit", artifactId: "archunit-junit5", version: "${archunit.version}", scope: "test" },
     ], true);
 
