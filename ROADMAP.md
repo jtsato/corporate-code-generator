@@ -102,6 +102,7 @@ Allowed milestone statuses are: Done, In progress, Planned, Deferred, Superseded
 | 6.33 | Restore and Deleted Queries | Done | Added explicit deleted-only query routes, tombstone representations, restore command semantics, conflict-safe persistence behavior, OpenAPI coverage, and generated runtime tests. | [ADR-053](docs/adr/ADR-053-restore-include-deleted-queries.md) |
 | 6.34 | Composite Unique Groups | Done | Added technology-agnostic composite uniqueness declarations with deterministic Core validation and active-row JPA constraints/conflict checks in the Java multi-module Golden Path. | [ADR-054](docs/adr/ADR-054-composite-unique-groups.md) |
 | 6.35 | Auditing (createdAt/updatedAt) | Done | Added an opt-in per-entity auditing capability with a Core clock port, infra-preserved creation timestamps, and read-only REST exposure in the Java multi-module Golden Path. | [ADR-055](docs/adr/ADR-055-auditing-created-updated-at.md) |
+| 6.36 | Default Runtime Datasource | Done | Made the generated multi-module application runnable without external configuration by shipping a runtime-scoped H2 driver and an in-memory datasource in base configuration, while production requires explicit datasource settings. | [ADR-056](docs/adr/ADR-056-default-runtime-datasource.md) |
 
 ## Future optional work
 

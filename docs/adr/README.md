@@ -19,7 +19,7 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [013](ADR-013-rest-controller-foundation.md) | REST Controller Foundation | Accepted | Not recorded | Not recorded | Not recorded |
 | [014](ADR-014-separate-java-golden-paths.md) | Separate Java Golden Paths | Accepted | Not recorded | Not recorded | Not recorded |
 | [015](ADR-015-explicit-spring-wiring-in-configuration-module.md) | Explicit Spring Wiring in Configuration Module | Accepted | Not recorded | Not recorded | Not recorded |
-| [016](ADR-016-spring-data-repository-foundation.md) | Spring Data Repository Foundation in Infra Database | Accepted | Not recorded | Not recorded | Not recorded |
+| [016](ADR-016-spring-data-repository-foundation.md) | Spring Data Repository Foundation in Infra Database | Accepted. Partially superseded by ADR-056 — the H2 scope and the deferred production DataSource decision were revised. | Not recorded | Not recorded | 056 (in part) |
 | [017](ADR-017-capability-taxonomy-and-profile-options.md) | Capability Taxonomy and Profile Options | Accepted as a taxonomy baseline. Capability implementations remain deferred to their roadmap milestones. | Not recorded | Not recorded | Not recorded |
 | [024](ADR-024-archunit-as-default-architecture-guardrail.md) | ArchUnit as Default Architecture Guardrail | Accepted | Not recorded | Not recorded | Not recorded |
 | [025](ADR-025-standard-rest-error-contract-and-i18n-foundation.md) | Standard REST Error Contract and i18n Foundation | Accepted | Not recorded | Not recorded | Not recorded |
@@ -53,3 +53,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [053](ADR-053-restore-include-deleted-queries.md) | Restore and Deleted-Only Queries | Accepted — Milestone 6.33. | Milestone 6.33 | Not recorded | Not recorded |
 | [054](ADR-054-composite-unique-groups.md) | Composite Unique Groups | Accepted - Milestone 6.34. | Milestone 6.34 | Not recorded | Not recorded |
 | [055](ADR-055-auditing-created-updated-at.md) | Auditing (createdAt/updatedAt) | Accepted — Milestone 6.35. | Milestone 6.35 | Not recorded | Not recorded |
+| [056](ADR-056-default-runtime-datasource.md) | Default Runtime Datasource (In-Memory H2) | Accepted — Milestone 6.36. | Milestone 6.36 | 016 (in part) | Not recorded |

@@ -1,7 +1,7 @@
 # Current State
 
-Verification date: 2026-08-06
-Baseline commit: `578d148`
+Verification date: 2026-08-07
+Baseline commit: `9f93bcf`
 
 This document centralizes current measured facts. Architecture intent and future work are documented separately in the [Solution Specification](../SOLUTION-SPECIFICATION.md), [Generated Java Reference Architecture](../target-architecture/REFERENCE-ARCHITECTURE.md), [Capability Taxonomy](../target-architecture/CAPABILITY-TAXONOMY.md), and [Roadmap](../../ROADMAP.md).
 
@@ -64,7 +64,7 @@ Measured and documented implemented capabilities in the current Java multi-modul
 - Maven reactor build structure.
 - Core domain model, use cases, commands, ports, paging, filters, sorting model, and self-validation.
 - REST entrypoints for collection reads, filtered paging, sorting, find-by-id, create, full replacement update, partial update, and delete.
-- Database infrastructure with Spring Data JPA, H2 test support, persistence mappers, Querydsl predicates, paging adapters, and filter mapping.
+- Database infrastructure with Spring Data JPA, a runtime-scoped H2 driver with a default in-memory datasource in base configuration (making the generated application runnable with no external configuration), persistence mappers, Querydsl predicates, paging adapters, and filter mapping. Production requires an explicit `SPRING_DATASOURCE_URL` with no H2 fallback and fails fast at startup if it is unset.
 - Runtime create, update, and soft-delete behavior through Core and JPA, with delete exposed over REST as a non-idempotent operation. Attribute-level `unique: true` values are reusable after soft deletion through the generated active-scope constraint.
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
 
@@ -174,6 +174,19 @@ Run context: main workspace, auditing (createdAt/updatedAt) capability; date: 20
 - `npm run test:coverage` - passed; Statements 92%, Branches 80.09%, Functions 97.5%, Lines 92.95%.
 - Full-profile wallet-service dry-run produced 148 CREATE operations, unchanged from the 6.34 baseline because `examples/wallet-service` declares no `audited` entity. `npm run smoke:java-multimodule` (golden byte-comparison) passed, confirming non-regression.
 - Real Maven build of a freshly generated `examples/audited-wallet-service/model.yaml` project (`Wallet` entity, `audited: true`), generated to a scratch output directory and validated with `mvn -B test`: Reactor `BUILD SUCCESS`, 199 tests run (54 core + 14 entrypoints-rest + 17 infra-database + 114 configuration), 0 failures, 0 errors, 0 skipped across all four test-bearing modules. This matches Task 12's own compiler-driven-loop total for the same entity shape, confirming no regression was introduced by the Task 13 documentation-only changes. This is new-capability evidence, not golden-covered, demonstrating the generated `GetLocalDateTime`/`GetLocalDateTimeImpl` clock port, `CreateWalletUseCaseInteractor` setting both timestamps, `UpdateWalletUseCaseInteractor`/`PatchWalletUseCaseInteractor` setting only `updatedAt`, and `WalletGatewayProvider.update()` preserving `createdAt` via `entity.setCreatedAt(existing.getCreatedAt())` work end-to-end.
+
+## Milestone 6.36 Validation
+
+Run context: main workspace, default runtime datasource (in-memory H2) defect fix; date: 2026-08-07.
+
+- `npm run typecheck` and `npm run build` - passed.
+- `npm test` - passed, 45 test files and 197 tests.
+- `npm run test:coverage` - passed; Statements 92.05%, Branches 80.14%, Functions 97.73%, Lines 93%.
+- `npm run smoke:java-multimodule` (golden byte comparison) - passed, covering the regenerated `pom.xml` (H2 `runtime` scope), `application.yaml`, and `application-prod.yaml` goldens.
+- `CODEGEN_REQUIRE_MAVEN_SMOKE=true npm run smoke:spring-context:java-multimodule` - passed.
+- `CODEGEN_REQUIRE_MAVEN_SMOKE=true npm run smoke:maven-reactor:java-multimodule` - passed. A manual, unfiltered `mvn -B test` run against a freshly generated `examples/wallet-service/model.yaml` project confirmed Reactor `BUILD SUCCESS`, 201 tests run (54 core + 14 entrypoints-rest + 17 infra-database + 116 configuration), 0 failures, 0 errors, 0 skipped, with the two `@SpringBootTest` contexts (`MOCK` and `RANDOM_PORT`) sharing the same base in-memory H2 datasource with no cross-context interference.
+- Full-profile wallet-service dry-run produced 148 CREATE operations, unchanged.
+- Manual boot evidence against a freshly packaged `configuration` fat jar (`mvn -B -DskipTests package`): `jar tf` confirmed `BOOT-INF/lib/h2-2.4.240.jar` present; running the jar with no active Spring profile started successfully (`Started WalletServiceApplication in 3.591 seconds`) against `jdbc:h2:mem:wallet-service`; `GET /wallets` returned 200 with an empty page, `POST /wallets` returned 201, and `GET /wallets/{id}` returned 200 for the created record; running the same jar with `SPRING_PROFILES_ACTIVE=prod` and no `SPRING_DATASOURCE_URL` failed context startup with `IllegalArgumentException: 'url' must start with "jdbc"` (the unresolved `${SPRING_DATASOURCE_URL}` placeholder), confirming production has no H2 fallback.
 
 ## Documented facts
 

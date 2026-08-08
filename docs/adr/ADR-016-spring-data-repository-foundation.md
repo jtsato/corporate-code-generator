@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. Partially superseded by ADR-056 — the H2 scope and the deferred production DataSource decision were revised.
 
 ## Context
 

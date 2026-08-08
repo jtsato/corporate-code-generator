@@ -141,6 +141,8 @@ The generated database infrastructure owns:
 - Querydsl predicate mapping;
 - H2-backed tests where generated runtime behavior requires database validation.
 
+The generated application ships an in-memory H2 datasource as the default runtime database so it starts with no external configuration, while production requires explicit datasource configuration and schema migration tooling is not part of the generated baseline (see [ADR-056](../adr/ADR-056-default-runtime-datasource.md)).
+
 The Core owns ports and use cases; infrastructure implements those ports. Persistence annotations and Spring Data types must not leak into Core.
 
 ## Validation
