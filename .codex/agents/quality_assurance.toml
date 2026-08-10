@@ -1,6 +1,6 @@
 name = "quality_assurance"
 description = "Independent quality analyst of the Corporate Code Generator. Reviews the diff, runs quality gates, and validates scope, architecture, goldens, counts, and documentation."
-model = "gpt-5.4"
+model = "gpt-5.6-luna"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 

@@ -1,6 +1,6 @@
 name = "tech_lead"
 description = "Technical lead and gatekeeper of the Corporate Code Generator. Analyzes the repository, consolidates designs, defines milestones, protects the architecture, and issues well-founded technical decisions."
-model = "gpt-5.5"
+model = "gpt-5.6-luna"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
