@@ -1,0 +1,18 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Create{{ className }}Command } from './create-{{ fileName }}.command';
+import { ICreate{{ className }}Gateway } from './create-{{ fileName }}.gateway';
+import { ICreate{{ className }}UseCase } from './create-{{ fileName }}-usecase.interface';
+
+export class Create{{ className }}UseCase implements ICreate{{ className }}UseCase {
+  public constructor(private readonly gateway: ICreate{{ className }}Gateway) {}
+
+  public async execute(command: Create{{ className }}Command): Promise<{{ className }}> {
+    const {{ propertyName }} = new {{ className }}(
+{%- for property in properties %}
+      command.{{ property.name }},
+{%- endfor %}
+    );
+
+    return this.gateway.execute({{ propertyName }});
+  }
+}

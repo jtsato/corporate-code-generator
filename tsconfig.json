@@ -33,6 +33,9 @@
       "path": "./packages/adapter-java"
     },
     {
+      "path": "./packages/adapter-nestjs"
+    },
+    {
       "path": "./packages/template-engine-nunjucks"
     },
     {

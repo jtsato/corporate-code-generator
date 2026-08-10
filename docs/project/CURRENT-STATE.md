@@ -27,6 +27,7 @@ npm run build
 | --- | --- | --- | --- | --- | --- |
 | `java-spring-clean` | `0.1.0` | Java | `25` | Spring Boot | `build`, `domain`, `application`, `bootstrap`, `api-rest` |
 | `java-spring-clean-multimodule` | `0.1.0` | Java | `25` | Spring Boot | `build`, `core`, `entrypoints-rest`, `infra-database`, `configuration` |
+| `nestjs-clean-architecture` | `0.1.0` | TypeScript | `5.9` | NestJS | `build`, `core`, `infra-persistence`, `web-api`, `bootstrap` |
 
 Single-module dependencies:
 
@@ -39,6 +40,12 @@ Multi-module dependencies:
 - `entrypoints-rest` requires `core`.
 - `infra-database` requires `core`.
 - `configuration` requires `build`, `core`, `entrypoints-rest`, and `infra-database`.
+
+NestJS dependencies:
+
+- `infra-persistence` requires `core`.
+- `web-api` requires `core`.
+- `bootstrap` requires `core`, `infra-persistence`, and `web-api`.
 
 ### Dry-run counts
 
@@ -54,8 +61,16 @@ Multi-module dependencies:
 | `java-spring-clean-multimodule --module configuration` | 148 CREATE |
 | `java-spring-clean-multimodule --module build --module core` | 71 CREATE |
 | `java-spring-clean-multimodule --module build --module configuration` | 148 CREATE |
+| `nestjs-clean-architecture` full profile | 28 CREATE |
+| `nestjs-clean-architecture --module build` | 4 CREATE |
+| `nestjs-clean-architecture --module core` | 11 CREATE |
+| `nestjs-clean-architecture --module infra-persistence` | 16 CREATE |
+| `nestjs-clean-architecture --module web-api` | 17 CREATE |
+| `nestjs-clean-architecture --module bootstrap` | 24 CREATE |
 
 The `entrypoints-rest` and `infra-database` selections include `core` transitively. The `configuration` selection includes all required modules transitively.
+
+The NestJS `infra-persistence` and `web-api` selections include `core` transitively. The `bootstrap` selection includes `core`, `infra-persistence`, and `web-api` transitively, but not `build`.
 
 ### Capabilities and endpoints
 

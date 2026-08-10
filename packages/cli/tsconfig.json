@@ -17,6 +17,9 @@
       "path": "../adapter-java"
     },
     {
+      "path": "../adapter-nestjs"
+    },
+    {
       "path": "../template-engine-nunjucks"
     },
     {

@@ -26,12 +26,45 @@ import {
   JavaSpringCleanMultimoduleConfigurationArtifactProducer,
   JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer,
 } from "@corporate-code-generator/adapter-java";
+import {
+  NestJsCleanArchitectureBootstrapArtifactProducer,
+  NestJsCleanArchitectureBuildArtifactProducer,
+  NestJsCleanArchitectureCoreArtifactProducer,
+  NestJsCleanArchitectureInfraPersistenceArtifactProducer,
+  NestJsCleanArchitectureWebApiArtifactProducer,
+} from "@corporate-code-generator/adapter-nestjs";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 import { NodeFileWriter } from "@corporate-code-generator/file-writer-node";
 import { formatCliError } from "../CliErrorFormatter.js";
 import type { GenerateOptions } from "./GenerateOptions.js";
 
 type WriteFilePlan = (plan: FilePlan, outputDirectory: string) => Promise<void>;
+
+type ProducerFactory = () => GenerationArtifactProducer;
+
+const PRODUCER_REGISTRY: Readonly<Record<string, Readonly<Record<string, ProducerFactory>>>> = {
+  "java-spring-clean": {
+    "build": () => new JavaSpringCleanBuildArtifactProducer(),
+    "domain": () => new JavaSpringCleanDomainArtifactProducer(),
+    "application": () => new JavaSpringCleanApplicationArtifactProducer(),
+    "bootstrap": () => new JavaSpringCleanBootstrapArtifactProducer(),
+    "api-rest": () => new JavaSpringCleanApiRestArtifactProducer(),
+  },
+  "java-spring-clean-multimodule": {
+    "build": () => new JavaSpringCleanMultimoduleBuildArtifactProducer(),
+    "core": () => new JavaSpringCleanMultimoduleCoreArtifactProducer(),
+    "entrypoints-rest": () => new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer(),
+    "infra-database": () => new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer(),
+    "configuration": () => new JavaSpringCleanMultimoduleConfigurationArtifactProducer(),
+  },
+  "nestjs-clean-architecture": {
+    "build": () => new NestJsCleanArchitectureBuildArtifactProducer(),
+    "core": () => new NestJsCleanArchitectureCoreArtifactProducer(),
+    "infra-persistence": () => new NestJsCleanArchitectureInfraPersistenceArtifactProducer(),
+    "web-api": () => new NestJsCleanArchitectureWebApiArtifactProducer(),
+    "bootstrap": () => new NestJsCleanArchitectureBootstrapArtifactProducer(),
+  },
+};
 
 export class GenerateCommand {
   public constructor(
@@ -89,39 +122,23 @@ export class GenerateCommand {
   }
 
   private createProducers(profileId: string, modules: readonly { readonly id: string }[]): readonly GenerationArtifactProducer[] {
-    if (profileId === "java-spring-clean-multimodule") {
-      return modules.map((module) => this.createMultimoduleProducer(module.id));
-    }
+    const moduleProducers = PRODUCER_REGISTRY[profileId];
 
-    if (profileId !== "java-spring-clean") {
+    if (moduleProducers === undefined) {
       throw new CliCapabilityError(`Profile/module combination is not supported by this CLI: ${profileId}.`);
     }
-    return modules.map((module) => this.createSingleModuleProducer(module.id));
-  }
 
-  private createMultimoduleProducer(moduleId: string): GenerationArtifactProducer {
-    switch (moduleId) {
-      case "build": return new JavaSpringCleanMultimoduleBuildArtifactProducer();
-      case "core": return new JavaSpringCleanMultimoduleCoreArtifactProducer();
-      case "entrypoints-rest": return new JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer();
-      case "infra-database": return new JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer();
-      case "configuration": return new JavaSpringCleanMultimoduleConfigurationArtifactProducer();
-      default:
+    return modules.map((module) => {
+      const createProducer = moduleProducers[module.id];
+
+      if (createProducer === undefined) {
         throw new CliCapabilityError(
-          "Profile/module combination is not supported by this CLI: java-spring-clean-multimodule.",
+          `Profile/module combination is not supported by this CLI: ${profileId}/${module.id}.`,
         );
-    }
-  }
+      }
 
-  private createSingleModuleProducer(moduleId: string): GenerationArtifactProducer {
-    switch (moduleId) {
-      case "build": return new JavaSpringCleanBuildArtifactProducer();
-      case "domain": return new JavaSpringCleanDomainArtifactProducer();
-      case "application": return new JavaSpringCleanApplicationArtifactProducer();
-      case "bootstrap": return new JavaSpringCleanBootstrapArtifactProducer();
-      case "api-rest": return new JavaSpringCleanApiRestArtifactProducer();
-      default: throw new CliCapabilityError(`Module '${moduleId}' is not supported by this CLI.`);
-    }
+      return createProducer();
+    });
   }
 }
 

@@ -1,0 +1,120 @@
+id: nestjs-clean-architecture
+version: 0.1.0
+
+templates:
+  - id: package-json
+    module: build
+    template: build/package.json.njk
+    output: package.json
+  - id: tsconfig-json
+    module: build
+    template: build/tsconfig.json.njk
+    output: tsconfig.json
+  - id: tsconfig-build-json
+    module: build
+    template: build/tsconfig.build.json.njk
+    output: tsconfig.build.json
+  - id: nest-cli-json
+    module: build
+    template: build/nest-cli.json.njk
+    output: nest-cli.json
+
+  - id: core-exception
+    module: core
+    template: core/exceptions/core.exception.ts.njk
+    output: src/core/exceptions/core.exception.ts
+  - id: core-not-found-exception
+    module: core
+    template: core/exceptions/not-found.exception.ts.njk
+    output: src/core/exceptions/not-found.exception.ts
+  - id: core-domain-model
+    module: core
+    template: core/models/model.ts.njk
+    output: src/core/models/{{ fileName }}.model.ts
+  - id: core-create-command
+    module: core
+    template: core/usecases/create/create.command.ts.njk
+    output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}.command.ts
+  - id: core-create-gateway
+    module: core
+    template: core/usecases/create/create.gateway.ts.njk
+    output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}.gateway.ts
+  - id: core-create-usecase-interface
+    module: core
+    template: core/usecases/create/create-usecase.interface.ts.njk
+    output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface.ts
+  - id: core-create-usecase
+    module: core
+    template: core/usecases/create/create.usecase.ts.njk
+    output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase.ts
+  - id: core-get-by-id-query
+    module: core
+    template: core/usecases/get-by-id/get-by-id.query.ts.njk
+    output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.query.ts
+  - id: core-get-by-id-gateway
+    module: core
+    template: core/usecases/get-by-id/get-by-id.gateway.ts.njk
+    output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway.ts
+  - id: core-get-by-id-usecase-interface
+    module: core
+    template: core/usecases/get-by-id/get-by-id-usecase.interface.ts.njk
+    output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface.ts
+  - id: core-get-by-id-usecase
+    module: core
+    template: core/usecases/get-by-id/get-by-id.usecase.ts.njk
+    output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase.ts
+
+  - id: infra-persistence-entity-model
+    module: infra-persistence
+    template: infra-persistence/models/entity.model.ts.njk
+    output: src/infra/models/{{ fileName }}-entity.model.ts
+  - id: infra-persistence-mapper
+    module: infra-persistence
+    template: infra-persistence/mappers/mapper.ts.njk
+    output: src/infra/mappers/{{ fileName }}.mapper.ts
+  - id: infra-persistence-repository
+    module: infra-persistence
+    template: infra-persistence/repositories/repository.ts.njk
+    output: src/infra/repositories/{{ fileName }}.repository.ts
+  - id: infra-persistence-create-provider
+    module: infra-persistence
+    template: infra-persistence/providers/create.provider.ts.njk
+    output: src/infra/providers/create-{{ fileName }}.provider.ts
+  - id: infra-persistence-get-by-id-provider
+    module: infra-persistence
+    template: infra-persistence/providers/get-by-id.provider.ts.njk
+    output: src/infra/providers/get-{{ fileName }}-by-id.provider.ts
+
+  - id: web-api-not-found-exception-filter
+    module: web-api
+    template: web-api/commons/not-found.exception.filter.ts.njk
+    output: src/web-api/commons/filters/not-found.exception.filter.ts
+  - id: web-api-create-request
+    module: web-api
+    template: web-api/entrypoints/create-request.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/create-{{ fileName }}-request.model.ts
+  - id: web-api-response
+    module: web-api
+    template: web-api/entrypoints/response.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-response.model.ts
+  - id: web-api-presenter
+    module: web-api
+    template: web-api/entrypoints/presenter.mapper.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-presenter.mapper.ts
+  - id: web-api-controller
+    module: web-api
+    template: web-api/entrypoints/controller.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller.ts
+  - id: web-api-module
+    module: web-api
+    template: web-api/entrypoints/module.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.module.ts
+
+  - id: bootstrap-main
+    module: bootstrap
+    template: bootstrap/main.ts.njk
+    output: src/main.ts
+  - id: bootstrap-app-module
+    module: bootstrap
+    template: bootstrap/app.module.ts.njk
+    output: src/app.module.ts

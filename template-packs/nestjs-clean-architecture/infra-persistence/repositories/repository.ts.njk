@@ -1,0 +1,19 @@
+import { Injectable } from '@nestjs/common';
+
+import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
+
+@Injectable()
+export class {{ className }}Repository {
+  private readonly {{ propertyName }}s: {{ className }}Entity[] = [];
+
+  public async save(entity: {{ className }}Entity): Promise<{{ className }}Entity> {
+    this.{{ propertyName }}s.push(entity);
+    return Promise.resolve(entity);
+  }
+
+  public async findById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined> {
+    return Promise.resolve(
+      this.{{ propertyName }}s.find((entity) => entity.{{ identifier.name }} === {{ identifier.name }}),
+    );
+  }
+}

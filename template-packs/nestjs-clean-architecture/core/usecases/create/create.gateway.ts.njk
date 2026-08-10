@@ -1,0 +1,7 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+
+export interface ICreate{{ className }}Gateway {
+  execute({{ propertyName }}: {{ className }}): Promise<{{ className }}>;
+}
+
+export const ICreate{{ className }}GatewaySymbol = Symbol('ICreate{{ className }}Gateway');

@@ -1,0 +1,8 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Get{{ className }}ByIdQuery } from './get-{{ fileName }}-by-id.query';
+
+export interface IGet{{ className }}ByIdUseCase {
+  execute(query: Get{{ className }}ByIdQuery): Promise<{{ className }}>;
+}
+
+export const IGet{{ className }}ByIdUseCaseSymbol = Symbol('IGet{{ className }}ByIdUseCase');

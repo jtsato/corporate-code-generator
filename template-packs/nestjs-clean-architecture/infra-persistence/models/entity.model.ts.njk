@@ -1,0 +1,7 @@
+export class {{ className }}Entity {
+  public constructor(
+{%- for property in properties %}
+    public readonly {{ property.name }}: {{ property.type }},
+{%- endfor %}
+  ) {}
+}

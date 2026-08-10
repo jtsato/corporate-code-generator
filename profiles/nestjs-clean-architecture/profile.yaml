@@ -1,0 +1,31 @@
+id: nestjs-clean-architecture
+version: 0.1.0
+
+technology:
+  language: typescript
+  languageVersion: "5.9"
+  framework: nestjs
+
+architecture:
+  style: clean-architecture
+
+templatePack:
+  id: nestjs-clean-architecture
+  version: 0.1.0
+
+modules:
+  - id: build
+    requires: []
+  - id: core
+    requires: []
+  - id: infra-persistence
+    requires:
+      - core
+  - id: web-api
+    requires:
+      - core
+  - id: bootstrap
+    requires:
+      - core
+      - infra-persistence
+      - web-api

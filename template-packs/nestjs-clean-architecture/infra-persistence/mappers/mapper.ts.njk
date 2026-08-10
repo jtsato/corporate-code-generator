@@ -1,0 +1,20 @@
+import { {{ className }} } from '../../core/models/{{ fileName }}.model';
+import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
+
+export class {{ className }}Mapper {
+  public static toEntity({{ propertyName }}: {{ className }}): {{ className }}Entity {
+    return new {{ className }}Entity(
+{%- for property in properties %}
+      {{ propertyName }}.{{ property.name }},
+{%- endfor %}
+    );
+  }
+
+  public static toDomain(entity: {{ className }}Entity): {{ className }} {
+    return new {{ className }}(
+{%- for property in properties %}
+      entity.{{ property.name }},
+{%- endfor %}
+    );
+  }
+}

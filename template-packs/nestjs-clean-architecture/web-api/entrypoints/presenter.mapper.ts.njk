@@ -1,0 +1,12 @@
+import { {{ className }} } from '../../../core/models/{{ fileName }}.model';
+import { {{ className }}Response } from './{{ fileName }}-response.model';
+
+export class {{ className }}Presenter {
+  public static of({{ propertyName }}: {{ className }}): {{ className }}Response {
+    const response = new {{ className }}Response();
+{%- for property in properties %}
+    response.{{ property.name }} = {{ propertyName }}.{{ property.name }};
+{%- endfor %}
+    return response;
+  }
+}

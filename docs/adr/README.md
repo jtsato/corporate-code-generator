@@ -54,3 +54,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [054](ADR-054-composite-unique-groups.md) | Composite Unique Groups | Accepted - Milestone 6.34. | Milestone 6.34 | Not recorded | Not recorded |
 | [055](ADR-055-auditing-created-updated-at.md) | Auditing (createdAt/updatedAt) | Accepted — Milestone 6.35. | Milestone 6.35 | Not recorded | Not recorded |
 | [056](ADR-056-default-runtime-datasource.md) | Default Runtime Datasource (In-Memory H2) | Accepted — Milestone 6.36. | Milestone 6.36 | 016 (in part) | Not recorded |
+| [057](ADR-057-nestjs-as-second-golden-path.md) | NestJS as the Second Golden Path | Accepted — Milestones 7.0 through 7.6 | Milestones 7.0-7.6 | Not recorded | Not recorded |

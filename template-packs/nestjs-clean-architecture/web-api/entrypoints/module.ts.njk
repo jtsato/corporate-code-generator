@@ -1,0 +1,46 @@
+import { Module } from '@nestjs/common';
+
+import {
+  ICreate{{ className }}Gateway,
+  ICreate{{ className }}GatewaySymbol,
+} from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.gateway';
+import { ICreate{{ className }}UseCaseSymbol } from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface';
+import { Create{{ className }}UseCase } from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase';
+import {
+  IGet{{ className }}ByIdGateway,
+  IGet{{ className }}ByIdGatewaySymbol,
+} from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
+import { IGet{{ className }}ByIdUseCaseSymbol } from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
+import { Get{{ className }}ByIdUseCase } from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase';
+import { Create{{ className }}Provider } from '../../../infra/providers/create-{{ fileName }}.provider';
+import { Get{{ className }}ByIdProvider } from '../../../infra/providers/get-{{ fileName }}-by-id.provider';
+import { {{ className }}Repository } from '../../../infra/repositories/{{ fileName }}.repository';
+import { {{ className }}Controller } from './{{ fileName }}.controller';
+
+@Module({
+  controllers: [{{ className }}Controller],
+  providers: [
+    {{ className }}Repository,
+    {
+      provide: ICreate{{ className }}GatewaySymbol,
+      useClass: Create{{ className }}Provider,
+    },
+    {
+      provide: IGet{{ className }}ByIdGatewaySymbol,
+      useClass: Get{{ className }}ByIdProvider,
+    },
+    {
+      provide: ICreate{{ className }}UseCaseSymbol,
+      useFactory: (gateway: ICreate{{ className }}Gateway): Create{{ className }}UseCase =>
+        new Create{{ className }}UseCase(gateway),
+      inject: [ICreate{{ className }}GatewaySymbol],
+    },
+    {
+      provide: IGet{{ className }}ByIdUseCaseSymbol,
+      useFactory: (gateway: IGet{{ className }}ByIdGateway): Get{{ className }}ByIdUseCase =>
+        new Get{{ className }}ByIdUseCase(gateway),
+      inject: [IGet{{ className }}ByIdGatewaySymbol],
+    },
+  ],
+})
+export class {{ className }}Module {}

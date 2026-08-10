@@ -1,0 +1,18 @@
+schemaVersion: "1.0"
+
+application:
+  name: wallet-service
+  namespace: io.github.jtsato.walletservice
+
+entities:
+  - name: Wallet
+
+    attributes:
+      - name: id
+        type: uuid
+        identifier: true
+        required: true
+
+      - name: balance
+        type: decimal
+        required: true

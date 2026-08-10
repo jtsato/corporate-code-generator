@@ -1,0 +1,51 @@
+import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+
+import { Create{{ className }}Command } from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.command';
+import {
+  ICreate{{ className }}UseCase,
+  ICreate{{ className }}UseCaseSymbol,
+} from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface';
+import { Get{{ className }}ByIdQuery } from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.query';
+import {
+  IGet{{ className }}ByIdUseCase,
+  IGet{{ className }}ByIdUseCaseSymbol,
+} from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
+import { Create{{ className }}Request } from './create-{{ fileName }}-request.model';
+import { {{ className }}Presenter } from './{{ fileName }}-presenter.mapper';
+import { {{ className }}Response } from './{{ fileName }}-response.model';
+
+@ApiTags('{{ pluralFileName }}')
+@Controller('{{ restCollectionPath }}')
+export class {{ className }}Controller {
+  public constructor(
+    @Inject(ICreate{{ className }}UseCaseSymbol)
+    private readonly create{{ className }}UseCase: ICreate{{ className }}UseCase,
+    @Inject(IGet{{ className }}ByIdUseCaseSymbol)
+    private readonly get{{ className }}ByIdUseCase: IGet{{ className }}ByIdUseCase,
+  ) {}
+
+  @Post()
+  @ApiCreatedResponse({ type: {{ className }}Response })
+  public async create(@Body() request: Create{{ className }}Request): Promise<{{ className }}Response> {
+    const {{ propertyName }} = await this.create{{ className }}UseCase.execute(
+      new Create{{ className }}Command(
+{%- for property in properties %}
+        request.{{ property.name }},
+{%- endfor %}
+      ),
+    );
+
+    return {{ className }}Presenter.of({{ propertyName }});
+  }
+
+  @Get('/:{{ identifier.name }}')
+  @ApiOkResponse({ type: {{ className }}Response })
+  public async getById(@Param('{{ identifier.name }}') {{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Response> {
+    const {{ propertyName }} = await this.get{{ className }}ByIdUseCase.execute(
+      new Get{{ className }}ByIdQuery({{ identifier.name }}),
+    );
+
+    return {{ className }}Presenter.of({{ propertyName }});
+  }
+}

@@ -104,6 +104,24 @@ Allowed milestone statuses are: Done, In progress, Planned, Deferred, Superseded
 | 6.35 | Auditing (createdAt/updatedAt) | Done | Added an opt-in per-entity auditing capability with a Core clock port, infra-preserved creation timestamps, and read-only REST exposure in the Java multi-module Golden Path. | [ADR-055](docs/adr/ADR-055-auditing-created-updated-at.md) |
 | 6.36 | Default Runtime Datasource | Done | Made the generated multi-module application runnable without external configuration by shipping a runtime-scoped H2 driver and an in-memory datasource in base configuration, while production requires explicit datasource settings. | [ADR-056](docs/adr/ADR-056-default-runtime-datasource.md) |
 
+## Release 2 - NestJS Golden Path
+
+### Phase 7 - NestJS clean-architecture Golden Path foundation
+
+| ID | Title | Status | Outcome | Evidence |
+| --- | --- | --- | --- | --- |
+| 7.0 | NestJS Reference Architecture Analysis | Done | Analyzed the NestJS clean-architecture reference project and classified its conventions into Application Model/Profile/Module/Technology Adapter/Rule/Transformer/Template categories. | [ADR-057](docs/adr/ADR-057-nestjs-as-second-golden-path.md); [NestJS Reference Architecture](docs/target-architecture/NESTJS-REFERENCE-ARCHITECTURE.md) |
+| 7.1 | CLI Producer Registry Refactor | Done | Replaced GenerateCommand's hardcoded profile-id conditional with a registry keyed by profile id, covering the two Java profiles and the NestJS profile without changing generated Java output. | [ADR-057](docs/adr/ADR-057-nestjs-as-second-golden-path.md) |
+| 7.2 | NestJS Profile and Template Pack Skeleton | Done | Established the nestjs-clean-architecture profile, its template pack, and the adapter-nestjs package, generating framework-free TypeScript domain models from the technology-agnostic model. | [ADR-057](docs/adr/ADR-057-nestjs-as-second-golden-path.md) |
+| 7.3 | Core Use-Case Layer Foundation | Done | Added generated Core use cases, commands, queries, gateway ports, dependency-injection tokens, and a domain exception hierarchy, with no framework imports in the generated Core module. | [ADR-057](docs/adr/ADR-057-nestjs-as-second-golden-path.md) |
+| 7.4 | Infra-Persistence Foundation | Done | Added a generated in-memory repository, domain/entity mapper, and gateway-implementing providers behind the Core ports. | [ADR-057](docs/adr/ADR-057-nestjs-as-second-golden-path.md) |
+| 7.5 | Web-API REST Entrypoint Foundation | Done | Added generated REST controllers, request/response representations, a presenter mapper, OpenAPI annotations, and a domain-to-HTTP not-found exception filter. | [ADR-057](docs/adr/ADR-057-nestjs-as-second-golden-path.md) |
+| 7.6 | Bootstrap and Dependency Injection Wiring | Done | Added the generated main.ts/app.module.ts composition root binding providers and controllers to Core tokens, producing a NestJS application that builds and serves create/find-by-id over HTTP with Swagger UI. | [ADR-057](docs/adr/ADR-057-nestjs-as-second-golden-path.md) |
+| 7.7 | Generated-Project-Runs Quality Gate | Planned | Automate an npm install/build/run gate against generated NestJS output, analogous to the Maven-required Java smokes. Generated-project execution has so far been verified manually only. | Not recorded |
+| 7.8 | Golden Path NestJS 1.0 Readiness | Planned | Release-readiness audit of the minimal NestJS Golden Path without adding a new capability. | [Current State](docs/project/CURRENT-STATE.md); [Quality Gates](docs/project/QUALITY-GATES.md) |
+
+Per [ADR-010](docs/adr/ADR-010-golden-tests.md), every milestone from 7.2 onward that changes generated artifacts carries its own Golden Test additions; Golden coverage is not deferred to a later milestone.
+
 ## Future optional work
 
-Future work remains outside the current release unless explicitly approved: optimistic locking, ETag/If-Match, authentication and authorization, additional databases, additional stacks, deployment scaffolding, remote registries, and plugin systems.
+Future work remains outside the current release unless explicitly approved: optimistic locking, ETag/If-Match, authentication and authorization, additional databases, deployment scaffolding, remote registries, and plugin systems. NestJS as a second stack is no longer future-optional work; it is tracked under Release 2, Phase 7. Capability parity between the NestJS Golden Path and the Java Golden Path (pagination, filtering, sorting, soft delete, restore, composite unique groups, auditing, CORS, OpenAPI completeness, internationalization, an architecture-boundary lint) and a NestJS multi-module variant remain future optional work for that stack until scheduled as their own Phase 7 milestones or a later phase.

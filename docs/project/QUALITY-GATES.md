@@ -74,6 +74,14 @@ npm run smoke:maven-reactor:java-multimodule
 
 It generates the multi-module Golden Path and runs an unfiltered Maven test command against the generated reactor.
 
+## NestJS Golden Path smoke
+
+```bash
+npm run smoke:nestjs
+```
+
+It requires no external toolchain and is included in the default `npm test` run. It generates the profile through the built CLI, compares every generated artifact against `tests/golden/nestjs-clean-architecture/`, and asserts that the generated Core module contains no framework imports. Automated execution of the generated NestJS project (install, build, run) is not yet a declared gate.
+
 ## CI workflows
 
 The repository currently contains three GitHub workflows:

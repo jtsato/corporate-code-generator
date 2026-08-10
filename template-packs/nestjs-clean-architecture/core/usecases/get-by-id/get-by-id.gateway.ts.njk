@@ -1,0 +1,7 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+
+export interface IGet{{ className }}ByIdGateway {
+  execute({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }} | undefined>;
+}
+
+export const IGet{{ className }}ByIdGatewaySymbol = Symbol('IGet{{ className }}ByIdGateway');

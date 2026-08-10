@@ -1,0 +1,21 @@
+import { Injectable } from '@nestjs/common';
+
+import { {{ className }} } from '../../core/models/{{ fileName }}.model';
+import { IGet{{ className }}ByIdGateway } from '../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
+import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
+import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
+
+@Injectable()
+export class Get{{ className }}ByIdProvider implements IGet{{ className }}ByIdGateway {
+  public constructor(private readonly repository: {{ className }}Repository) {}
+
+  public async execute({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }} | undefined> {
+    const entity = await this.repository.findById({{ identifier.name }});
+
+    if (entity === undefined) {
+      return undefined;
+    }
+
+    return {{ className }}Mapper.toDomain(entity);
+  }
+}

@@ -1,0 +1,16 @@
+import { Injectable } from '@nestjs/common';
+
+import { {{ className }} } from '../../core/models/{{ fileName }}.model';
+import { ICreate{{ className }}Gateway } from '../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.gateway';
+import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
+import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
+
+@Injectable()
+export class Create{{ className }}Provider implements ICreate{{ className }}Gateway {
+  public constructor(private readonly repository: {{ className }}Repository) {}
+
+  public async execute({{ propertyName }}: {{ className }}): Promise<{{ className }}> {
+    const saved = await this.repository.save({{ className }}Mapper.toEntity({{ propertyName }}));
+    return {{ className }}Mapper.toDomain(saved);
+  }
+}

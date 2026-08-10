@@ -1,0 +1,13 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { {{ requestValidationImports | join(", ") }} } from 'class-validator';
+
+export class Create{{ className }}Request {
+{%- for property in properties %}
+  @ApiProperty()
+{%- if property.required %}
+  @IsNotEmpty()
+{%- endif %}
+  @{{ property.validationDecorator }}()
+  public {{ property.name }}: {{ property.type }};
+{% endfor -%}
+}

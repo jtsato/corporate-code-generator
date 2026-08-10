@@ -1,0 +1,8 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export class {{ className }}Response {
+{%- for property in properties %}
+  @ApiProperty()
+  public {{ property.name }}: {{ property.type }};
+{% endfor -%}
+}

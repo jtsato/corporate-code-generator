@@ -1,0 +1,19 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Get{{ className }}ByIdQuery } from './get-{{ fileName }}-by-id.query';
+import { IGet{{ className }}ByIdGateway } from './get-{{ fileName }}-by-id.gateway';
+import { IGet{{ className }}ByIdUseCase } from './get-{{ fileName }}-by-id-usecase.interface';
+
+export class Get{{ className }}ByIdUseCase implements IGet{{ className }}ByIdUseCase {
+  public constructor(private readonly gateway: IGet{{ className }}ByIdGateway) {}
+
+  public async execute(query: Get{{ className }}ByIdQuery): Promise<{{ className }}> {
+    const {{ propertyName }} = await this.gateway.execute(query.{{ identifier.name }});
+
+    if ({{ propertyName }} === undefined) {
+      throw new NotFoundException(`{{ className }} not found: ${query.{{ identifier.name }}}`);
+    }
+
+    return {{ propertyName }};
+  }
+}

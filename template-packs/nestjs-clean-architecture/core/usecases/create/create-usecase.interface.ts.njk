@@ -1,0 +1,8 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Create{{ className }}Command } from './create-{{ fileName }}.command';
+
+export interface ICreate{{ className }}UseCase {
+  execute(command: Create{{ className }}Command): Promise<{{ className }}>;
+}
+
+export const ICreate{{ className }}UseCaseSymbol = Symbol('ICreate{{ className }}UseCase');

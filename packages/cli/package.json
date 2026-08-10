@@ -13,6 +13,7 @@
   "dependencies": {
     "@corporate-code-generator/core": "0.1.0",
     "@corporate-code-generator/adapter-java": "0.1.0",
+    "@corporate-code-generator/adapter-nestjs": "0.1.0",
     "@corporate-code-generator/template-engine-nunjucks": "0.1.0",
     "@corporate-code-generator/file-writer-node": "0.1.0"
   }
