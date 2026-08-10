@@ -119,7 +119,12 @@ Measured/documented CI state:
 - `continuous-integration.yml` runs Node.js 22, Java 25, `npm ci`, typecheck, build, coverage, single-module smoke, single-module Maven smoke, multi-module smoke families, Maven reactor smoke, and SonarCloud scan.
 - `java-multimodule-maven-smoke.yml` runs the generated Java multi-module Maven smoke with `CODEGEN_REQUIRE_MAVEN_SMOKE=true`.
 - `mutation-testing.yml` runs scheduled or manual mutation testing.
-- The generated Java CI uses Java 25 and `mvn -B clean verify`.
+- The generated Java CI (`.github/workflows/java-ci.yml`) uses Java 25,
+  SHA-pinned `actions/checkout` (`v4.3.1`) and `actions/setup-java`
+  (`v4.8.0`) with `fetch-depth: 0` and `cache: maven`, a `workflow_dispatch`
+  trigger, `mvn -B clean verify -Dspring.profiles.active=test`, and an
+  optional SonarCloud scan step guarded by `SONAR_TOKEN` secret presence
+  (see [ADR-065](../adr/ADR-065-generated-ci-hardening.md)).
 
 ## Milestone 6.30 Validation
 

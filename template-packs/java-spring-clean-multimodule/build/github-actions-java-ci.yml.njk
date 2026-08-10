@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,17 +14,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SONAR_TOKEN: {% raw %}${{ secrets.SONAR_TOKEN }}{% endraw %}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: {{ checkoutActionRef }}
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: {{ setupJavaActionRef }}
         with:
           distribution: temurin
           java-version: '{{ javaVersion }}'
           cache: maven
 
       - name: Verify
-        run: mvn -B clean verify
+        run: mvn -B clean verify -Dspring.profiles.active=test
+
+      - name: Run SonarCloud Scan
+        if: {% raw %}${{ env.SONAR_TOKEN != '' }}{% endraw %}
+        run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey={{ sonarProjectKey }}
+
+      - name: SonarCloud not configured
+        if: {% raw %}${{ env.SONAR_TOKEN == '' }}{% endraw %}
+        run: echo "SONAR_TOKEN is not configured; skipping SonarCloud analysis."

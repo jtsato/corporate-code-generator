@@ -62,3 +62,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [062](ADR-062-generated-rest-contract-tests.md) | Generated REST Contract Tests | Accepted — Milestone 6.41. | Milestone 6.41 | Not recorded | Not recorded |
 | [063](ADR-063-generated-persistence-slice-tests.md) | Generated Persistence Slice Tests | Accepted — Milestone 6.42. | Milestone 6.42 | 028 (in part) | Not recorded |
 | [064](ADR-064-generated-openapi-contract-interface.md) | Generated OpenAPI Contract Interface | Accepted — Milestone 6.43. | Milestone 6.43 | 027 (in part) | Not recorded |
+| [065](ADR-065-generated-ci-hardening.md) | Generated CI Hardening | Accepted — Milestone 6.44. | Milestone 6.44 | Not recorded | Not recorded |

@@ -158,6 +158,10 @@ export type {
   JavaProjectReadmeResourceTemplateModel,
 } from "./model/JavaProjectReadmeTemplateModel.js";
 
+export type {
+  GithubActionsJavaCiTemplateModel,
+} from "./model/GithubActionsJavaCiTemplateModel.js";
+
 export { toJavaTypeName } from "./naming/JavaTypeName.js";
 export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
 export { toJavaDatabaseTableName } from "./naming/JavaDatabaseTableName.js";

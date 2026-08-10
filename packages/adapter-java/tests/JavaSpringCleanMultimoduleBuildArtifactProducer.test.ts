@@ -114,7 +114,12 @@ describe("JavaSpringCleanMultimoduleBuildArtifactProducer", () => {
       },
       {
         templateId: "build-github-actions-java-ci",
-        model: { javaVersion: "25" }, outputVariables: {},
+        model: {
+          javaVersion: "25",
+          checkoutActionRef: "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1",
+          setupJavaActionRef: "actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0",
+          sonarProjectKey: "wallet-service",
+        }, outputVariables: {},
       },
       {
         templateId: "build-gitignore",
