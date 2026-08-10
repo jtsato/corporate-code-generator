@@ -1,0 +1,32 @@
+FROM {{ builderImage }} AS build
+WORKDIR {{ buildWorkingDirectory }}
+
+# Copy the reactor descriptors before the sources so that the plugin resolution
+# layer is reused whenever only source files change.
+COPY pom.xml ./
+{% for copy in modulePomCopies %}COPY {{ copy.source }} {{ copy.destination }}
+{% endfor %}
+RUN {{ resolvePluginsCommand }}
+
+COPY . .
+RUN {{ packageCommand }}
+
+FROM {{ runtimeImage }} AS runtime
+WORKDIR {{ runtimeWorkingDirectory }}
+
+ENV JAVA_TOOL_OPTIONS="{{ javaToolOptions }}" \
+    SERVER_PORT={{ serverPort }}
+
+RUN addgroup -g {{ runtimeGroupId }} {{ runtimeGroupName }} \
+ && adduser -u {{ runtimeUserId }} -G {{ runtimeGroupName }} -D -H -s /sbin/nologin {{ runtimeUserName }}
+
+COPY --from=build --chown={{ runtimeUserId }}:{{ runtimeGroupId }} {{ builtJarPath }} {{ runtimeJarPath }}
+
+USER {{ runtimeUserId }}:{{ runtimeGroupId }}
+
+EXPOSE {{ serverPort }}
+
+HEALTHCHECK --interval={{ healthcheckInterval }} --timeout={{ healthcheckTimeout }} --start-period={{ healthcheckStartPeriod }} --retries={{ healthcheckRetries }} \
+  CMD wget --quiet --spider {{ healthcheckUrl }} || exit 1
+
+ENTRYPOINT ["java", "-jar", "{{ runtimeJarPath }}"]

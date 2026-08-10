@@ -12,4 +12,11 @@ export interface JavaProjectReadmeTemplateModel {
   readonly springBootVersion: string;
   readonly modules: readonly string[];
   readonly resources: readonly JavaProjectReadmeResourceTemplateModel[];
+  readonly containerImageReference: string;
+  readonly containerServerPort: number;
+  readonly containerHealthPath: string;
+  readonly containerUserId: number;
+  readonly containerGroupId: number;
+  readonly mutationCommand: string;
+  readonly mutationReportPath: string;
 }

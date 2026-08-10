@@ -24,6 +24,9 @@ describe("Java multi-module ArchUnit smoke test", () => {
     try {
       await execFileAsync(process.execPath, [cliEntryPoint, "generate", "examples/wallet-service/model.yaml", "--profile", "java-spring-clean-multimodule", "--output", outputRoot], { cwd: repoRoot, maxBuffer: 10 * 1024 * 1024 });
       await testWithMaven(outputRoot, "*ArchitectureTests");
+      for (const className of ["LayerDependencyArchitectureTests", "FrameworkIsolationArchitectureTests", "PackageStructureArchitectureTests"]) {
+        await expect(access(join(outputRoot, "configuration", "target", "surefire-reports", `TEST-io.github.jtsato.walletservice.architecture.${className}.xml`))).resolves.toBeUndefined();
+      }
     } finally { await rm(outputRoot, { recursive: true, force: true }); }
   }, 300_000);
 });

@@ -1,0 +1,47 @@
+package io.github.jtsato.walletservice.architecture;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import org.junit.jupiter.api.Test;
+
+class LayerDependencyArchitectureTests {
+    private static final String BASE_PACKAGE = "io.github.jtsato.walletservice";
+
+    private static final JavaClasses IMPORTED_CLASSES = new ClassFileImporter()
+        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+        .importPackages(BASE_PACKAGE);
+
+    @Test
+    void coreShouldNotDependOnEntrypointInfraOrConfiguration() {
+        noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + ".core..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage(
+                BASE_PACKAGE + ".entrypoint..",
+                BASE_PACKAGE + ".infra..",
+                BASE_PACKAGE + ".configuration.."
+            )
+            .check(IMPORTED_CLASSES);
+    }
+
+    @Test
+    void entrypointShouldNotDependOnInfra() {
+        noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + ".entrypoint..")
+            .should().dependOnClassesThat()
+            .resideInAPackage(BASE_PACKAGE + ".infra..")
+            .check(IMPORTED_CLASSES);
+    }
+
+    @Test
+    void controllersShouldNotDependOnRepositories() {
+        noClasses()
+            .that().haveSimpleNameEndingWith("Controller")
+            .should().dependOnClassesThat()
+            .resideInAPackage(BASE_PACKAGE + ".infra..repository..")
+            .check(IMPORTED_CLASSES);
+    }
+}

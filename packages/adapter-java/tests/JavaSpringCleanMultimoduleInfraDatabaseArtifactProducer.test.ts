@@ -29,13 +29,14 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     expect(producer.moduleId).toBe("infra-database");
     // The persistence slice test, its SQL fixture and the module's test bootstrap are asserted
     // separately below; comparing their full template models here would dominate this expectation.
-    const sliceTestTemplateIds = ["infra-database-gateway-provider-test", "infra-database-gateway-provider-test-fixture", "infra-database-test-application"];
+    const sliceTestTemplateIds = ["infra-database-gateway-provider-test", "infra-database-gateway-provider-test-fixture", "infra-database-gateway-provider-integration-test", "infra-database-test-application"];
     expect(artifacts.filter((artifact) => sliceTestTemplateIds.includes(artifact.templateId)).map((artifact) => ({
       templateId: artifact.templateId,
       outputVariables: artifact.outputVariables,
     }))).toEqual([
       { templateId: "infra-database-gateway-provider-test", outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletGatewayProviderTests" } },
       { templateId: "infra-database-gateway-provider-test-fixture", outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletGatewayProviderTests" } },
+      { templateId: "infra-database-gateway-provider-integration-test", outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletGatewayProviderIT" } },
       { templateId: "infra-database-test-application", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "PersistenceTestApplication" } },
     ]);
     expect(artifacts.filter((artifact) => !sliceTestTemplateIds.includes(artifact.templateId))).toEqual([{

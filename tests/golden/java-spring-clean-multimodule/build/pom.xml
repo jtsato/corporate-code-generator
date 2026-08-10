@@ -36,6 +36,8 @@
     <jakarta-annotation.version>3.0.0</jakarta-annotation.version>
     <expressly.version>5.0.0</expressly.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
+    <pitest-maven-plugin.version>1.25.9</pitest-maven-plugin.version>
+    <pitest-junit5-plugin.version>1.2.3</pitest-junit5-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -106,6 +108,27 @@
             <goals>
               <goal>report</goal>
             </goals>
+          </execution>
+          <execution>
+            <id>jacoco-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.80</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
           </execution>
         </executions>
       </plugin>

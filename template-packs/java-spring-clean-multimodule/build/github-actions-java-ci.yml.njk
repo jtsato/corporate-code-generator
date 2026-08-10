@@ -33,6 +33,10 @@ jobs:
       - name: Verify
         run: mvn -B clean verify -Dspring.profiles.active=test
 
+      - name: Mutation testing
+        if: {% raw %}${{ github.event_name == 'workflow_dispatch' }}{% endraw %}
+        run: {{ mutationCommand }}
+
       - name: Run SonarCloud Scan
         if: {% raw %}${{ env.SONAR_TOKEN != '' }}{% endraw %}
         run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey={{ sonarProjectKey }}

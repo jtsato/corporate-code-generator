@@ -1,0 +1,9 @@
+services:
+  {{ serviceName }}:
+    build:
+      context: {{ buildContext }}
+      dockerfile: {{ dockerfile }}
+    image: {{ imageName }}:{{ imageTag }}
+    ports:
+      - "{{ hostPort }}:{{ containerPort }}"
+    restart: {{ restartPolicy }}

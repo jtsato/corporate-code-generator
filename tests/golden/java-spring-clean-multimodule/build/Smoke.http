@@ -1,0 +1,70 @@
+### wallet-service smoke requests
+###
+### An executable tour of the generated HTTP surface, in the order a reviewer
+### would exercise it. Run the application first: `sh run.sh app`.
+###
+### Supported by the REST Client extension in VS Code and by the HTTP client in
+### IntelliJ IDEA. Requests are separated by `###`; send them one at a time.
+
+@baseUrl = http://localhost:8080
+
+### Liveness - should report status UP
+GET {{baseUrl}}/actuator/health
+Accept: application/json
+
+### OpenAPI specification - the contract the requests below follow
+GET {{baseUrl}}/v3/api-docs
+Accept: application/json
+
+### ----------------------------------------------------------------------
+### Wallet
+### ----------------------------------------------------------------------
+
+### Create a Wallet
+POST {{baseUrl}}/wallets
+Content-Type: application/json
+
+{
+  "id": "11111111-1111-1111-1111-111111111112",
+  "balance": 124.45
+}
+
+### List active Wallet records, paged and sorted
+GET {{baseUrl}}/wallets?page=0&size=20
+Accept: application/json
+
+### Read one active Wallet
+GET {{baseUrl}}/wallets/11111111-1111-1111-1111-111111111112
+Accept: application/json
+
+### Replace a Wallet
+PUT {{baseUrl}}/wallets/11111111-1111-1111-1111-111111111112
+Content-Type: application/json
+
+{
+  "id": "11111111-1111-1111-1111-111111111113",
+  "balance": 125.45
+}
+
+### Partially update a Wallet - omitted fields are left untouched
+PATCH {{baseUrl}}/wallets/11111111-1111-1111-1111-111111111112
+Content-Type: application/json
+
+{
+  "balance": 125.45
+}
+
+### Soft delete a Wallet - the row survives as a tombstone
+DELETE {{baseUrl}}/wallets/11111111-1111-1111-1111-111111111112
+
+### List soft-deleted Wallet records
+GET {{baseUrl}}/wallets/deleted
+Accept: application/json
+
+### Read one soft-deleted Wallet
+GET {{baseUrl}}/wallets/deleted/11111111-1111-1111-1111-111111111112
+Accept: application/json
+
+### Restore a soft-deleted Wallet
+POST {{baseUrl}}/wallets/11111111-1111-1111-1111-111111111112/restore
+

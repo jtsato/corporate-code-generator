@@ -35,6 +35,12 @@ describe("Java multi-module CLI smoke test", () => {
         ".github/workflows/java-ci.yml",
         ".gitignore",
         "README.md",
+        "Dockerfile",
+        ".dockerignore",
+        "docker-compose.yml",
+        "run.sh",
+        "run.cmd",
+        "Smoke.http",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
         "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/usecase/create/CreateWalletCommand.java",
@@ -93,6 +99,7 @@ describe("Java multi-module CLI smoke test", () => {
         "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/entity/WalletEntity.java",
         "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderTests.java",
         "infra/database/src/test/resources/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderTests.sql",
+        "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderIT.java",
         "infra/database/src/test/java/io/github/jtsato/walletservice/PersistenceTestApplication.java",
         "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/mapper/WalletPersistenceMapper.java",
         "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/repository/WalletRepository.java",
@@ -106,6 +113,7 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
+        "configuration/src/main/java/io/github/jtsato/walletservice/configuration/i18n/LocaleConfiguration.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsProperties.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsWebConfiguration.java",
         "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/RestFilterWebConfiguration.java",
@@ -117,11 +125,15 @@ describe("Java multi-module CLI smoke test", () => {
         "configuration/src/main/resources/messages.properties",
         "configuration/src/main/resources/messages_pt_BR.properties",
         "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletServiceApplicationTests.java",
-        "configuration/src/test/java/io/github/jtsato/walletservice/architecture/ArchitectureTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/architecture/LayerDependencyArchitectureTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/architecture/FrameworkIsolationArchitectureTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/architecture/PackageStructureArchitectureTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandlerTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/smoke/LocaleNegotiationTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletCorsSmokeTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletOpenApiSmokeTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletHttpSmokeTests.java",
+        "configuration/src/test/java/io/github/jtsato/walletservice/smoke/ActuatorHealthSmokeTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpPersistenceReadTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletFindByIdPersistenceTests.java",
         "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletCreatePersistenceTests.java",
@@ -159,9 +171,16 @@ function normalizeLineEndings(content: string): string {
 }
 
 // The generated `.gitignore` is stored without its leading dot so that it does
-// not act as a live ignore file over the golden tree itself.
+// not act as a live ignore file over the golden tree itself. `.dockerignore`
+// follows the same convention so both root ignore files read alike in the
+// golden tree.
+const dotlessGoldenPaths = new Map([
+  [".gitignore", "gitignore"],
+  [".dockerignore", "dockerignore"],
+]);
+
 function goldenPath(targetPath: string): string {
-  return targetPath === ".gitignore" ? "gitignore" : targetPath;
+  return dotlessGoldenPaths.get(targetPath) ?? targetPath;
 }
 
 function goldenModule(targetPath: string): string {

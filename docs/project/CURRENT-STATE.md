@@ -1,7 +1,7 @@
 # Current State
 
-Verification date: 2026-08-07
-Baseline commit: `9f93bcf`
+Verification date: 2026-08-10
+Baseline commit: `d9f7c37`
 
 This document centralizes current measured facts. Architecture intent and future work are documented separately in the [Solution Specification](../SOLUTION-SPECIFICATION.md), [Generated Java Reference Architecture](../target-architecture/REFERENCE-ARCHITECTURE.md), [Capability Taxonomy](../target-architecture/CAPABILITY-TAXONOMY.md), and [Roadmap](../../ROADMAP.md).
 
@@ -53,14 +53,14 @@ NestJS dependencies:
 | --- | ---: |
 | `java-spring-clean --module domain` | 1 CREATE |
 | `java-spring-clean` full profile | 6 CREATE |
-| `java-spring-clean-multimodule` full profile | 156 CREATE |
-| `java-spring-clean-multimodule --module build` | 8 CREATE |
+| `java-spring-clean-multimodule` full profile | 164 CREATE |
+| `java-spring-clean-multimodule --module build` | 11 CREATE |
 | `java-spring-clean-multimodule --module core` | 65 CREATE |
 | `java-spring-clean-multimodule --module entrypoints-rest` | 90 CREATE |
 | `java-spring-clean-multimodule --module infra-database` | 86 CREATE |
-| `java-spring-clean-multimodule --module configuration` | 156 CREATE |
-| `java-spring-clean-multimodule --module build --module core` | 73 CREATE |
-| `java-spring-clean-multimodule --module build --module configuration` | 156 CREATE |
+| `java-spring-clean-multimodule --module configuration` | 164 CREATE |
+| `java-spring-clean-multimodule --module build --module core` | 76 CREATE |
+| `java-spring-clean-multimodule --module build --module configuration` | 164 CREATE |
 | `nestjs-clean-architecture` full profile | 28 CREATE |
 | `nestjs-clean-architecture --module build` | 4 CREATE |
 | `nestjs-clean-architecture --module core` | 11 CREATE |
@@ -82,6 +82,8 @@ Measured and documented implemented capabilities in the current Java multi-modul
 - Database infrastructure with Spring Data JPA, a runtime-scoped H2 driver with a default in-memory datasource in base configuration (making the generated application runnable with no external configuration), persistence mappers, Querydsl predicates, paging adapters, and filter mapping. Production requires an explicit `SPRING_DATASOURCE_URL` with no H2 fallback and fails fast at startup if it is unset.
 - Runtime create, update, and soft-delete behavior through Core and JPA, with delete exposed over REST as a non-idempotent operation. Attribute-level `unique: true` values are reusable after soft deletion through the generated active-scope constraint.
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
+- Container packaging: a multi-stage `Dockerfile` (Maven builder stage, Alpine JRE runtime, non-root UID/GID 10001, `JAVA_TOOL_OPTIONS` container-aware heap sizing, `HEALTHCHECK` against `/actuator/health`), a `.dockerignore`, and a Compose file. Spring Boot Actuator is on the `configuration` classpath with only the `health` endpoint exposed over HTTP and `show-details: never`.
+- Explicit i18n policy: generated `LocaleConfiguration` selects English by default, allows only `en` and `pt-BR` through `Accept-Language`, loads UTF-8 message bundles, and disables JVM system-locale fallback; generated locale tests cover Portuguese, unsupported, and missing-header negotiation.
 
 Current documented REST surface:
 
@@ -207,6 +209,84 @@ Run context: main workspace, default runtime datasource (in-memory H2) defect fi
 - `CODEGEN_REQUIRE_MAVEN_SMOKE=true npm run smoke:maven-reactor:java-multimodule` - passed. A manual, unfiltered `mvn -B test` run against a freshly generated `examples/wallet-service/model.yaml` project confirmed Reactor `BUILD SUCCESS`, 201 tests run (54 core + 14 entrypoints-rest + 17 infra-database + 116 configuration), 0 failures, 0 errors, 0 skipped, with the two `@SpringBootTest` contexts (`MOCK` and `RANDOM_PORT`) sharing the same base in-memory H2 datasource with no cross-context interference.
 - Full-profile wallet-service dry-run produced 148 CREATE operations, unchanged.
 - Manual boot evidence against a freshly packaged `configuration` fat jar (`mvn -B -DskipTests package`): `jar tf` confirmed `BOOT-INF/lib/h2-2.4.240.jar` present; running the jar with no active Spring profile started successfully (`Started WalletServiceApplication in 3.591 seconds`) against `jdbc:h2:mem:wallet-service`; `GET /wallets` returned 200 with an empty page, `POST /wallets` returned 201, and `GET /wallets/{id}` returned 200 for the created record; running the same jar with `SPRING_PROFILES_ACTIVE=prod` and no `SPRING_DATASOURCE_URL` failed context startup with `IllegalArgumentException: 'url' must start with "jdbc"` (the unresolved `${SPRING_DATASOURCE_URL}` placeholder), confirming production has no H2 fallback.
+
+## Milestone 6.45 Validation
+
+Run context: main workspace, Docker capability; date: 2026-08-10.
+
+- `npm run typecheck` and `npm run build` - passed.
+- `npm test` - passed, 48 test files and 212 tests.
+- `npm run smoke:java-multimodule` (golden byte comparison) - passed over all 160 artifacts, including the new `Dockerfile`, `.dockerignore` and `docker-compose.yml` and the regenerated `README.md`, `configuration/pom.xml` and `application.yaml`.
+- `CODEGEN_REQUIRE_MAVEN_SMOKE=true npm run smoke:maven-reactor:java-multimodule` - passed.
+- `mvn -B test` against a freshly generated `examples/wallet-service` project - Reactor `BUILD SUCCESS` across all five modules; `configuration` ran 117 tests with 0 failures, 0 errors, 0 skipped, including the new `ActuatorHealthSmokeTests.healthEndpointReportsUp`, which proves `/actuator/health` returns 200 with `status: UP` and no `components` field. That endpoint is the target of the generated container `HEALTHCHECK`.
+- Full-profile dry-run produced 160 CREATE operations, up from 156; the `build` module rose from 8 to 11.
+- Both generated base image tags (`maven:3.9-eclipse-temurin-25-alpine`, `eclipse-temurin:25-jre-alpine`) were confirmed published for `linux/amd64` and `linux/arm64`.
+- No `docker build` or `docker compose up` was executed: no Docker daemon is available in this environment, so container behavior itself is unverified. See [ADR-066](../adr/ADR-066-generated-docker-capability.md).
+- The single-module `java-spring-clean` and `nestjs-clean-architecture` profiles were not changed by this milestone.
+
+## Milestone 6.46 Validation
+
+Run context: main workspace, generated i18n policy; date: 2026-08-10.
+
+- `npm run typecheck` and `npm run build` - passed.
+- Built CLI dry-run and generation produced 164 CREATE operations, including `LocaleConfiguration.java`, `LocaleNegotiationTests.java`, and the three split architecture test classes.
+- `mvn -B test '-Dspring.profiles.active=test'` against the freshly generated wallet project - Reactor `BUILD SUCCESS`; configuration ran 119 tests with 0 failures, 0 errors, 0 skipped, including both locale-negotiation tests.
+- The two new golden files were copied from that fresh CLI output and their SHA-256 hashes matched the generated files.
+- Focused Vitest producer/integration/smoke run - 4 test files and 27 tests passed; `npm test` - 48 test files and 212 tests passed; `npm run smoke:java-multimodule` - 1 test passed with golden byte comparisons.
+
+## Milestone 6.47 Validation
+
+Run context: main workspace, split generated ArchUnit suite; date: 2026-08-10.
+
+- `npm run typecheck`, `npm run build`, and `npm test` passed.
+- Fresh built-CLI dry-run and generation produced 164 CREATE operations and emitted `LayerDependencyArchitectureTests.java`, `FrameworkIsolationArchitectureTests.java`, and `PackageStructureArchitectureTests.java`.
+- The three replacement goldens were copied from that fresh CLI output and their SHA-256 hashes matched the generated files.
+- `npm run smoke:java-multimodule` passed its golden byte comparison.
+- `CODEGEN_REQUIRE_MAVEN_SMOKE=true npm run smoke:archunit:java-multimodule` passed and confirmed all three architecture Surefire reports.
+- `mvn -B clean verify` against the freshly generated wallet project passed with Reactor `BUILD SUCCESS`.
+
+## Milestone 6.48 Validation
+
+Run context: main workspace, generated mutation testing capability; date: 2026-08-10.
+
+- `npm run typecheck`, `npm run build`, and `npm test` passed.
+- The full-profile count stayed at 164 CREATE operations: the PIT configuration is a Maven profile inside the existing `core/pom.xml`, not a new artifact.
+- `mvn -B clean verify` against a freshly generated wallet project passed with Reactor `BUILD SUCCESS` and did not run PIT, confirming the `mutation` profile is inert by default.
+- `mvn -B -P mutation -pl core verify` against the same project passed: 26 mutations generated, 24 killed (92%), 1 survived, 1 with no coverage, test strength 96%, line coverage of mutated classes 82/86 (95%), in roughly 19 seconds.
+- `core/target/pit-reports/` contained `index.html`, `mutations.xml` and per-package output, with no timestamped subdirectory.
+- PIT 1.19.1 - the version Maven Central's search API reports as latest - fails against this Golden Path with `Unsupported class file major version 69` because the generated project targets Java 25. The pinned 1.25.9 comes from `maven-metadata.xml`.
+- The four changed goldens (`pom.xml`, `core/pom.xml`, `README.md`, `.github/workflows/java-ci.yml`) were copied from that fresh CLI output.
+
+## Milestone 6.49 Validation
+
+Run context: main workspace, generated Testcontainers verification; date: 2026-08-10.
+
+- `npm run typecheck`, `npm run build`, and `npm test` passed (48 files, 212 tests).
+- Fresh built-CLI dry-run produced 165 CREATE operations, up from 164, adding `WalletGatewayProviderIT.java`.
+- `mvn -B clean verify` against a freshly generated wallet project passed with Reactor `BUILD SUCCESS` and 119 tests; the `*IT` compiled but did not run and no `failsafe-reports/` directory was produced, confirming Surefire ignores it.
+- `mvn -B -P integration-test -pl infra/database -am verify` selected and executed `WalletGatewayProviderIT` through Failsafe.
+- The container assertions did **not** execute on this machine: Testcontainers reported `Could not find a valid Docker environment`. Docker here runs inside WSL (`D:\Bin\docker.cmd` is `wsl docker`), exposing no Windows named pipe and no TCP endpoint, and WSL has no JDK. Neither the daemon nor WSL was reconfigured. The container path is covered by the new CI step and should be treated as unproven until that step runs green.
+- Boot 4.1.0 manages Testcontainers 2.0.5 and PostgreSQL 42.7.11, so no version is restated in the generated POMs. Testcontainers 2.x renames the artifacts to `testcontainers-postgresql` / `testcontainers-junit-jupiter`, moves `PostgreSQLContainer` to `org.testcontainers.postgresql`, and drops its self-type generic.
+
+## Milestone 6.50 Validation
+
+Run context: main workspace, generated developer scripts and smoke requests; date: 2026-08-10.
+
+- `npm run typecheck`, `npm run build`, and `npm test` passed (48 files, 212 tests).
+- Fresh built-CLI dry-run produced 168 CREATE operations, up from 165, adding `run.sh`, `run.cmd` and `Smoke.http`.
+- The generated `run.sh` was executed under `sh`: `help` printed all five tasks and an unknown task printed usage to stderr and exited 1.
+- The generated `run.cmd` was executed under `cmd.exe` with the same two cases and identical behavior.
+- `Smoke.http` renders `{{baseUrl}}` correctly through the Nunjucks `raw` escaping and emits well-formed JSON bodies.
+
+## Milestone 6.51 Validation
+
+Run context: main workspace, generated coverage threshold gate; date: 2026-08-10.
+
+- `npm run typecheck`, `npm run build`, and `npm test` passed (48 files, 212 tests).
+- Per-module coverage measured from the generated `jacoco.csv` after 6.41, 6.42, 6.49 and 6.50: `core` 0.917 line / 0.968 branch, `entrypoints/rest` 0.891 / 0.780, `infra/database` 0.872 / 0.650, `configuration` 0.880 / 0.429. The two modules ADR-060 flagged moved from 0.442 and 0.303 line coverage to 0.891 and 0.872.
+- `mvn -B clean verify` against a freshly generated wallet project reported "All coverage checks have been met." for all four modules with Reactor `BUILD SUCCESS`.
+- Negative test: raising the generated minimum to 0.95 and re-running `mvn -B verify` failed with `Rule violated for bundle wallet-service-core: lines covered ratio is 0.91, but expected minimum is 0.95`, confirming the rule is enforced and not merely declared.
+- No branch rule was set. `configuration` has 14 branches in total and all 8 misses are in `CorsProperties` (5/12) and the anonymous `WebMvcConfigurer` in `CorsWebConfiguration` (1/2), so any uniform branch minimum above 0.42 fails every generated project and any minimum at or below it is vacuous.
 
 ## Documented facts
 

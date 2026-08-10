@@ -1,0 +1,68 @@
+### {{ applicationName }} smoke requests
+###
+### An executable tour of the generated HTTP surface, in the order a reviewer
+### would exercise it. Run the application first: `sh run.sh app`.
+###
+### Supported by the REST Client extension in VS Code and by the HTTP client in
+### IntelliJ IDEA. Requests are separated by `###`; send them one at a time.
+
+@{{ baseUrlVariableName }} = {{ baseUrl }}
+
+### Liveness - should report status UP
+GET {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ healthPath }}
+Accept: application/json
+
+### OpenAPI specification - the contract the requests below follow
+GET {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ openApiPath }}
+Accept: application/json
+{% for resource in resources %}
+### ----------------------------------------------------------------------
+### {{ resource.entityName }}
+### ----------------------------------------------------------------------
+
+### Create a {{ resource.entityName }}
+POST {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}
+Content-Type: application/json
+
+{
+{% for field in resource.createFields %}  "{{ field.name }}": {{ field.jsonLiteral }}{% if not loop.last %},{% endif %}
+{% endfor %}}
+
+### List active {{ resource.entityName }} records, paged and sorted
+GET {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}?page=0&size=20
+Accept: application/json
+
+### Read one active {{ resource.entityName }}
+GET {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}/{{ resource.identifierValue }}
+Accept: application/json
+
+### Replace a {{ resource.entityName }}
+PUT {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}/{{ resource.identifierValue }}
+Content-Type: application/json
+
+{
+{% for field in resource.replaceFields %}  "{{ field.name }}": {{ field.jsonLiteral }}{% if not loop.last %},{% endif %}
+{% endfor %}}
+
+### Partially update a {{ resource.entityName }} - omitted fields are left untouched
+PATCH {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}/{{ resource.identifierValue }}
+Content-Type: application/json
+
+{
+{% for field in resource.patchFields %}  "{{ field.name }}": {{ field.jsonLiteral }}{% if not loop.last %},{% endif %}
+{% endfor %}}
+
+### Soft delete a {{ resource.entityName }} - the row survives as a tombstone
+DELETE {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}/{{ resource.identifierValue }}
+
+### List soft-deleted {{ resource.entityName }} records
+GET {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}/deleted
+Accept: application/json
+
+### Read one soft-deleted {{ resource.entityName }}
+GET {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}/deleted/{{ resource.identifierValue }}
+Accept: application/json
+
+### Restore a soft-deleted {{ resource.entityName }}
+POST {% raw %}{{{% endraw %}{{ baseUrlVariableName }}{% raw %}}}{% endraw %}{{ resource.collectionPath }}/{{ resource.identifierValue }}/restore
+{% endfor %}

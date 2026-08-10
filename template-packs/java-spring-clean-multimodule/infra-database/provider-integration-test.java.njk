@@ -1,0 +1,92 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+
+/**
+ * Persistence integration test for {@link {{ providerType }}}.
+ *
+ * <p>The slice test runs against an embedded database, which accepts mappings and queries a
+ * production engine can reject. This test runs the same provider against {{ containerImage }} in a
+ * container, so the JPA mapping, the schema generated from it and the paging query are verified on
+ * a real database engine.</p>
+ *
+ * <p>The class is named {@code *IT} so Surefire ignores it during {@code mvn test}. Failsafe runs
+ * it only under the {@code {{ profileId }}} Maven profile, which requires a running Docker
+ * daemon.</p>
+ */
+@Testcontainers
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({{ providerType }}.class)
+class {{ className }} {
+    @Container
+    private static final PostgreSQLContainer DATABASE = new PostgreSQLContainer("{{ containerImage }}");
+
+{% for field in createdFields %}    private static final {{ field.type }} {{ field.constantName }} = {{ field.javaExpression }};
+{% endfor %}    private static final {{ unknownIdentifierField.type }} {{ unknownIdentifierField.constantName }} = {{ unknownIdentifierField.javaExpression }};
+
+    @Autowired
+    private {{ providerType }} {{ providerFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @DynamicPropertySource
+    static void registerContainerDataSource(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", DATABASE::getJdbcUrl);
+        registry.add("spring.datasource.username", DATABASE::getUsername);
+        registry.add("spring.datasource.password", DATABASE::getPassword);
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+    }
+
+    @Test
+    void shouldCreateAndReadRecordOnTheContainerDatabase() {
+        {{ providerFieldName }}.create(new {{ entityType }}({% for argument in createdConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %}));
+
+        {{ entityType }} {{ domainVariableName }} = {{ providerFieldName }}.findById({{ createdIdentifierConstantName }});
+
+        assertThat({{ domainVariableName }}).isNotNull();
+{% for field in createdFields %}        assertThat({{ domainVariableName }}.{{ field.accessorName }}()).isEqualTo({{ field.constantName }});
+{% endfor %}        assertThat({{ repositoryFieldName }}.count()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldFailToFindUnknownIdentifierOnTheContainerDatabase() {
+        assertThatThrownBy(() -> {{ providerFieldName }}.findById({{ unknownIdentifierField.constantName }}))
+            .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void shouldPageActiveRecordsOnTheContainerDatabase() {
+        {{ providerFieldName }}.create(new {{ entityType }}({% for argument in createdConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %}));
+
+        PageResult<{{ entityType }}> page = {{ providerFieldName }}.findByFilterPage(
+            FilterExpression.empty(),
+            PageRequest.of(0, 20, List.of())
+        );
+
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.page()).isZero();
+        assertThat(page.size()).isEqualTo(20);
+        assertThat(page.totalItems()).isEqualTo(1L);
+        assertThat(page.totalPages()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldSoftDeleteAndExposeTombstoneOnTheContainerDatabase() {
+        {{ providerFieldName }}.create(new {{ entityType }}({% for argument in createdConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %}));
+
+        {{ providerFieldName }}.deleteById({{ createdIdentifierConstantName }});
+
+        assertThatThrownBy(() -> {{ providerFieldName }}.findById({{ createdIdentifierConstantName }}))
+            .isInstanceOf(NotFoundException.class);
+
+        {{ tombstoneType }} tombstone = {{ providerFieldName }}.findDeletedById({{ createdIdentifierConstantName }});
+        assertThat(tombstone.getDeletedAt()).isNotNull();
+        assertThat({{ repositoryFieldName }}.count()).isEqualTo(1L);
+    }
+}

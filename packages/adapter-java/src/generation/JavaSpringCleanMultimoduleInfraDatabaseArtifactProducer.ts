@@ -14,7 +14,12 @@ import { toJavaDatabaseUniqueConstraintName } from "../naming/JavaDatabaseConstr
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
+import { createJavaPersistenceIntegrationTestModel } from "../transformers/createJavaPersistenceIntegrationTestModel.js";
 import { createJavaPersistenceProviderTestModel } from "../transformers/createJavaPersistenceProviderTestModel.js";
+import {
+  integrationTestProfileId,
+  testcontainersDatabaseImage,
+} from "../maven/IntegrationTestingContract.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 
@@ -298,6 +303,11 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           templateId: "infra-database-gateway-provider-test-fixture",
           model: createJavaPersistenceProviderTestModel(entity, namespace),
           outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${model.className}Tests` },
+        },
+        {
+          templateId: "infra-database-gateway-provider-integration-test",
+          model: createJavaPersistenceIntegrationTestModel(entity, namespace, testcontainersDatabaseImage, integrationTestProfileId),
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${model.className}IT` },
         },
       ];
     });

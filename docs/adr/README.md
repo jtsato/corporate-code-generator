@@ -63,3 +63,10 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [063](ADR-063-generated-persistence-slice-tests.md) | Generated Persistence Slice Tests | Accepted — Milestone 6.42. | Milestone 6.42 | 028 (in part) | Not recorded |
 | [064](ADR-064-generated-openapi-contract-interface.md) | Generated OpenAPI Contract Interface | Accepted — Milestone 6.43. | Milestone 6.43 | 027 (in part) | Not recorded |
 | [065](ADR-065-generated-ci-hardening.md) | Generated CI Hardening | Accepted — Milestone 6.44. | Milestone 6.44 | Not recorded | Not recorded |
+| [066](ADR-066-generated-docker-capability.md) | Generated Docker Capability | Accepted — Milestone 6.45. | Milestone 6.45 | Not recorded | Not recorded |
+| [067](ADR-067-generated-i18n-policy-completion.md) | Generated i18n Policy Completion | Accepted — Milestone 6.46. | Milestone 6.46 | 025 (in part) | Not recorded |
+| [068](ADR-068-generated-archunit-suite-split.md) | Generated ArchUnit Suite Split | Accepted - Milestone 6.47. | Milestone 6.47 | 024 (in part) | Not recorded |
+| [069](ADR-069-generated-mutation-testing-capability.md) | Generated Mutation Testing Capability | Accepted - Milestone 6.48. | Milestone 6.48 | Not recorded | Not recorded |
+| [070](ADR-070-generated-testcontainers-verification.md) | Generated Testcontainers Verification | Accepted - Milestone 6.49. | Milestone 6.49 | Not recorded | Not recorded |
+| [071](ADR-071-generated-developer-scripts-and-smoke-requests.md) | Generated Developer Scripts and Smoke Requests | Accepted - Milestone 6.50. | Milestone 6.50 | Not recorded | Not recorded |
+| [072](ADR-072-generated-coverage-threshold-gate.md) | Generated Coverage Threshold Gate | Accepted - Milestone 6.51. | Milestone 6.51 | 060 (in part) | Not recorded |

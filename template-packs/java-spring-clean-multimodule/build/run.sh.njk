@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+# Developer task runner for {{ applicationName }}.
+#
+# This is a thin dispatcher over Maven. It exists so the commands that are easy
+# to forget - the ones behind opt-in profiles - are discoverable from the
+# project root. Anything it does can be done by calling Maven directly.
+set -eu
+
+usage() {
+  echo "Usage: sh run.sh <task>"
+  echo
+  echo "Tasks:"
+{% for task in tasks %}  printf '  %-13s %s\n' '{{ task.name }}' '{{ task.description }}'
+{% endfor %}  echo
+  echo "Default task: {{ defaultTaskName }}"
+}
+
+task="${1:-{{ defaultTaskName }}}"
+
+case "$task" in
+{% for task in tasks %}  {{ task.name }})
+    exec mvn {{ task.mavenArguments }}
+    ;;
+{% endfor %}  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "Unknown task: $task" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac

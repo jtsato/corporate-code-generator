@@ -23,6 +23,22 @@ enforced by the generated architecture tests.
 - JDK 25
 - Maven 3.9 or newer
 
+## Task runner
+
+`run.sh` and `run.cmd` dispatch the common Maven commands, including the ones
+behind opt-in profiles that are easy to forget:
+
+```bash
+sh run.sh            # same as: sh run.sh verify
+sh run.sh app        # run the application
+sh run.sh mutation   # mutation testing
+sh run.sh integration # database integration tests, needs Docker
+```
+
+`Smoke.http` is an executable tour of the HTTP surface below, for the REST
+Client extension in VS Code or the HTTP client in IntelliJ IDEA. Start the
+application first.
+
 ## Build and test
 
 ```bash
@@ -36,15 +52,50 @@ mvn test -pl core
 mvn test -pl infra/database -am
 ```
 
+## Mutation testing
+
+Line coverage says which code ran; mutation testing says whether the tests would
+notice if it changed. PIT is configured for `core`, targeting the use-case
+interactors, and is opt-in: it lives in a Maven profile, so `mvn clean verify`
+never runs it.
+
+```bash
+mvn -P mutation -pl core verify
+```
+
+The report is written to `core/target/pit-reports`. No mutation threshold is
+enforced, so this reports rather than gates.
+
 ## Run
 
 ```bash
 mvn spring-boot:run -pl configuration -am
 ```
 
-The application starts on port 8080 with an in-memory H2 database, so it needs
-no external services. The OpenAPI specification is served at
-`/v3/api-docs` and Swagger UI at `/swagger-ui.html`.
+The application starts on port 8080 with an in-memory H2
+database, so it needs no external services. The OpenAPI specification is served
+at `/v3/api-docs` and Swagger UI at `/swagger-ui.html`.
+
+## Container
+
+The `Dockerfile` is multi-stage: it builds the reactor with Maven and ships only
+the executable jar on a JRE base image. Build and run it directly:
+
+```bash
+docker build -t wallet-service:0.1.0-SNAPSHOT .
+docker run --rm -p 8080:8080 wallet-service:0.1.0-SNAPSHOT
+```
+
+Or use Compose, which builds the same image:
+
+```bash
+docker compose up --build
+```
+
+The container runs as the unprivileged user `10001:10001`,
+never as root. Its `HEALTHCHECK` polls `/actuator/health`, the Spring
+Boot Actuator health endpoint, so `docker ps` reports the container healthy only
+once the application is actually serving traffic.
 
 ## HTTP API
 

@@ -87,6 +87,17 @@ jobs:
         env:
           CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
 
+      - name: Mutation smoke Java multi-module
+        run: npm run smoke:mutation:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+
+      - name: Testcontainers smoke Java multi-module
+        run: npm run smoke:testcontainers:java-multimodule
+        env:
+          CODEGEN_REQUIRE_MAVEN_SMOKE: 'true'
+          CODEGEN_REQUIRE_DOCKER_SMOKE: 'true'
+
       - name: Validation smoke Java multi-module
         run: npm run smoke:validation:java-multimodule
         env:

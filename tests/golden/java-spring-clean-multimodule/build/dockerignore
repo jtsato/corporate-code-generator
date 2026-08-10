@@ -1,0 +1,38 @@
+### Build output ###
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+### Version control ###
+.git/
+.gitignore
+
+### Container files ###
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+### CI ###
+.github/
+
+### Test and coverage output ###
+*.exec
+.surefire-*
+
+### IDE ###
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+### Operating system ###
+.DS_Store
+Thumbs.db

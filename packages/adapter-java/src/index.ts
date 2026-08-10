@@ -39,6 +39,8 @@ export type { JavaApplicationYamlTemplateModel } from "./model/JavaApplicationYa
 export type { JavaCorsPropertiesTemplateModel } from "./model/JavaCorsPropertiesTemplateModel.js";
 export type { JavaCorsWebConfigurationTemplateModel } from "./model/JavaCorsWebConfigurationTemplateModel.js";
 export type { JavaCorsSmokeTestTemplateModel } from "./model/JavaCorsSmokeTestTemplateModel.js";
+export type { JavaLocaleConfigurationTemplateModel } from "./model/JavaLocaleConfigurationTemplateModel.js";
+export type { JavaLocaleNegotiationTestTemplateModel } from "./model/JavaLocaleNegotiationTestTemplateModel.js";
 
 export type {
   JavaArchUnitTestTemplateModel,
@@ -151,7 +153,17 @@ export type {
 
 export type {
   MavenMultimoduleModulePomTemplateModel,
+  MavenMutationTestingTemplateModel,
 } from "./model/MavenMultimoduleModulePomTemplateModel.js";
+
+export type {
+  JavaPersistenceIntegrationTestTemplateModel,
+} from "./model/JavaPersistenceIntegrationTestTemplateModel.js";
+
+export type {
+  JavaProjectDeveloperScriptTemplateModel,
+  JavaProjectSmokeRequestsTemplateModel,
+} from "./model/JavaProjectDeveloperScriptTemplateModel.js";
 
 export type {
   JavaProjectReadmeTemplateModel,

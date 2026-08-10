@@ -34,6 +34,30 @@ templates:
     module: build
     template: build/readme.md.njk
     output: README.md
+  - id: build-dockerfile
+    module: build
+    template: build/dockerfile.njk
+    output: Dockerfile
+  - id: build-dockerignore
+    module: build
+    template: build/dockerignore.njk
+    output: .dockerignore
+  - id: build-docker-compose
+    module: build
+    template: build/docker-compose.yml.njk
+    output: docker-compose.yml
+  - id: build-run-script-posix
+    module: build
+    template: build/run.sh.njk
+    output: run.sh
+  - id: build-run-script-windows
+    module: build
+    template: build/run.cmd.njk
+    output: run.cmd
+  - id: build-smoke-requests
+    module: build
+    template: build/smoke.http.njk
+    output: Smoke.http
   - id: core-domain-entity
     module: core
     template: core/domain/entity.java.njk
@@ -414,6 +438,10 @@ templates:
     module: infra-database
     template: infra-database/provider-test.sql.njk
     output: infra/database/src/test/resources/{{ packagePath }}/infra/database/domains/{{ domainName }}/{{ className }}.sql
+  - id: infra-database-gateway-provider-integration-test
+    module: infra-database
+    template: infra-database/provider-integration-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/{{ className }}.java
   - id: infra-database-test-application
     module: infra-database
     template: infra-database/test-application.java.njk
@@ -502,6 +530,10 @@ templates:
     module: configuration
     template: configuration/global-exception-handler.java.njk
     output: configuration/src/main/java/{{ packagePath }}/configuration/exception/{{ className }}.java
+  - id: configuration-locale-configuration
+    module: configuration
+    template: configuration/locale-configuration.java.njk
+    output: configuration/src/main/java/{{ packagePath }}/configuration/i18n/{{ className }}.java
   - id: configuration-cors-properties
     module: configuration
     template: configuration/cors-properties.java.njk
@@ -546,14 +578,26 @@ templates:
     module: configuration
     template: configuration/application-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
-  - id: configuration-architecture-test
+  - id: configuration-layer-dependency-architecture-test
     module: configuration
-    template: configuration/architecture-test.java.njk
+    template: configuration/layer-dependency-architecture-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/architecture/{{ className }}.java
+  - id: configuration-framework-isolation-architecture-test
+    module: configuration
+    template: configuration/framework-isolation-architecture-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/architecture/{{ className }}.java
+  - id: configuration-package-structure-architecture-test
+    module: configuration
+    template: configuration/package-structure-architecture-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/architecture/{{ className }}.java
   - id: configuration-global-exception-handler-test
     module: configuration
     template: configuration/global-exception-handler-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/configuration/exception/{{ className }}.java
+  - id: configuration-locale-negotiation-test
+    module: configuration
+    template: configuration/locale-negotiation-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
   - id: configuration-cors-smoke-test
     module: configuration
     template: configuration/cors-smoke-test.java.njk
@@ -565,6 +609,10 @@ templates:
   - id: configuration-http-smoke-test
     module: configuration
     template: configuration/http-smoke-test.java.njk
+    output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
+  - id: configuration-actuator-health-smoke-test
+    module: configuration
+    template: configuration/actuator-health-smoke-test.java.njk
     output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
   - id: configuration-querydsl-filter-persistence-test
     module: configuration

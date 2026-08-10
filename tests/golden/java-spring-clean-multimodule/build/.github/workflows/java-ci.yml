@@ -33,6 +33,10 @@ jobs:
       - name: Verify
         run: mvn -B clean verify -Dspring.profiles.active=test
 
+      - name: Mutation testing
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: mvn -B -P mutation -pl core verify
+
       - name: Run SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' }}
         run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey=wallet-service

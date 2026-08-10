@@ -51,12 +51,38 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
     expect(producer.moduleId).toBe("configuration");
     expect(artifacts.map((artifact) => artifact.templateId)).toEqual([
       "configuration-application", "configuration-domain-wiring", "configuration-global-exception-handler",
+      "configuration-locale-configuration",
       "configuration-cors-properties", "configuration-cors-web-configuration", "configuration-rest-filter-web-configuration",
       "configuration-openapi-configuration",
       "configuration-application-yaml", "configuration-application-local-yaml", "configuration-application-test-yaml", "configuration-application-prod-yaml",
-      "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-architecture-test",
-      "configuration-global-exception-handler-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-http-create-test", "configuration-http-update-test", "configuration-http-patch-test", "configuration-http-delete-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test", "configuration-update-persistence-test", "configuration-delete-persistence-test", "configuration-deleted-query-persistence-test", "configuration-restore-persistence-test", "configuration-http-deleted-query-test", "configuration-http-restore-test",
+      "configuration-messages", "configuration-messages-pt-br", "configuration-application-test", "configuration-layer-dependency-architecture-test", "configuration-framework-isolation-architecture-test", "configuration-package-structure-architecture-test",
+      "configuration-global-exception-handler-test", "configuration-locale-negotiation-test", "configuration-cors-smoke-test", "configuration-openapi-smoke-test", "configuration-http-smoke-test", "configuration-actuator-health-smoke-test", "configuration-http-persistence-read-test", "configuration-find-by-id-persistence-test", "configuration-create-persistence-test", "configuration-http-find-by-id-test", "configuration-http-create-test", "configuration-http-update-test", "configuration-http-patch-test", "configuration-http-delete-test", "configuration-querydsl-filter-persistence-test", "configuration-http-filter-test", "configuration-paging-persistence-test", "configuration-querydsl-filter-paging-persistence-test", "configuration-update-persistence-test", "configuration-delete-persistence-test", "configuration-deleted-query-persistence-test", "configuration-restore-persistence-test", "configuration-http-deleted-query-test", "configuration-http-restore-test",
     ]);
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-locale-configuration")).toMatchObject({
+      model: {
+        packageName: "io.github.jtsato.walletservice.configuration.i18n",
+        className: "LocaleConfiguration",
+        defaultLocaleExpression: "Locale.ENGLISH",
+        supportedLocaleExpressions: ["Locale.ENGLISH", 'Locale.forLanguageTag("pt-BR")'],
+        messageSourceBasename: "classpath:messages",
+        messageSourceEncoding: "UTF-8",
+        fallbackToSystemLocale: false,
+      },
+    });
+    expect(artifacts.find((artifact) => artifact.templateId === "configuration-locale-negotiation-test")).toMatchObject({
+      model: {
+        packageName: "io.github.jtsato.walletservice.smoke",
+        className: "LocaleNegotiationTests",
+        defaultLocaleExpression: "Locale.ENGLISH",
+        supportedLocaleExpression: 'Locale.forLanguageTag("pt-BR")',
+        acceptLanguageHeaderName: "Accept-Language",
+        supportedAcceptLanguage: "pt-BR",
+        unsupportedAcceptLanguage: "fr-FR",
+        messageKey: "common.error.invalid-request",
+        supportedMessage: "Requisição inválida.",
+        defaultMessage: "Invalid request.",
+      },
+    });
     /* Detailed legacy expectations retained below for fixture reference.
     expect(artifacts).toMatchObject([{
       templateId: "configuration-application",
@@ -117,15 +143,37 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         className: "WalletServiceApplicationTests",
       },
     }, {
-      templateId: "configuration-architecture-test",
+      templateId: "configuration-layer-dependency-architecture-test",
       model: {
         packageName: "io.github.jtsato.walletservice.architecture",
-        className: "ArchitectureTests",
+        className: "LayerDependencyArchitectureTests",
         basePackage: "io.github.jtsato.walletservice",
       },
       outputVariables: {
         packagePath: "io/github/jtsato/walletservice",
-        className: "ArchitectureTests",
+        className: "LayerDependencyArchitectureTests",
+      },
+    }, {
+      templateId: "configuration-framework-isolation-architecture-test",
+      model: {
+        packageName: "io.github.jtsato.walletservice.architecture",
+        className: "FrameworkIsolationArchitectureTests",
+        basePackage: "io.github.jtsato.walletservice",
+      },
+      outputVariables: {
+        packagePath: "io/github/jtsato/walletservice",
+        className: "FrameworkIsolationArchitectureTests",
+      },
+    }, {
+      templateId: "configuration-package-structure-architecture-test",
+      model: {
+        packageName: "io.github.jtsato.walletservice.architecture",
+        className: "PackageStructureArchitectureTests",
+        basePackage: "io.github.jtsato.walletservice",
+      },
+      outputVariables: {
+        packagePath: "io/github/jtsato/walletservice",
+        className: "PackageStructureArchitectureTests",
       },
     }, {
       templateId: "configuration-global-exception-handler-test",
@@ -221,10 +269,10 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
         className: "WalletHttpPersistenceReadTests",
       },
     }]); */
-    expect(artifacts[3]).toMatchObject({
+    expect(artifacts[4]).toMatchObject({
       model: { packageName: "io.github.jtsato.walletservice.configuration.web", className: "CorsProperties" },
     });
-    expect(artifacts[16]).toMatchObject({
+    expect(artifacts[20]).toMatchObject({
       model: { className: "WalletCorsSmokeTests", endpointPath: "/wallets", expectedStatusCode: 200 },
     });
     expect(artifacts.find((artifact) => artifact.templateId === "configuration-find-by-id-persistence-test")).toMatchObject({

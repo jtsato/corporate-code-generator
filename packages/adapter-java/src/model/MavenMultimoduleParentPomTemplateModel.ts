@@ -16,6 +16,9 @@ export interface MavenMultimoduleParentPomTemplateModel {
   readonly jakartaAnnotationVersion: string;
   readonly expresslyVersion: string;
   readonly jacocoVersion: string;
+  readonly pitestVersion: string;
+  readonly pitestJunit5PluginVersion: string;
+  readonly coverageLineMinimum: string;
   readonly managedDependencies: readonly MavenDependencyTemplateModel[];
   readonly sharedDependencies: readonly MavenDependencyTemplateModel[];
 }

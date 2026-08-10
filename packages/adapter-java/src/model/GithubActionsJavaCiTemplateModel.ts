@@ -3,4 +3,5 @@ export interface GithubActionsJavaCiTemplateModel {
   readonly checkoutActionRef: string;
   readonly setupJavaActionRef: string;
   readonly sonarProjectKey: string;
+  readonly mutationCommand: string;
 }

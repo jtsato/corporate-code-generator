@@ -15,6 +15,8 @@ import type { JavaOpenApiSmokeTestTemplateModel } from "../model/JavaOpenApiSmok
 import type { JavaArchUnitTestTemplateModel } from "../model/JavaArchUnitTestTemplateModel.js";
 import type { JavaDomainConfigurationTemplateModel } from "../model/JavaDomainConfigurationTemplateModel.js";
 import type { JavaTimeConfigurationTemplateModel } from "../model/JavaTimeConfigurationTemplateModel.js";
+import type { JavaLocaleConfigurationTemplateModel } from "../model/JavaLocaleConfigurationTemplateModel.js";
+import type { JavaLocaleNegotiationTestTemplateModel } from "../model/JavaLocaleNegotiationTestTemplateModel.js";
 import type { JavaHttpPersistenceReadTestTemplateModel } from "../model/JavaHttpPersistenceReadTestTemplateModel.js";
 import type { JavaFindByIdPersistenceTestTemplateModel } from "../model/JavaFindByIdPersistenceTestTemplateModel.js";
 import type { JavaCreatePersistenceTestTemplateModel } from "../model/JavaCreatePersistenceTestTemplateModel.js";
@@ -29,6 +31,11 @@ import { createJavaHttpUpdateTestModel } from "../transformers/createJavaHttpUpd
 import { createJavaHttpPatchTestModel } from "../transformers/createJavaHttpPatchTestModel.js";
 import { createJavaHttpDeleteTestModel } from "../transformers/createJavaHttpDeleteTestModel.js";
 import type { JavaHttpSmokeTestTemplateModel } from "../model/JavaHttpSmokeTestTemplateModel.js";
+import type { JavaActuatorHealthSmokeTestTemplateModel } from "../model/JavaActuatorHealthSmokeTestTemplateModel.js";
+import {
+  springActuatorHealthPath,
+  springApplicationPort,
+} from "../spring/SpringRuntimeContract.js";
 import type { JavaSpringBootApplicationTestTemplateModel } from "../model/JavaSpringBootApplicationTestTemplateModel.js";
 import { toJavaConstantName } from "../naming/JavaConstantName.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
@@ -114,17 +121,56 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       testMethodName: "contextLoads",
       activeProfile: "test",
     };
-    const applicationYaml: JavaApplicationYamlTemplateModel = { applicationName: request.application.name };
+    const applicationYaml: JavaApplicationYamlTemplateModel = {
+      applicationName: request.application.name,
+      serverPort: springApplicationPort,
+      // Only `health` is exposed over HTTP: it is the endpoint the generated
+      // container HEALTHCHECK polls. Every other Actuator endpoint stays off
+      // because nothing in the generated application needs it.
+      exposedManagementEndpoints: "health",
+      healthDetailsPolicy: "never",
+    };
     const corsProperties: JavaCorsPropertiesTemplateModel = {
       packageName: `${namespace}.configuration.web`, className: "CorsProperties",
     };
     const corsWebConfiguration: JavaCorsWebConfigurationTemplateModel = {
       packageName: `${namespace}.configuration.web`, className: "CorsWebConfiguration", propertiesClassName: corsProperties.className,
     };
+    const localeConfiguration: JavaLocaleConfigurationTemplateModel = {
+      packageName: `${namespace}.configuration.i18n`,
+      className: "LocaleConfiguration",
+      defaultLocaleExpression: "Locale.ENGLISH",
+      supportedLocaleExpressions: ["Locale.ENGLISH", 'Locale.forLanguageTag("pt-BR")'],
+      messageSourceBasename: "classpath:messages",
+      messageSourceEncoding: "UTF-8",
+      fallbackToSystemLocale: false,
+    };
+    const localeNegotiationTest: JavaLocaleNegotiationTestTemplateModel = {
+      packageName: `${namespace}.smoke`,
+      className: "LocaleNegotiationTests",
+      defaultLocaleExpression: "Locale.ENGLISH",
+      supportedLocaleExpression: 'Locale.forLanguageTag("pt-BR")',
+      acceptLanguageHeaderName: "Accept-Language",
+      supportedAcceptLanguage: "pt-BR",
+      unsupportedAcceptLanguage: "fr-FR",
+      messageKey: "common.error.invalid-request",
+      supportedMessage: "Requisição inválida.",
+      defaultMessage: "Invalid request.",
+    };
     const openApiConfiguration: JavaOpenApiConfigurationTemplateModel = { packageName: `${namespace}.configuration.openapi`, className: "OpenApiConfiguration", title: `${request.application.name} API`, description: `${request.application.name} REST API`, version: request.profile.version };
-    const architectureTest: JavaArchUnitTestTemplateModel = {
+    const layerDependencyArchitectureTest: JavaArchUnitTestTemplateModel = {
       packageName: `${namespace}.architecture`,
-      className: "ArchitectureTests",
+      className: "LayerDependencyArchitectureTests",
+      basePackage: namespace,
+    };
+    const frameworkIsolationArchitectureTest: JavaArchUnitTestTemplateModel = {
+      packageName: `${namespace}.architecture`,
+      className: "FrameworkIsolationArchitectureTests",
+      basePackage: namespace,
+    };
+    const packageStructureArchitectureTest: JavaArchUnitTestTemplateModel = {
+      packageName: `${namespace}.architecture`,
+      className: "PackageStructureArchitectureTests",
       basePackage: namespace,
     };
     const exceptionPackage = `${namespace}.configuration.exception`;
@@ -271,6 +317,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         { templateId: "configuration-time", model: timeConfiguration, outputVariables: { ...outputVariables, className: timeConfiguration.className } },
       ] : []),
       { templateId: "configuration-global-exception-handler", model: { packageName: exceptionPackage, responseStatusPackageName: `${namespace}.entrypoint.rest.common`, coreExceptionPackageName: `${namespace}.core.common.exception` }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandler" } },
+      { templateId: "configuration-locale-configuration", model: localeConfiguration, outputVariables: { ...outputVariables, className: localeConfiguration.className } },
       { templateId: "configuration-cors-properties", model: corsProperties, outputVariables: { ...outputVariables, className: corsProperties.className } },
       { templateId: "configuration-cors-web-configuration", model: corsWebConfiguration, outputVariables: { ...outputVariables, className: corsWebConfiguration.className } },
       { templateId: "configuration-rest-filter-web-configuration", model: { packageName: `${namespace}.configuration.web`, className: "RestFilterWebConfiguration" }, outputVariables: { ...outputVariables, className: "RestFilterWebConfiguration" } },
@@ -287,11 +334,22 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         outputVariables: { ...outputVariables, className: applicationTest.className },
       },
       {
-        templateId: "configuration-architecture-test",
-        model: architectureTest,
-        outputVariables: { ...outputVariables, className: architectureTest.className },
+        templateId: "configuration-layer-dependency-architecture-test",
+        model: layerDependencyArchitectureTest,
+        outputVariables: { ...outputVariables, className: layerDependencyArchitectureTest.className },
+      },
+      {
+        templateId: "configuration-framework-isolation-architecture-test",
+        model: frameworkIsolationArchitectureTest,
+        outputVariables: { ...outputVariables, className: frameworkIsolationArchitectureTest.className },
+      },
+      {
+        templateId: "configuration-package-structure-architecture-test",
+        model: packageStructureArchitectureTest,
+        outputVariables: { ...outputVariables, className: packageStructureArchitectureTest.className },
       },
       { templateId: "configuration-global-exception-handler-test", model: { packageName: exceptionPackage, className: "GlobalExceptionHandlerTests", basePackage: namespace }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandlerTests" } },
+      { templateId: "configuration-locale-negotiation-test", model: localeNegotiationTest, outputVariables: { ...outputVariables, className: localeNegotiationTest.className } },
       ...request.application.entities.map((entity) => {
         const corsSmokeModel: JavaCorsSmokeTestTemplateModel = {
           packageName: `${namespace}.smoke`,
@@ -377,6 +435,50 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           },
         };
       }),
+      ((): TemplateInvocation => {
+        const imports = new JavaImportCollector();
+        imports.add("java.net.http.HttpClient");
+        imports.add("java.net.http.HttpRequest");
+        imports.add("java.net.http.HttpResponse");
+        imports.add("com.fasterxml.jackson.databind.JsonNode");
+        imports.add("com.fasterxml.jackson.databind.ObjectMapper");
+        imports.add("org.junit.jupiter.api.Test");
+        imports.add("org.springframework.boot.test.context.SpringBootTest");
+        imports.add("org.springframework.boot.test.web.server.LocalServerPort");
+        imports.add("org.springframework.test.context.ActiveProfiles");
+        // This test is the runtime proof for the generated container HEALTHCHECK:
+        // it polls the same Actuator path the Dockerfile does, so a healthcheck
+        // that would never turn the container healthy fails the generated build.
+        const actuatorHealthSmokeModel: JavaActuatorHealthSmokeTestTemplateModel = {
+          packageName: `${namespace}.smoke`,
+          imports: ["java.net.URI", ...imports.values()],
+          className: "ActuatorHealthSmokeTests",
+          serverPortAnnotationType: "LocalServerPort",
+          serverPortFieldName: "port",
+          endpointUriExpression: `"http://localhost:" + port + "${springActuatorHealthPath}"`,
+          testMethodName: "healthEndpointReportsUp",
+          requestType: "HttpRequest",
+          responseType: "HttpResponse",
+          responseBodyType: "String",
+          httpClientType: "HttpClient",
+          objectMapperType: "ObjectMapper",
+          jsonNodeType: "JsonNode",
+          expectedStatusCode: 200,
+          statusFieldName: "status",
+          expectedStatus: "UP",
+          detailsFieldName: "components",
+          activeProfile: "test",
+        };
+
+        return {
+          templateId: "configuration-actuator-health-smoke-test",
+          model: actuatorHealthSmokeModel,
+          outputVariables: {
+            ...outputVariables,
+            className: actuatorHealthSmokeModel.className,
+          },
+        };
+      })(),
       ...request.application.entities.map((entity) => {
         const domainName = toJavaPackageSegment(entity.name);
         const entityType = toJavaTypeName(entity.name);

@@ -111,7 +111,7 @@ describe("Java multi-module generation", () => {
     expect(notAuditedContent).not.toContain("existing");
   });
 
-  it("renders the one hundred and fifty-six complete Maven reactor artifacts", async () => {
+  it("renders the one hundred and sixty-eight complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -155,7 +155,7 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(156);
+    expect(operations).toHaveLength(168);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
       "pom.xml",
       "core/pom.xml",
@@ -165,6 +165,12 @@ describe("Java multi-module generation", () => {
       ".github/workflows/java-ci.yml",
       ".gitignore",
       "README.md",
+      "Dockerfile",
+      ".dockerignore",
+      "docker-compose.yml",
+      "run.sh",
+      "run.cmd",
+      "Smoke.http",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/WalletTombstone.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
@@ -261,6 +267,7 @@ describe("Java multi-module generation", () => {
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProvider.java",
       "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderTests.java",
       "infra/database/src/test/resources/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderTests.sql",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderIT.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterFieldDefinition.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterDefinition.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterValueConverter.java",
@@ -279,6 +286,7 @@ describe("Java multi-module generation", () => {
       "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
+      "configuration/src/main/java/io/github/jtsato/walletservice/configuration/i18n/LocaleConfiguration.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsProperties.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/CorsWebConfiguration.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/web/RestFilterWebConfiguration.java",
@@ -290,11 +298,15 @@ describe("Java multi-module generation", () => {
       "configuration/src/main/resources/messages.properties",
       "configuration/src/main/resources/messages_pt_BR.properties",
       "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletServiceApplicationTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/architecture/ArchitectureTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/architecture/LayerDependencyArchitectureTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/architecture/FrameworkIsolationArchitectureTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/architecture/PackageStructureArchitectureTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandlerTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/smoke/LocaleNegotiationTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletCorsSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletOpenApiSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletHttpSmokeTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/smoke/ActuatorHealthSmokeTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpPersistenceReadTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletFindByIdPersistenceTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletCreatePersistenceTests.java",
@@ -345,9 +357,16 @@ function normalize(value: string): string {
 }
 
 // The generated `.gitignore` is stored without its leading dot so that it does
-// not act as a live ignore file over the golden tree itself.
+// not act as a live ignore file over the golden tree itself. `.dockerignore`
+// follows the same convention so both root ignore files read alike in the
+// golden tree.
+const dotlessGoldenPaths = new Map([
+  [".gitignore", "gitignore"],
+  [".dockerignore", "dockerignore"],
+]);
+
 function goldenPathFor(targetPath: string): string {
-  return targetPath === ".gitignore" ? "gitignore" : targetPath;
+  return dotlessGoldenPaths.get(targetPath) ?? targetPath;
 }
 
 function goldenModuleFor(targetPath: string): string {
