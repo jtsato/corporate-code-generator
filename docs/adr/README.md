@@ -55,3 +55,10 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [055](ADR-055-auditing-created-updated-at.md) | Auditing (createdAt/updatedAt) | Accepted — Milestone 6.35. | Milestone 6.35 | Not recorded | Not recorded |
 | [056](ADR-056-default-runtime-datasource.md) | Default Runtime Datasource (In-Memory H2) | Accepted — Milestone 6.36. | Milestone 6.36 | 016 (in part) | Not recorded |
 | [057](ADR-057-nestjs-as-second-golden-path.md) | NestJS as the Second Golden Path | Accepted — Milestones 7.0 through 7.6 | Milestones 7.0-7.6 | Not recorded | Not recorded |
+| [058](ADR-058-generated-repository-hygiene.md) | Generated Repository Hygiene (`.gitignore` and `README.md`) | Accepted — Milestone 6.37. | Milestone 6.37 | Not recorded | Not recorded |
+| [059](ADR-059-generated-maven-build-governance.md) | Generated Maven Build Governance | Accepted — Milestone 6.38. | Milestone 6.38 | Not recorded | Not recorded |
+| [060](ADR-060-generated-coverage-reporting.md) | Generated Coverage Reporting | Accepted — Milestone 6.39. | Milestone 6.39 | Not recorded | Not recorded |
+| [061](ADR-061-generated-package-and-test-layout.md) | Generated Package and Test Layout | Accepted — Milestone 6.40. | Milestone 6.40 | Not recorded | Not recorded |
+| [062](ADR-062-generated-rest-contract-tests.md) | Generated REST Contract Tests | Accepted — Milestone 6.41. | Milestone 6.41 | Not recorded | Not recorded |
+| [063](ADR-063-generated-persistence-slice-tests.md) | Generated Persistence Slice Tests | Accepted — Milestone 6.42. | Milestone 6.42 | 028 (in part) | Not recorded |
+| [064](ADR-064-generated-openapi-contract-interface.md) | Generated OpenAPI Contract Interface | Accepted — Milestone 6.43. | Milestone 6.43 | 027 (in part) | Not recorded |

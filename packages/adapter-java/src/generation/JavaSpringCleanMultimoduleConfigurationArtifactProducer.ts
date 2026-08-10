@@ -108,7 +108,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
     };
 
     const applicationTest: JavaSpringBootApplicationTestTemplateModel = {
-      packageName: namespace,
+      packageName: `${namespace}.smoke`,
       imports: ["org.junit.jupiter.api.Test", "org.springframework.boot.test.context.SpringBootTest", "org.springframework.test.context.ActiveProfiles"],
       className: `${className}Tests`,
       testMethodName: "contextLoads",
@@ -197,8 +197,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${deletedByFilterPageUseCaseType}Interactor`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.restore.${restoreUseCaseType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.restore.${restoreUseCaseType}Interactor`);
-        imports.add(`${namespace}.infra.domains.${domainName}.${gatewayType}Provider`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.${gatewayType}Provider`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.springframework.context.annotation.Bean");
         imports.add("org.springframework.context.annotation.Configuration");
         if (entity.audited === true) {
@@ -294,7 +294,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
       { templateId: "configuration-global-exception-handler-test", model: { packageName: exceptionPackage, className: "GlobalExceptionHandlerTests", basePackage: namespace }, outputVariables: { ...outputVariables, className: "GlobalExceptionHandlerTests" } },
       ...request.application.entities.map((entity) => {
         const corsSmokeModel: JavaCorsSmokeTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.smoke`,
           className: `${toJavaTypeName(entity.name)}CorsSmokeTests`,
           endpointPath: toRestCollectionPath(entity.name),
           allowedOrigin: "http://localhost:3000",
@@ -306,7 +306,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const identifier = entity.attributes.find((attribute) => attribute.identifier);
         if (identifier === undefined) throw new Error(`Cannot generate OpenAPI find-by-id smoke test for entity '${entity.name}' without an identifier.`);
         const model: JavaOpenApiSmokeTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.smoke`,
           className: `${toJavaTypeName(entity.name)}OpenApiSmokeTests`,
           title: openApiConfiguration.title,
           endpointPath: toRestCollectionPath(entity.name),
@@ -345,7 +345,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add("org.springframework.boot.test.web.server.LocalServerPort");
         imports.add("org.springframework.test.context.ActiveProfiles");
         const httpSmokeModel: JavaHttpSmokeTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.smoke`,
           imports: ["java.net.URI", ...imports.values()],
           className: `${entityType}HttpSmokeTests`,
           serverPortAnnotationType: "LocalServerPort",
@@ -384,8 +384,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const repositoryType = `${entityType}Repository`;
         const repositoryFieldName = toJavaFieldName(repositoryType);
         const imports = new JavaImportCollector();
-        imports.add(`${namespace}.infra.domains.${domainName}.entity.${persistenceEntityType}`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${repositoryType}`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${persistenceEntityType}`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${repositoryType}`);
         imports.add("java.net.http.HttpClient");
         imports.add("java.net.http.HttpRequest");
         imports.add("java.net.http.HttpResponse");
@@ -429,7 +429,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           ].join(",")
         }}]`;
         const persistenceReadModel: JavaHttpPersistenceReadTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.http`,
           imports: insertUriImport(imports.values()),
           className: `${entityType}HttpPersistenceReadTests`,
           fixtures: fixtureValues.map(({ javaType, value, constantName }) => ({
@@ -484,8 +484,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.common.exception.NotFoundException`);
         imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
-        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.junit.jupiter.api.AfterEach");
         imports.add("org.junit.jupiter.api.Test");
         imports.add("org.springframework.beans.factory.annotation.Autowired");
@@ -508,7 +508,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           ...(entity.audited === true ? this.auditedDeclaredFixturesWithAccessor(entity.name) : []),
         ];
         const persistenceModel: JavaFindByIdPersistenceTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.persistence`,
           imports: imports.values(),
           className: `${entityType}FindByIdPersistenceTests`,
           activeProfile: "test",
@@ -540,7 +540,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${commandType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.create.${useCaseType}`);
         imports.add(`${namespace}.core.common.exception.ConflictException`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.junit.jupiter.api.AfterEach");
         imports.add("org.junit.jupiter.api.Test");
         imports.add("org.springframework.beans.factory.annotation.Autowired");
@@ -557,7 +557,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           };
         });
         const persistenceModel: JavaCreatePersistenceTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.persistence`,
           imports: imports.values(),
           className: `${entityType}CreatePersistenceTests`,
           activeProfile: "test",
@@ -589,8 +589,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         const identifier = entity.attributes.find((attribute) => attribute.identifier);
         if (identifier === undefined) throw new Error(`Cannot generate HTTP find-by-id test for entity '${entity.name}' without an identifier.`);
         const imports = new JavaImportCollector();
-        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("com.fasterxml.jackson.databind.JsonNode");
         imports.add("com.fasterxml.jackson.databind.ObjectMapper");
         imports.add("java.net.URI");
@@ -620,7 +620,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           ...(entity.audited === true ? this.auditedDeclaredFixturesWithJsonName(entity.name) : []),
         ];
         const httpModel: JavaHttpFindByIdTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.http`,
           imports: imports.values(),
           className: `${entityType}HttpFindByIdTests`,
           activeProfile: "test",
@@ -765,8 +765,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${commandType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.update.${useCaseType}`);
         imports.add(`${namespace}.core.common.exception.NotFoundException`);
-        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.junit.jupiter.api.AfterEach");
         imports.add("org.junit.jupiter.api.Test");
         imports.add("org.springframework.beans.factory.annotation.Autowired");
@@ -811,7 +811,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         }
 
         const persistenceModel: JavaUpdatePersistenceTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.persistence`,
           imports: imports.values(),
           className: `${entityType}UpdatePersistenceTests`,
           activeProfile: "test",
@@ -853,8 +853,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.common.exception.NotFoundException`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${commandType}`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.${useCaseType}`);
-        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         imports.add("org.junit.jupiter.api.AfterEach");
         imports.add("org.junit.jupiter.api.Test");
         imports.add("org.springframework.beans.factory.annotation.Autowired");
@@ -876,7 +876,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           imports.add("java.time.LocalDateTime");
         }
         const persistenceModel: JavaDeletePersistenceTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.persistence`,
           imports: imports.values(),
           className: `${entityType}DeletePersistenceTests`,
           activeProfile: "test",
@@ -913,8 +913,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         imports.add(`${namespace}.core.domains.${domainName}.usecase.delete.Delete${entityType}UseCase`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.FindDeleted${entityType}ByIdUseCase`);
         imports.add(`${namespace}.core.domains.${domainName}.usecase.find.FindDeleted${toJavaPluralTypeName(entityType)}ByFilterPageUseCase`);
-        imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-        imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+        imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         imports.add(`${namespace}.core.common.filter.FilterExpression`);
         imports.add(`${namespace}.core.common.paging.PageRequest`);
         imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
@@ -938,7 +938,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           ? [...fixtures.map((fixture) => fixture.constantName), ...this.auditedEntityFixtureArguments()]
           : fixtures.map((fixture) => fixture.constantName);
         const deletedModel: JavaDeletedQueryPersistenceTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.persistence`,
           imports: imports.values(),
           className: `${entityType}DeletedQueryPersistenceTests`,
           activeProfile: "test",
@@ -967,8 +967,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         restoreImports.add(`${namespace}.core.domains.${domainName}.usecase.delete.Delete${entityType}UseCase`);
         restoreImports.add(`${namespace}.core.domains.${domainName}.usecase.restore.Restore${entityType}Command`);
         restoreImports.add(`${namespace}.core.domains.${domainName}.usecase.restore.Restore${entityType}UseCase`);
-        restoreImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-        restoreImports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        restoreImports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+        restoreImports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         restoreImports.add("org.junit.jupiter.api.AfterEach");
         restoreImports.add("org.junit.jupiter.api.Test");
         restoreImports.add("org.springframework.beans.factory.annotation.Autowired");
@@ -994,7 +994,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
               return this.fixtureResolver.resolve(attribute.type, index + 1).javaExpression;
             });
         const restoreModel: JavaRestorePersistenceTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.persistence`,
           imports: restoreImports.values(),
           className: `${entityType}RestorePersistenceTests`,
           activeProfile: "test",
@@ -1020,8 +1020,8 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
         };
 
         const httpImports = new JavaImportCollector();
-        httpImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-        httpImports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+        httpImports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+        httpImports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
         httpImports.add("com.fasterxml.jackson.databind.ObjectMapper");
         httpImports.add("java.net.http.HttpClient");
         httpImports.add("java.net.http.HttpRequest");
@@ -1037,7 +1037,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           httpImports.add("java.time.LocalDateTime");
         }
         const httpDeletedModel: JavaHttpDeletedQueryTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.http`,
           imports: insertUriImport(httpImports.values()),
           className: `${entityType}HttpDeletedQueryTests`,
           activeProfile: "test",
@@ -1050,7 +1050,7 @@ export class JavaSpringCleanMultimoduleConfigurationArtifactProducer implements 
           fixtures,
         };
         const httpRestoreModel: JavaHttpRestoreTestTemplateModel = {
-          packageName: namespace,
+          packageName: `${namespace}.http`,
           imports: insertUriImport(httpImports.values()),
           className: `${entityType}HttpRestoreTests`,
           activeProfile: "test",

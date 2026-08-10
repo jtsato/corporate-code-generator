@@ -1,6 +1,8 @@
 export interface JavaDelegatingRestControllerTemplateModel {
   readonly packageName: string;
   readonly imports: readonly string[];
+  readonly apiImports: readonly string[];
+  readonly apiClassName: string;
   readonly className: string;
   readonly requestMapping: string;
   readonly responseClassName: string;

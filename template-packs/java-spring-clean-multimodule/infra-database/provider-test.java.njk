@@ -1,0 +1,126 @@
+package {{ packageName }};
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+
+/**
+ * Persistence slice test for {@link {{ providerType }}}.
+ *
+ * <p>Runs against a real embedded database with the schema derived from the JPA mapping, and
+ * seeds one active row through SQL so the column mapping itself is exercised rather than assumed.
+ * Each test method runs in its own rolled-back transaction.</p>
+ */
+@DataJpaTest
+@Import({{ providerType }}.class)
+@Sql("{{ className }}.sql")
+class {{ className }} {
+{% for field in seededFields %}    private static final {{ field.type }} {{ field.constantName }} = {{ field.javaExpression }};
+{% endfor %}{% for field in createdFields %}    private static final {{ field.type }} {{ field.constantName }} = {{ field.javaExpression }};
+{% endfor %}{% for field in updatedFields %}    private static final {{ field.type }} {{ field.constantName }} = {{ field.javaExpression }};
+{% endfor %}
+    @Autowired
+    private {{ providerType }} {{ providerFieldName }};
+
+    @Autowired
+    private {{ repositoryType }} {{ repositoryFieldName }};
+
+    @Test
+    void shouldFindSeededActiveRecordByIdentifier() {
+        {{ entityType }} {{ domainVariableName }} = {{ providerFieldName }}.findById({{ identifierConstantName }});
+
+        assertThat({{ domainVariableName }}).isNotNull();
+{% for field in seededFields %}        assertThat({{ domainVariableName }}.{{ field.accessorName }}()).isEqualTo({{ field.constantName }});
+{% endfor %}        assertThat({{ repositoryFieldName }}.count()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldFailToFindUnknownIdentifier() {
+        assertThatThrownBy(() -> {{ providerFieldName }}.findById({{ createdIdentifierConstantName }}))
+            .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void shouldCreateAndPersistRecord() {
+        {{ entityType }} created = {{ providerFieldName }}.create(new {{ entityType }}({% for argument in createdConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %}));
+
+        assertThat(created).isNotNull();
+        assertThat(created.{{ seededFields[0].accessorName }}()).isEqualTo({{ createdFields[0].constantName }});
+        assertThat({{ repositoryFieldName }}.findById({{ createdIdentifierConstantName }})).isPresent();
+        assertThat({{ repositoryFieldName }}.count()).isEqualTo(2L);
+    }
+
+    @Test
+    void shouldRejectCreatingAnExistingIdentifier() {
+        assertThatThrownBy(() -> {{ providerFieldName }}.create(new {{ entityType }}({% for argument in seededConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %})))
+            .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void shouldUpdateExistingRecord() {
+        {{ entityType }} updated = {{ providerFieldName }}.update(new {{ entityType }}({% for argument in updatedConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %}));
+
+        assertThat(updated).isNotNull();
+        assertThat({{ repositoryFieldName }}.count()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldSoftDeleteThenExposeRecordAsTombstone() {
+        {{ providerFieldName }}.deleteById({{ identifierConstantName }});
+
+        assertThatThrownBy(() -> {{ providerFieldName }}.findById({{ identifierConstantName }}))
+            .isInstanceOf(NotFoundException.class);
+
+        {{ entityType }}Tombstone tombstone = {{ providerFieldName }}.findDeletedById({{ identifierConstantName }});
+        assertThat(tombstone.{{ seededFields[0].accessorName }}()).isEqualTo({{ identifierConstantName }});
+        assertThat(tombstone.getDeletedAt()).isNotNull();
+        assertThat({{ repositoryFieldName }}.count()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldRestoreSoftDeletedRecord() {
+        {{ providerFieldName }}.deleteById({{ identifierConstantName }});
+        {{ providerFieldName }}.restoreById({{ identifierConstantName }});
+
+        assertThat({{ providerFieldName }}.findById({{ identifierConstantName }})).isNotNull();
+    }
+
+    @Test
+    void shouldReturnOnlyActiveRecordsFromFindAll() {
+        List<{{ entityType }}> before = {{ providerFieldName }}.findAll();
+        assertThat(before).hasSize(1);
+
+        {{ providerFieldName }}.deleteById({{ identifierConstantName }});
+
+        assertThat({{ providerFieldName }}.findAll()).isEmpty();
+    }
+
+    @Test
+    void shouldPageActiveRecordsWithMetadata() {
+        PageResult<{{ entityType }}> page = {{ providerFieldName }}.findByFilterPage(
+            FilterExpression.empty(),
+            PageRequest.of(0, 20, List.of())
+        );
+
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.page()).isZero();
+        assertThat(page.size()).isEqualTo(20);
+        assertThat(page.totalItems()).isEqualTo(1L);
+        assertThat(page.totalPages()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldPageDeletedRecordsAfterSoftDelete() {
+        {{ providerFieldName }}.deleteById({{ identifierConstantName }});
+
+        PageResult<{{ entityType }}Tombstone> page = {{ providerFieldName }}.findDeletedByFilterPage(
+            FilterExpression.empty(),
+            PageRequest.of(0, 20, List.of())
+        );
+
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.totalItems()).isEqualTo(1L);
+    }
+}

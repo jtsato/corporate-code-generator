@@ -1,0 +1,83 @@
+# {{ applicationName }}
+
+Spring Boot multi-module service generated from an application model with a
+clean-architecture Golden Path. The Maven coordinates are
+`{{ groupId }}:{{ artifactId }}:{{ version }}`, targeting Java {{ javaVersion }}
+and Spring Boot {{ springBootVersion }}.
+
+## Modules
+
+| Module | Responsibility | Depends on |
+| --- | --- | --- |
+| `core` | Domain models, use cases, commands, gateway ports, paging, filtering and validation. Framework-free. | nothing |
+| `entrypoints/rest` | REST controllers, request/response representations, filter and sort parsing. | `core` |
+| `infra/database` | JPA entities, Spring Data repositories, Querydsl predicates and gateway providers. | `core` |
+| `configuration` | Composition root, Spring wiring, cross-cutting configuration and the executable application. | `core`, `entrypoints/rest`, `infra/database` |
+
+Dependencies point inward. `core` never depends on Spring, JPA or HTTP types,
+and `entrypoints/rest` never depends on `infra/database`. These rules are
+enforced by the generated architecture tests.
+
+## Requirements
+
+- JDK {{ javaVersion }}
+- Maven 3.9 or newer
+
+## Build and test
+
+```bash
+mvn clean verify
+```
+
+Run a single module with `-pl`, adding `-am` to also build what it depends on:
+
+```bash
+mvn test -pl core
+mvn test -pl infra/database -am
+```
+
+## Run
+
+```bash
+mvn spring-boot:run -pl configuration -am
+```
+
+The application starts on port 8080 with an in-memory H2 database, so it needs
+no external services. The OpenAPI specification is served at
+`/v3/api-docs` and Swagger UI at `/swagger-ui.html`.
+
+## HTTP API
+
+{% for resource in resources %}### {{ resource.entityName }}
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `{{ resource.collectionPath }}` | List, filter, sort and page active records |
+| `GET` | `{{ resource.collectionPath }}/{id}` | Read one active record |
+| `POST` | `{{ resource.collectionPath }}` | Create a record |
+| `PUT` | `{{ resource.collectionPath }}/{id}` | Replace a record |
+| `PATCH` | `{{ resource.collectionPath }}/{id}` | Partially update a record |
+| `DELETE` | `{{ resource.collectionPath }}/{id}` | Soft delete a record |
+| `POST` | `{{ resource.collectionPath }}/{id}/restore` | Restore a soft-deleted record |
+| `GET` | `{{ resource.collectionPath }}/deleted` | List soft-deleted records |
+| `GET` | `{{ resource.collectionPath }}/deleted/{id}` | Read one soft-deleted record |
+
+{% endfor %}Errors use a single contract: a numeric `code`, a localized `message`, and a
+`fields` array that is always present and lists every invalid field.
+
+## Configuration profiles
+
+| Profile | Purpose |
+| --- | --- |
+| default | Shared safe defaults, including the in-memory datasource |
+| `local` | Developer diagnostics |
+| `test` | Deterministic test configuration |
+| `prod` | Environment-variable references only; no usable secret defaults |
+
+Select one with `-Dspring.profiles.active=<profile>`.
+
+## Regenerating
+
+This project is generated. Prefer changing the application model and
+regenerating over editing generated files by hand, so that manual edits are not
+lost on the next generation.

@@ -14,6 +14,7 @@ import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaPluralTypeName } from "../naming/JavaPluralTypeName.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toRestCollectionPath } from "../naming/RestCollectionPath.js";
+import { createJavaRestControllerTestModel } from "../transformers/createJavaRestControllerTestModel.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 
 /**
@@ -87,7 +88,6 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add(`${namespace}.entrypoint.rest.common.${entityType}PageResponse`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.${entityType}TombstonePageResponse`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.${tombstoneResponseName}`);
-      controllerImports.add(`${namespace}.entrypoint.rest.common.ResponseStatus`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.filter.RestFilterParser`);
       controllerImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.filter.${filterDefinitionType}`);
       controllerImports.add(`${namespace}.entrypoint.rest.common.sort.RestSortParser`);
@@ -107,19 +107,31 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       controllerImports.add("org.springframework.web.bind.annotation.RequestMapping");
       controllerImports.add("org.springframework.web.bind.annotation.RequestParam");
       controllerImports.add("org.springframework.web.bind.annotation.RestController");
-      controllerImports.add("io.swagger.v3.oas.annotations.Operation");
-      controllerImports.add("io.swagger.v3.oas.annotations.Parameter");
-      controllerImports.add("io.swagger.v3.oas.annotations.enums.ParameterIn");
-      controllerImports.add("io.swagger.v3.oas.annotations.headers.Header");
-      controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponse");
-      controllerImports.add("io.swagger.v3.oas.annotations.responses.ApiResponses");
-      controllerImports.add("io.swagger.v3.oas.annotations.media.ArraySchema");
-      controllerImports.add("io.swagger.v3.oas.annotations.media.Content");
-      controllerImports.add("io.swagger.v3.oas.annotations.media.Schema");
-      controllerImports.add("io.swagger.v3.oas.annotations.tags.Tag");
+      const apiImports = new JavaImportCollector();
+      apiImports.add(`${namespace}.entrypoint.rest.common.${entityType}PageResponse`);
+      apiImports.add(`${namespace}.entrypoint.rest.common.${entityType}TombstonePageResponse`);
+      apiImports.add(`${namespace}.entrypoint.rest.common.ResponseStatus`);
+      apiImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${createRequestType}`);
+      apiImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${updateRequestType}`);
+      apiImports.add(`${namespace}.entrypoint.rest.domains.${domainName}.request.${patchRequestType}`);
+      apiImports.add("java.util.List");
+      apiImports.add(identifierType.import);
+      apiImports.add("org.springframework.http.ResponseEntity");
+      apiImports.add("io.swagger.v3.oas.annotations.Operation");
+      apiImports.add("io.swagger.v3.oas.annotations.Parameter");
+      apiImports.add("io.swagger.v3.oas.annotations.enums.ParameterIn");
+      apiImports.add("io.swagger.v3.oas.annotations.headers.Header");
+      apiImports.add("io.swagger.v3.oas.annotations.responses.ApiResponse");
+      apiImports.add("io.swagger.v3.oas.annotations.responses.ApiResponses");
+      apiImports.add("io.swagger.v3.oas.annotations.media.ArraySchema");
+      apiImports.add("io.swagger.v3.oas.annotations.media.Content");
+      apiImports.add("io.swagger.v3.oas.annotations.media.Schema");
+      apiImports.add("io.swagger.v3.oas.annotations.tags.Tag");
       const controller: JavaDelegatingRestControllerTemplateModel = {
         packageName,
         imports: controllerImports.values(),
+        apiImports: apiImports.values(),
+        apiClassName: `${entityType}Api`,
         className: controllerName,
         requestMapping: toRestCollectionPath(entity.name),
         responseClassName: responseName,
@@ -279,6 +291,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
       };
       const variables = { packagePath: namespace.replaceAll(".", "/"), domainName };
       return [
+        { templateId: "entrypoints-rest-api", model: controller, outputVariables: { ...variables, className: `${entityType}Api` } },
         { templateId: "entrypoints-rest-controller", model: controller, outputVariables: { ...variables, className: controllerName } },
         { templateId: "entrypoints-rest-response", model: response, outputVariables: { ...variables, className: responseName } },
         {
@@ -297,6 +310,11 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
           outputVariables: { ...variables, domainName, className: patchRequestType },
         },
         { templateId: "entrypoints-rest-tombstone-response", model: tombstoneResponse, outputVariables: { ...variables, className: tombstoneResponseName } },
+        {
+          templateId: "entrypoints-rest-controller-test",
+          model: createJavaRestControllerTestModel(entity, namespace, this.typeResolver),
+          outputVariables: { ...variables, className: `${entityType}ControllerTests` },
+        },
       ];
     });
     const packagePath = namespace.replaceAll(".", "/");
@@ -350,6 +368,7 @@ export class JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer implement
           outputVariables: { packagePath, className: `${entityType}TombstonePageResponse` },
         };
       }),
+      { templateId: "entrypoints-rest-test-application", model: { packageName: namespace, className: "RestTestApplication" }, outputVariables: { packagePath, className: "RestTestApplication" } },
     ];
   }
 }

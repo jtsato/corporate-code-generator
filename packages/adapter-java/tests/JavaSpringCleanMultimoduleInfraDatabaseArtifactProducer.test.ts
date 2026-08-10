@@ -27,10 +27,21 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
 
     expect(producer.profileId).toBe("java-spring-clean-multimodule");
     expect(producer.moduleId).toBe("infra-database");
-    expect(artifacts).toEqual([{
+    // The persistence slice test, its SQL fixture and the module's test bootstrap are asserted
+    // separately below; comparing their full template models here would dominate this expectation.
+    const sliceTestTemplateIds = ["infra-database-gateway-provider-test", "infra-database-gateway-provider-test-fixture", "infra-database-test-application"];
+    expect(artifacts.filter((artifact) => sliceTestTemplateIds.includes(artifact.templateId)).map((artifact) => ({
+      templateId: artifact.templateId,
+      outputVariables: artifact.outputVariables,
+    }))).toEqual([
+      { templateId: "infra-database-gateway-provider-test", outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletGatewayProviderTests" } },
+      { templateId: "infra-database-gateway-provider-test-fixture", outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletGatewayProviderTests" } },
+      { templateId: "infra-database-test-application", outputVariables: { packagePath: "io/github/jtsato/walletservice", className: "PersistenceTestApplication" } },
+    ]);
+    expect(artifacts.filter((artifact) => !sliceTestTemplateIds.includes(artifact.templateId))).toEqual([{
       templateId: "infra-database-persistence-entity",
       model: {
-        packageName: "io.github.jtsato.walletservice.infra.domains.wallet.entity",
+        packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.entity",
         imports: ["jakarta.persistence.Column", "jakarta.persistence.Entity", "jakarta.persistence.Id", "jakarta.persistence.Table", "java.math.BigDecimal", "java.time.Instant", "java.util.UUID"],
         className: "WalletEntity", tableName: "wallet", deletionTimestampFieldName: "deletedAt", deletionTimestampColumnName: "deleted_at", deletionTimestampGetterName: "getDeletedAt", deletionScopeFieldName: "deletionScope", deletionScopeColumnName: "deletion_scope", activeScopeConstantName: "ACTIVE_SCOPE", activeScopeValue: "ACTIVE", markDeletedMethodName: "markDeleted", restoreMethodName: "restore", isActiveMethodName: "isActive", uniqueConstraints: [], setters: [],
         fields: [
@@ -44,8 +55,8 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     }, {
       templateId: "infra-database-persistence-mapper",
       model: {
-        packageName: "io.github.jtsato.walletservice.infra.domains.wallet.mapper",
-        imports: ["io.github.jtsato.walletservice.core.domains.wallet.model.Wallet", "io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone", "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity"],
+        packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.mapper",
+        imports: ["io.github.jtsato.walletservice.core.domains.wallet.model.Wallet", "io.github.jtsato.walletservice.core.domains.wallet.model.WalletTombstone", "io.github.jtsato.walletservice.infra.database.domains.wallet.entity.WalletEntity"],
         className: "WalletPersistenceMapper", constructorName: "WalletPersistenceMapper", domainType: "Wallet", entityType: "WalletEntity",
         domainParameterName: "wallet", entityParameterName: "walletEntity", toEntityMethodName: "toEntity", toDomainMethodName: "toDomain", toTombstoneMethodName: "toTombstone", tombstoneType: "WalletTombstone",
         toEntityArguments: ["wallet.getId()", "wallet.getBalance()"], toDomainArguments: ["walletEntity.getId()", "walletEntity.getBalance()"], toTombstoneArguments: ["walletEntity.getId()", "walletEntity.getBalance()", "walletEntity.getDeletedAt()"],
@@ -54,9 +65,9 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     }, {
       templateId: "infra-database-repository",
       model: {
-        packageName: "io.github.jtsato.walletservice.infra.domains.wallet.repository",
+        packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.repository",
         imports: [
-          "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.entity.WalletEntity",
           "java.util.UUID",
           "org.springframework.data.jpa.repository.JpaRepository",
           "org.springframework.data.querydsl.ListQuerydslPredicateExecutor",
@@ -71,7 +82,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     }, {
       templateId: "infra-database-gateway-provider",
       model: {
-        packageName: "io.github.jtsato.walletservice.infra.domains.wallet",
+        packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet",
         imports: [
           "com.querydsl.core.types.dsl.BooleanExpression",
           "io.github.jtsato.walletservice.core.common.exception.ConflictException",
@@ -85,11 +96,11 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
           "io.github.jtsato.walletservice.infra.database.common.filter.QuerydslFilterMapper",
           "io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageRequestMapper",
           "io.github.jtsato.walletservice.infra.database.common.paging.SpringDataPageResultMapper",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.entity.QWalletEntity",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.entity.WalletEntity",
           "io.github.jtsato.walletservice.infra.database.domains.wallet.filter.WalletQuerydslFilterDefinition",
-          "io.github.jtsato.walletservice.infra.domains.wallet.entity.QWalletEntity",
-          "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity",
-          "io.github.jtsato.walletservice.infra.domains.wallet.mapper.WalletPersistenceMapper",
-          "io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.mapper.WalletPersistenceMapper",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.repository.WalletRepository",
           "java.util.List",
           "java.util.Map",
           "java.util.Objects",
@@ -186,7 +197,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
     ...["QuerydslFilterValueConverter", "QuerydslFilterMapper"].map((className) => ({
       templateId: `infra-database-${className.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}-test`, model: { packageName: "io.github.jtsato.walletservice.infra.database.common.filter", filterPackage: "io.github.jtsato.walletservice.core.common.filter" }, outputVariables: { packagePath: "io/github/jtsato/walletservice", className: `${className}Tests` },
     })),
-    { templateId: "infra-database-querydsl-domain-filter-definition", model: { packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.filter", commonPackage: "io.github.jtsato.walletservice.infra.database.common.filter", filterPackage: "io.github.jtsato.walletservice.core.common.filter", entityPackage: "io.github.jtsato.walletservice.infra.domains.wallet.entity", entityType: "Wallet", qVariableName: "walletEntity", imports: ["java.util.UUID", "java.math.BigDecimal"], fields: [{ name: "id", domainName: "id", type: "UUID", import: "java.util.UUID", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }, { name: "balance", domainName: "balance", type: "BigDecimal", import: "java.math.BigDecimal", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "GREATER_THAN", method: "gt" }, { operator: "GREATER_THAN_OR_EQUALS", method: "goe" }, { operator: "LESS_THAN", method: "lt" }, { operator: "LESS_THAN_OR_EQUALS", method: "loe" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }] }, outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletQuerydslFilterDefinition" } },
+    { templateId: "infra-database-querydsl-domain-filter-definition", model: { packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.filter", commonPackage: "io.github.jtsato.walletservice.infra.database.common.filter", filterPackage: "io.github.jtsato.walletservice.core.common.filter", entityPackage: "io.github.jtsato.walletservice.infra.database.domains.wallet.entity", entityType: "Wallet", qVariableName: "walletEntity", imports: ["java.util.UUID", "java.math.BigDecimal"], fields: [{ name: "id", domainName: "id", type: "UUID", import: "java.util.UUID", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }, { name: "balance", domainName: "balance", type: "BigDecimal", import: "java.math.BigDecimal", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "GREATER_THAN", method: "gt" }, { operator: "GREATER_THAN_OR_EQUALS", method: "goe" }, { operator: "LESS_THAN", method: "lt" }, { operator: "LESS_THAN_OR_EQUALS", method: "loe" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }] }, outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletQuerydslFilterDefinition" } },
     { templateId: "infra-database-querydsl-domain-filter-definition-test", model: { packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.filter", entityType: "Wallet", imports: ["java.util.UUID", "java.math.BigDecimal"], fields: [{ name: "id", domainName: "id", type: "UUID", import: "java.util.UUID", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }, { name: "balance", domainName: "balance", type: "BigDecimal", import: "java.math.BigDecimal", operators: [{ operator: "EQUALS", method: "eq" }, { operator: "NOT_EQUALS", method: "ne" }, { operator: "GREATER_THAN", method: "gt" }, { operator: "GREATER_THAN_OR_EQUALS", method: "goe" }, { operator: "LESS_THAN", method: "lt" }, { operator: "LESS_THAN_OR_EQUALS", method: "loe" }, { operator: "IN", method: "in" }, { operator: "IS_NULL", method: "isNull" }, { operator: "IS_NOT_NULL", method: "isNotNull" }] }] }, outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletQuerydslFilterDefinitionTests" } },
     {
       templateId: "infra-database-spring-data-page-request-mapper",
@@ -209,7 +220,7 @@ describe("JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer", () => {
       model: {
         packageName: "io.github.jtsato.walletservice.infra.database.domains.wallet.query",
         exceptionPackage: "io.github.jtsato.walletservice.core.common.exception",
-        entityPackage: "io.github.jtsato.walletservice.infra.domains.wallet.entity",
+        entityPackage: "io.github.jtsato.walletservice.infra.database.domains.wallet.entity",
         entityType: "Wallet",
         entityName: "Wallet",
         qVariableName: "walletEntity",

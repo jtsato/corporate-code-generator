@@ -17,17 +17,14 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>wallet-service-core</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>wallet-service-entrypoints-rest</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>wallet-service-infra-database</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -50,12 +47,12 @@
     <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit5</artifactId>
-      <version>${archunit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
+    <finalName>wallet-service-starter</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>

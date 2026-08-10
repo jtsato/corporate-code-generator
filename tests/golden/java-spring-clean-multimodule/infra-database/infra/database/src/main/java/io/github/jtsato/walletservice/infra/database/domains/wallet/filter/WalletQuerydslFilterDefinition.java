@@ -2,7 +2,7 @@ package io.github.jtsato.walletservice.infra.database.domains.wallet.filter;
 
 import io.github.jtsato.walletservice.infra.database.common.filter.*;
 import io.github.jtsato.walletservice.core.common.filter.FilterOperator;
-import io.github.jtsato.walletservice.infra.domains.wallet.entity.QWalletEntity;
+import io.github.jtsato.walletservice.infra.database.domains.wallet.entity.QWalletEntity;
 import java.util.*;
 import java.util.UUID;
 import java.math.BigDecimal;

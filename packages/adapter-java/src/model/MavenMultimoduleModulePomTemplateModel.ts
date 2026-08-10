@@ -11,4 +11,5 @@ export interface MavenMultimoduleModulePomTemplateModel {
   readonly dependencies: readonly MavenDependencyTemplateModel[];
   readonly hasSpringBootPlugin: boolean;
   readonly querydslAnnotationProcessing?: boolean;
+  readonly finalName?: string;
 }

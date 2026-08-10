@@ -26,6 +26,14 @@ templates:
     module: build
     template: build/github-actions-java-ci.yml.njk
     output: .github/workflows/java-ci.yml
+  - id: build-gitignore
+    module: build
+    template: build/gitignore.njk
+    output: .gitignore
+  - id: build-readme
+    module: build
+    template: build/readme.md.njk
+    output: README.md
   - id: core-domain-entity
     module: core
     template: core/domain/entity.java.njk
@@ -294,6 +302,10 @@ templates:
     module: core
     template: core/filter/filter-expression-test.java.njk
     output: core/src/test/java/{{ packagePath }}/core/common/filter/{{ className }}.java
+  - id: entrypoints-rest-api
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/api.java.njk
+    output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
   - id: entrypoints-rest-controller
     module: entrypoints-rest
     template: entrypoints-rest/domain/controller.java.njk
@@ -302,6 +314,14 @@ templates:
     module: entrypoints-rest
     template: entrypoints-rest/domain/response.java.njk
     output: entrypoints/rest/src/main/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: entrypoints-rest-controller-test
+    module: entrypoints-rest
+    template: entrypoints-rest/domain/controller-test.java.njk
+    output: entrypoints/rest/src/test/java/{{ packagePath }}/entrypoint/rest/domains/{{ domainName }}/{{ className }}.java
+  - id: entrypoints-rest-test-application
+    module: entrypoints-rest
+    template: entrypoints-rest/test-application.java.njk
+    output: entrypoints/rest/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: entrypoints-rest-tombstone-response
     module: entrypoints-rest
     template: entrypoints-rest/domain/response.java.njk
@@ -385,19 +405,31 @@ templates:
   - id: infra-database-gateway-provider
     module: infra-database
     template: infra-database/gateway-provider.java.njk
-    output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/{{ className }}.java
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/{{ className }}.java
+  - id: infra-database-gateway-provider-test
+    module: infra-database
+    template: infra-database/provider-test.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/{{ className }}.java
+  - id: infra-database-gateway-provider-test-fixture
+    module: infra-database
+    template: infra-database/provider-test.sql.njk
+    output: infra/database/src/test/resources/{{ packagePath }}/infra/database/domains/{{ domainName }}/{{ className }}.sql
+  - id: infra-database-test-application
+    module: infra-database
+    template: infra-database/test-application.java.njk
+    output: infra/database/src/test/java/{{ packagePath }}/{{ className }}.java
   - id: infra-database-persistence-entity
     module: infra-database
     template: infra-database/persistence-entity.java.njk
-    output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/entity/{{ className }}.java
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/entity/{{ className }}.java
   - id: infra-database-persistence-mapper
     module: infra-database
     template: infra-database/persistence-mapper.java.njk
-    output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/mapper/{{ className }}.java
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/mapper/{{ className }}.java
   - id: infra-database-repository
     module: infra-database
     template: infra-database/repository.java.njk
-    output: infra/database/src/main/java/{{ packagePath }}/infra/domains/{{ domainName }}/repository/{{ className }}.java
+    output: infra/database/src/main/java/{{ packagePath }}/infra/database/domains/{{ domainName }}/repository/{{ className }}.java
   - id: infra-database-spring-data-page-request-mapper
     module: infra-database
     template: infra-database/spring-data-page-request-mapper.java.njk
@@ -513,7 +545,7 @@ templates:
   - id: configuration-application-test
     module: configuration
     template: configuration/application-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
   - id: configuration-architecture-test
     module: configuration
     template: configuration/architecture-test.java.njk
@@ -525,84 +557,84 @@ templates:
   - id: configuration-cors-smoke-test
     module: configuration
     template: configuration/cors-smoke-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
   - id: configuration-openapi-smoke-test
     module: configuration
     template: configuration/openapi-smoke-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
   - id: configuration-http-smoke-test
     module: configuration
     template: configuration/http-smoke-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/smoke/{{ className }}.java
   - id: configuration-querydsl-filter-persistence-test
     module: configuration
     template: configuration/querydsl-filter-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-http-persistence-read-test
     module: configuration
     template: configuration/http-persistence-read-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-find-by-id-persistence-test
     module: configuration
     template: configuration/find-by-id-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-create-persistence-test
     module: configuration
     template: configuration/create-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-http-find-by-id-test
     module: configuration
     template: configuration/http-find-by-id-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-http-create-test
     module: configuration
     template: configuration/http-create-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-http-update-test
     module: configuration
     template: configuration/http-update-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-http-patch-test
     module: configuration
     template: configuration/http-patch-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-http-delete-test
     module: configuration
     template: configuration/http-delete-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-http-deleted-query-test
     module: configuration
     template: configuration/http-deleted-query-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-http-restore-test
     module: configuration
     template: configuration/http-restore-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-http-filter-test
     module: configuration
     template: configuration/http-filter-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/http/{{ className }}.java
   - id: configuration-paging-persistence-test
     module: configuration
     template: configuration/paging-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-querydsl-filter-paging-persistence-test
     module: configuration
     template: configuration/querydsl-filter-paging-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-update-persistence-test
     module: configuration
     template: configuration/update-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-delete-persistence-test
     module: configuration
     template: configuration/delete-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-deleted-query-persistence-test
     module: configuration
     template: configuration/deleted-query-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java
   - id: configuration-restore-persistence-test
     module: configuration
     template: configuration/restore-persistence-test.java.njk
-    output: configuration/src/test/java/{{ packagePath }}/{{ className }}.java
+    output: configuration/src/test/java/{{ packagePath }}/persistence/{{ className }}.java

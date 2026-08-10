@@ -14,6 +14,7 @@ import { toJavaDatabaseUniqueConstraintName } from "../naming/JavaDatabaseConstr
 import { toJavaPackageSegment } from "../naming/JavaPackageSegment.js";
 import { toJavaTypeName } from "../naming/JavaTypeName.js";
 import { toJavaFieldName } from "../naming/JavaFieldName.js";
+import { createJavaPersistenceProviderTestModel } from "../transformers/createJavaPersistenceProviderTestModel.js";
 import { JavaTypeResolver } from "../types/JavaTypeResolver.js";
 import { JavaTestFixtureValueResolver } from "../fixtures/JavaTestFixtureValueResolver.js";
 
@@ -71,7 +72,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
         : [];
       const allFields = [...fields, ...auditedFields];
       const persistenceModel: JavaPersistenceEntityTemplateModel = {
-        packageName: `${namespace}.infra.domains.${domainName}.entity`,
+        packageName: `${namespace}.infra.database.domains.${domainName}.entity`,
         imports: persistenceImports.values(),
         className: `${entityType}Entity`,
         tableName: toJavaDatabaseTableName(entityType),
@@ -112,11 +113,11 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       const mapperImports = new JavaImportCollector();
       mapperImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
       mapperImports.add(`${namespace}.core.domains.${domainName}.model.${entityType}Tombstone`);
-      mapperImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+      mapperImports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
       const domainParameterName = toJavaFieldName(entityType);
       const entityParameterName = toJavaFieldName(`${entityType}Entity`);
       const mapperModel: JavaPersistenceMapperTemplateModel = {
-        packageName: `${namespace}.infra.domains.${domainName}.mapper`, imports: mapperImports.values(), className: `${entityType}PersistenceMapper`, constructorName: `${entityType}PersistenceMapper`,
+        packageName: `${namespace}.infra.database.domains.${domainName}.mapper`, imports: mapperImports.values(), className: `${entityType}PersistenceMapper`, constructorName: `${entityType}PersistenceMapper`,
         domainType: entityType, entityType: `${entityType}Entity`, tombstoneType: `${entityType}Tombstone`, domainParameterName, entityParameterName, toEntityMethodName: "toEntity", toDomainMethodName: "toDomain", toTombstoneMethodName: "toTombstone",
         toEntityArguments: entity.audited === true
           ? [...entity.attributes.map((attribute) => `${domainParameterName}.get${toJavaTypeName(attribute.name)}()`), `${domainParameterName}.getCreatedAt()`, `${domainParameterName}.getUpdatedAt()`]
@@ -137,12 +138,12 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       }
       const identifierType = typeResolver.resolve(identifiers[0]!.type);
       const repositoryImports = new JavaImportCollector();
-      repositoryImports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+      repositoryImports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
       repositoryImports.add(identifierType.import);
       repositoryImports.add("org.springframework.data.jpa.repository.JpaRepository");
       repositoryImports.add(`org.springframework.data.querydsl.${querydslPredicateExecutorType}`);
       const repositoryModel: JavaSpringDataRepositoryTemplateModel = {
-        packageName: `${namespace}.infra.domains.${domainName}.repository`,
+        packageName: `${namespace}.infra.database.domains.${domainName}.repository`,
         imports: repositoryImports.values(),
         interfaceName: `${entityType}Repository`,
         entityType: `${entityType}Entity`,
@@ -157,10 +158,10 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       imports.add(`${namespace}.core.common.exception.NotFoundException`);
       imports.add(`${namespace}.core.common.exception.ConflictException`);
       imports.add(identifierType.import);
-      imports.add(`${namespace}.infra.domains.${domainName}.mapper.${mapperModel.className}`);
-      imports.add(`${namespace}.infra.domains.${domainName}.repository.${repositoryModel.interfaceName}`);
+      imports.add(`${namespace}.infra.database.domains.${domainName}.mapper.${mapperModel.className}`);
+      imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${repositoryModel.interfaceName}`);
       imports.add(`${namespace}.core.common.filter.FilterExpression`);
-      imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
+      imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
       imports.add(`${namespace}.infra.database.common.filter.QuerydslFilterMapper`);
       imports.add(`${namespace}.infra.database.domains.${domainName}.filter.${entityType}QuerydslFilterDefinition`);
       imports.add(`${namespace}.core.common.paging.PageRequest`);
@@ -168,7 +169,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       imports.add(`${namespace}.infra.database.common.paging.SpringDataPageRequestMapper`);
       imports.add(`${namespace}.infra.database.common.paging.SpringDataPageResultMapper`);
       imports.add("com.querydsl.core.types.dsl.BooleanExpression");
-      imports.add(`${namespace}.infra.domains.${domainName}.entity.Q${entityType}Entity`);
+      imports.add(`${namespace}.infra.database.domains.${domainName}.entity.Q${entityType}Entity`);
       imports.add("java.util.List");
       imports.add("java.util.Map");
       imports.add("java.util.Objects");
@@ -181,7 +182,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
       }
       const repositoryFieldName = toJavaFieldName(repositoryModel.interfaceName);
       const model: JavaGatewayProviderTemplateModel = {
-        packageName: `${namespace}.infra.domains.${domainName}`,
+        packageName: `${namespace}.infra.database.domains.${domainName}`,
         imports: imports.values(),
         className: `${gatewayType}Provider`,
         gatewayType,
@@ -288,6 +289,16 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           model,
           outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: model.className },
         },
+        {
+          templateId: "infra-database-gateway-provider-test",
+          model: createJavaPersistenceProviderTestModel(entity, namespace),
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${model.className}Tests` },
+        },
+        {
+          templateId: "infra-database-gateway-provider-test-fixture",
+          model: createJavaPersistenceProviderTestModel(entity, namespace),
+          outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${model.className}Tests` },
+        },
       ];
     });
     const pagingPackageName = `${namespace}.infra.database.common.paging`;
@@ -333,7 +344,7 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           }));
           return { name: toJavaFieldName(attribute.name), domainName: attribute.name, type: javaType.name, import: javaType.import, operators };
         });
-        const filterModel = { packageName, commonPackage: filterPackageName, filterPackage: `${namespace}.core.common.filter`, entityPackage: `${namespace}.infra.domains.${domainName}.entity`, entityType, qVariableName: toJavaFieldName(`${entityType}Entity`), imports: [...new Set(fields.flatMap((field) => field.import === undefined ? [] : [field.import]))], fields };
+        const filterModel = { packageName, commonPackage: filterPackageName, filterPackage: `${namespace}.core.common.filter`, entityPackage: `${namespace}.infra.database.domains.${domainName}.entity`, entityType, qVariableName: toJavaFieldName(`${entityType}Entity`), imports: [...new Set(fields.flatMap((field) => field.import === undefined ? [] : [field.import]))], fields };
         return [
           { templateId: "infra-database-querydsl-domain-filter-definition", model: filterModel, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinition` } },
           { templateId: "infra-database-querydsl-domain-filter-definition-test", model: { packageName, entityType, imports: filterModel.imports, fields }, outputVariables: { packagePath: namespace.replaceAll(".", "/"), domainName, className: `${entityType}QuerydslFilterDefinitionTests` } },
@@ -363,10 +374,11 @@ export class JavaSpringCleanMultimoduleInfraDatabaseArtifactProducer
           return { name: attribute.name, type: javaType.name, import: javaType.import, fixture: fixtureResolver.resolve(attribute.type, index).javaExpression, methodName: `${attribute.name}Equals`, testSuffix: toJavaTypeName(attribute.name) };
         });
         return [
-          { templateId: "infra-database-querydsl-predicate-builder", model: { packageName, exceptionPackage: `${namespace}.core.common.exception`, entityPackage: `${namespace}.infra.domains.${domainName}.entity`, entityType, entityName: entity.name, qVariableName: toJavaFieldName(`${entityType}Entity`), methods: predicateMethods, imports: [...new Set(predicateMethods.flatMap((method) => method.import === undefined ? [] : [method.import]))] }, outputVariables: { ...pagingVariables, domainName, className: `${entityType}PredicateBuilder` } },
+          { templateId: "infra-database-querydsl-predicate-builder", model: { packageName, exceptionPackage: `${namespace}.core.common.exception`, entityPackage: `${namespace}.infra.database.domains.${domainName}.entity`, entityType, entityName: entity.name, qVariableName: toJavaFieldName(`${entityType}Entity`), methods: predicateMethods, imports: [...new Set(predicateMethods.flatMap((method) => method.import === undefined ? [] : [method.import]))] }, outputVariables: { ...pagingVariables, domainName, className: `${entityType}PredicateBuilder` } },
           { templateId: "infra-database-querydsl-predicate-builder-test", model: { packageName, exceptionPackage: `${namespace}.core.common.exception`, entityType, className: `${entityType}PredicateBuilderTests`, methods: predicateMethods, imports: [...new Set(predicateMethods.flatMap((method) => method.import === undefined ? [] : [method.import]))] }, outputVariables: { ...pagingVariables, domainName, className: `${entityType}PredicateBuilderTests` } },
         ];
       }),
+      { templateId: "infra-database-test-application", model: { packageName: namespace, className: "PersistenceTestApplication" }, outputVariables: { ...pagingVariables, className: "PersistenceTestApplication" } },
     ];
   }
 }

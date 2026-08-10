@@ -1,0 +1,14 @@
+package io.github.jtsato.walletservice;
+
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+/**
+ * Test-only composition root for this module.
+ *
+ * <p>Persistence slice tests locate a {@code @SpringBootConfiguration} by walking up from their
+ * own package. The runtime application lives in the configuration module, which this module does
+ * not depend on, so the slice needs a bootstrap class of its own.</p>
+ */
+@SpringBootApplication
+public class PersistenceTestApplication {
+}

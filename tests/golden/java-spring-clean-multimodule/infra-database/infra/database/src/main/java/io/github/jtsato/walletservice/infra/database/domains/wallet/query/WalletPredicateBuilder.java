@@ -3,7 +3,7 @@ package io.github.jtsato.walletservice.infra.database.domains.wallet.query;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import io.github.jtsato.walletservice.core.common.exception.FieldViolation;
 import io.github.jtsato.walletservice.core.common.exception.ValidationException;
-import io.github.jtsato.walletservice.infra.domains.wallet.entity.QWalletEntity;
+import io.github.jtsato.walletservice.infra.database.domains.wallet.entity.QWalletEntity;
 import java.util.List;
 import java.util.UUID;
 import java.math.BigDecimal;

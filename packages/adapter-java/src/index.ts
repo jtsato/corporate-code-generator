@@ -153,6 +153,11 @@ export type {
   MavenMultimoduleModulePomTemplateModel,
 } from "./model/MavenMultimoduleModulePomTemplateModel.js";
 
+export type {
+  JavaProjectReadmeTemplateModel,
+  JavaProjectReadmeResourceTemplateModel,
+} from "./model/JavaProjectReadmeTemplateModel.js";
+
 export { toJavaTypeName } from "./naming/JavaTypeName.js";
 export { toJavaPackageSegment } from "./naming/JavaPackageSegment.js";
 export { toJavaDatabaseTableName } from "./naming/JavaDatabaseTableName.js";

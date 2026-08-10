@@ -1,0 +1,187 @@
+package {{ packageName }};
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+{% for import in imports %}import {{ import }};
+{% endfor %}import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+
+/**
+ * Contract test for {@link {{ controllerType }}}.
+ *
+ * <p>Loads the web layer only. Every use case is replaced by a mock, so the assertions cover
+ * routing, request binding, status codes, the response JSON contract, and the command each
+ * request is translated into. End-to-end behavior across all four modules is covered separately
+ * by the configuration module's HTTP tests.</p>
+ */
+@Import({{ '{' }}{{ className }}.TestConfig.class})
+@AutoConfigureMockMvc(addFilters = false)
+@WebMvcTest(controllers = {{ controllerType }}.class)
+class {{ className }} {
+{% for field in fields %}    private static final {{ field.type }} {{ field.constantName }} = {{ field.javaExpression }};
+{% endfor %}    private static final Instant DELETED_AT = Instant.parse("2026-01-20T08:00:00Z");
+    private static final String EXPECTED_BODY = "{{ createRequestBody }}";
+
+    @Autowired
+    private MockMvc mockMvc;
+
+{% for useCase in useCases %}    @Autowired
+    private {{ useCase.type }} {{ useCase.fieldName }};
+
+{% endfor %}    @TestConfiguration
+    static class TestConfig {
+{% for useCase in useCases %}
+        @Bean
+        @Primary
+        {{ useCase.type }} {{ useCase.fieldName }}() {
+            return mock({{ useCase.type }}.class);
+        }
+{% endfor %}    }
+
+    private static {{ entityType }} {{ entityVariableName }}() {
+        return new {{ entityType }}({% for argument in entityConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %});
+    }
+
+    private static {{ tombstoneType }} {{ entityVariableName }}Tombstone() {
+        return new {{ tombstoneType }}({% for argument in tombstoneConstructorArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %});
+    }
+
+    @Test
+    void shouldCreateAndReturnCreatedWithLocation() throws Exception {
+        Create{{ entityType }}Command command = new Create{{ entityType }}Command({% for argument in createCommandArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %});
+        when({{ useCases[0].fieldName }}.execute(command)).thenReturn({{ entityVariableName }}());
+
+        mockMvc.perform(post("{{ collectionPath }}")
+                .content(EXPECTED_BODY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andExpect(header().string("Location", "{{ collectionPath }}/" + {{ identifierConstantName }}))
+            .andExpect(content().json(EXPECTED_BODY));
+
+        verify({{ useCases[0].fieldName }}, times(1)).execute(command);
+        verifyNoMoreInteractions({{ useCases[0].fieldName }});
+    }
+
+    @Test
+    void shouldFindByIdentifier() throws Exception {
+        when({{ useCases[5].fieldName }}.execute({{ identifierConstantName }})).thenReturn({{ entityVariableName }}());
+
+        mockMvc.perform(get("{{ collectionPath }}/" + {{ identifierConstantName }}).accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().json(EXPECTED_BODY));
+
+        verify({{ useCases[5].fieldName }}, times(1)).execute({{ identifierConstantName }});
+        verifyNoMoreInteractions({{ useCases[5].fieldName }});
+    }
+
+    @Test
+    void shouldUpdateAndReturnOk() throws Exception {
+        Update{{ entityType }}Command command = new Update{{ entityType }}Command({% for argument in updateCommandArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %});
+        when({{ useCases[1].fieldName }}.execute(command)).thenReturn({{ entityVariableName }}());
+
+        mockMvc.perform(put("{{ collectionPath }}/" + {{ identifierConstantName }})
+                .content("{{ updateRequestBody }}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().json(EXPECTED_BODY));
+
+        verify({{ useCases[1].fieldName }}, times(1)).execute(command);
+        verifyNoMoreInteractions({{ useCases[1].fieldName }});
+    }
+
+    @Test
+    void shouldPatchAndReturnOk() throws Exception {
+        Patch{{ entityType }}Command command = new Patch{{ entityType }}Command({% for argument in patchCommandArguments %}{{ argument }}{% if not loop.last %}, {% endif %}{% endfor %});
+        when({{ useCases[2].fieldName }}.execute(command)).thenReturn({{ entityVariableName }}());
+
+        mockMvc.perform(patch("{{ collectionPath }}/" + {{ identifierConstantName }})
+                .content("{{ patchRequestBody }}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().json(EXPECTED_BODY));
+
+        verify({{ useCases[2].fieldName }}, times(1)).execute(command);
+        verifyNoMoreInteractions({{ useCases[2].fieldName }});
+    }
+
+    @Test
+    void shouldDeleteAndReturnNoContent() throws Exception {
+        mockMvc.perform(delete("{{ collectionPath }}/" + {{ identifierConstantName }}))
+            .andExpect(status().isNoContent());
+
+        verify({{ useCases[3].fieldName }}, times(1)).execute(new Delete{{ entityType }}Command({{ identifierConstantName }}));
+        verifyNoMoreInteractions({{ useCases[3].fieldName }});
+    }
+
+    @Test
+    void shouldRestoreAndReturnNoContent() throws Exception {
+        mockMvc.perform(post("{{ collectionPath }}/" + {{ identifierConstantName }} + "/restore"))
+            .andExpect(status().isNoContent());
+
+        verify({{ useCases[4].fieldName }}, times(1)).execute(new Restore{{ entityType }}Command({{ identifierConstantName }}));
+        verifyNoMoreInteractions({{ useCases[4].fieldName }});
+    }
+
+    @Test
+    void shouldFindDeletedByIdentifier() throws Exception {
+        when({{ useCases[6].fieldName }}.execute({{ identifierConstantName }})).thenReturn({{ entityVariableName }}Tombstone());
+
+        mockMvc.perform(get("{{ collectionPath }}/deleted/" + {{ identifierConstantName }}).accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().json(EXPECTED_BODY))
+            .andExpect(jsonPath("$.deletedAt", is(DELETED_AT.toString())));
+
+        verify({{ useCases[6].fieldName }}, times(1)).execute({{ identifierConstantName }});
+        verifyNoMoreInteractions({{ useCases[6].fieldName }});
+    }
+
+    @Test
+    void shouldReturnPagedResultsWithMetadata() throws Exception {
+        when({{ useCases[7].fieldName }}.execute(any(), any()))
+            .thenReturn(new PageResult<>(List.of({{ entityVariableName }}()), 0, 20, 1L));
+
+        mockMvc.perform(get("{{ collectionPath }}").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.items", hasSize(1)))
+            .andExpect(jsonPath("$.page", is(0)))
+            .andExpect(jsonPath("$.size", is(20)))
+            .andExpect(jsonPath("$.totalItems", is(1)))
+            .andExpect(jsonPath("$.totalPages", is(1)));
+    }
+
+    @Test
+    void shouldReturnPagedDeletedResults() throws Exception {
+        when({{ useCases[8].fieldName }}.execute(any(), any()))
+            .thenReturn(new PageResult<>(List.of({{ entityVariableName }}Tombstone()), 0, 20, 1L));
+
+        mockMvc.perform(get("{{ collectionPath }}/deleted").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.items", hasSize(1)))
+            .andExpect(jsonPath("$.items[0].deletedAt", is(DELETED_AT.toString())));
+    }
+
+    @Test
+    void shouldRejectUnparseableIdentifier() throws Exception {
+        mockMvc.perform(get("{{ collectionPath }}/not-an-identifier").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError());
+    }
+}

@@ -5,8 +5,7 @@ package {{ packageName }};
 
 @RestController
 @RequestMapping("{{ requestMapping }}")
-@Tag(name = "{{ tagName }}", description = "{{ tagDescription }}")
-public class {{ className }} {
+public class {{ className }} implements {{ apiClassName }} {
     private final {{ useCaseType }} {{ useCaseFieldName }};
     private final {{ byIdUseCaseType }} {{ byIdUseCaseFieldName }};
     private final {{ createUseCaseType }} {{ createUseCaseFieldName }};
@@ -29,17 +28,8 @@ public class {{ className }} {
         this.{{ restoreUseCaseFieldName }} = {{ restoreUseCaseFieldName }};
     }
 
+    @Override
     @GetMapping
-    @Operation(summary = "{{ operationSummary }}", description = "{{ operationDescription }}")
-    @Parameter(name = "{{ filterParameterName }}", description = "{{ filterParameterDescription }}", example = "{{ filterParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
-    @Parameter(name = "{{ pageParameterName }}", description = "{{ pageParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "0", minimum = "0"))
-    @Parameter(name = "{{ sizeParameterName }}", description = "{{ sizeParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "20", minimum = "1"))
-    @Parameter(name = "{{ sortParameterName }}", description = "{{ sortParameterDescription }}", example = "{{ sortParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "{{ tagName }} found", content = @Content(schema = @Schema(implementation = {{ pageResponseClassName }}.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid filter", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public {{ pageResponseClassName }} {{ findAllMethodName }}(
         @RequestParam(name = "{{ filterParameterName }}", required = false) {{ filterParameterType }} {{ filterParameterName }},
         @RequestParam(name = "{{ pageParameterName }}", required = false) Integer {{ pageParameterName }},
@@ -61,17 +51,8 @@ public class {{ className }} {
         return new {{ pageResponseClassName }}(items, result.page(), result.size(), result.totalItems(), result.totalPages());
     }
 
+    @Override
     @GetMapping("/deleted")
-    @Operation(summary = "{{ deletedOperationSummary }}", description = "{{ deletedOperationDescription }}")
-    @Parameter(name = "{{ filterParameterName }}", description = "{{ filterParameterDescription }}", example = "{{ filterParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
-    @Parameter(name = "{{ pageParameterName }}", description = "{{ pageParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "0", minimum = "0"))
-    @Parameter(name = "{{ sizeParameterName }}", description = "{{ sizeParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "20", minimum = "1"))
-    @Parameter(name = "{{ sortParameterName }}", description = "{{ sortParameterDescription }}", example = "{{ sortParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Deleted {{ tagName }} found", content = @Content(schema = @Schema(implementation = {{ deletedPageResponseClassName }}.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid filter", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public {{ deletedPageResponseClassName }} findDeleted(
         @RequestParam(name = "{{ filterParameterName }}", required = false) {{ filterParameterType }} {{ filterParameterName }},
         @RequestParam(name = "{{ pageParameterName }}", required = false) Integer {{ pageParameterName }},
@@ -93,70 +74,36 @@ public class {{ className }} {
         return new {{ deletedPageResponseClassName }}(items, result.page(), result.size(), result.totalItems(), result.totalPages());
     }
 
+    @Override
     @GetMapping("/{id}")
-    @Operation(summary = "{{ findByIdOperationSummary }}", description = "{{ findByIdOperationDescription }}")
-    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "{{ domainClassName }} found", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public {{ responseClassName }} {{ findByIdMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}) {
         {{ domainClassName }} result = {{ byIdUseCaseFieldName }}.{{ useCaseExecuteMethodName }}({{ identifierParameterName }});
         return {{ responseClassName }}.{{ responseFactoryMethodName }}(result);
     }
 
+    @Override
     @GetMapping("/deleted/{id}")
-    @Operation(summary = "{{ deletedByIdOperationSummary }}", description = "{{ deletedByIdOperationDescription }}")
-    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Deleted {{ domainClassName }} found", content = @Content(schema = @Schema(implementation = {{ deletedResponseClassName }}.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public {{ deletedResponseClassName }} findDeletedById(@PathVariable {{ identifierType }} {{ identifierParameterName }}) {
         {{ domainClassName }}Tombstone result = {{ deletedByIdUseCaseFieldName }}.{{ deletedByIdUseCaseExecuteMethodName }}({{ identifierParameterName }});
         return {{ deletedResponseClassName }}.{{ responseFactoryMethodName }}(result);
     }
 
+    @Override
     @PutMapping("/{id}")
-    @Operation(summary = "{{ updateOperationSummary }}", description = "{{ updateOperationDescription }}")
-    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "{{ domainClassName }} updated", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public {{ responseClassName }} {{ updateMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}, @RequestBody {{ updateRequestType }} request) {
         {{ domainClassName }} updated = {{ updateUseCaseFieldName }}.{{ updateUseCaseExecuteMethodName }}(request.toCommand({{ identifierParameterName }}));
         return {{ responseClassName }}.{{ responseFactoryMethodName }}(updated);
     }
 
+    @Override
     @PatchMapping("/{id}")
-    @Operation(summary = "{{ patchOperationSummary }}", description = "{{ patchOperationDescription }}")
-    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "{{ patchResponseStatus }}", description = "{{ domainClassName }} patched", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public {{ responseClassName }} {{ patchMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}, @RequestBody {{ patchRequestType }} request) {
         {{ domainClassName }} patched = {{ patchUseCaseFieldName }}.{{ patchUseCaseExecuteMethodName }}(request.toCommand({{ identifierParameterName }}));
         return {{ responseClassName }}.{{ responseFactoryMethodName }}(patched);
     }
 
+    @Override
     @PostMapping
-    @Operation(summary = "{{ createOperationSummary }}", description = "{{ createOperationDescription }}")
-    @ApiResponses({
-        @ApiResponse(responseCode = "{{ createResponseStatus }}", description = "{{ domainClassName }} created", headers = @Header(name = "Location", description = "Location of the created resource", schema = @Schema(type = "string")), content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "409", description = "{{ domainClassName }} already exists", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public ResponseEntity<{{ responseClassName }}> {{ createMethodName }}(@RequestBody {{ createRequestType }} request) {
         {{ domainClassName }} created = {{ createUseCaseFieldName }}.{{ createUseCaseExecuteMethodName }}(request.toCommand());
         return ResponseEntity
@@ -164,30 +111,15 @@ public class {{ className }} {
             .body({{ responseClassName }}.{{ responseFactoryMethodName }}(created));
     }
 
+    @Override
     @DeleteMapping("/{id}")
-    @Operation(summary = "{{ deleteOperationSummary }}", description = "{{ deleteOperationDescription }}")
-    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "{{ deleteResponseStatus }}", description = "{{ domainClassName }} deleted"),
-        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public ResponseEntity<Void> {{ deleteMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}) {
         {{ deleteUseCaseFieldName }}.{{ deleteUseCaseExecuteMethodName }}(new {{ deleteCommandType }}({{ identifierParameterName }}));
         return ResponseEntity.noContent().build();
     }
 
+    @Override
     @PostMapping("/{id}/restore")
-    @Operation(summary = "{{ restoreOperationSummary }}", description = "{{ restoreOperationDescription }}")
-    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
-    @ApiResponses({
-        @ApiResponse(responseCode = "{{ restoreResponseStatus }}", description = "{{ domainClassName }} restored"),
-        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "409", description = "{{ domainClassName }} cannot be restored", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
-        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
-    })
     public ResponseEntity<Void> {{ restoreMethodName }}(@PathVariable {{ identifierType }} {{ identifierParameterName }}) {
         {{ restoreUseCaseFieldName }}.{{ restoreUseCaseExecuteMethodName }}(new Restore{{ domainClassName }}Command({{ identifierParameterName }}));
         return ResponseEntity.noContent().build();

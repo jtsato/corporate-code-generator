@@ -77,8 +77,8 @@ export function createJavaQuerydslFilterPersistenceTestModel(
   imports.add(`${namespace}.core.common.filter.FilterOperator`);
   imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
   imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${useCaseType}`);
-  imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-  imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
   imports.add("java.util.List");
   imports.add("org.junit.jupiter.api.AfterEach");
   imports.add("org.junit.jupiter.api.BeforeEach");
@@ -203,7 +203,7 @@ export function createJavaQuerydslFilterPersistenceTestModel(
   ];
 
   return {
-    packageName: namespace,
+    packageName: `${namespace}.persistence`,
     imports: imports.values(),
     className: `${entityType}QuerydslFilterPersistenceTests`,
     activeProfile: "test",

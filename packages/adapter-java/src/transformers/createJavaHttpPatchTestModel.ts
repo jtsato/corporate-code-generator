@@ -25,8 +25,8 @@ export function createJavaHttpPatchTestModel(
 
   const imports = new JavaImportCollector();
   for (const value of [
-    `${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`,
-    `${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`,
+    `${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`,
+    `${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`,
     "com.fasterxml.jackson.databind.JsonNode", "com.fasterxml.jackson.databind.ObjectMapper", "java.net.URI",
     "java.net.http.HttpClient", "java.net.http.HttpRequest", "java.net.http.HttpResponse", "org.junit.jupiter.api.AfterEach",
     "org.junit.jupiter.api.Test", "org.springframework.beans.factory.annotation.Autowired", "org.springframework.boot.test.context.SpringBootTest",
@@ -80,7 +80,7 @@ export function createJavaHttpPatchTestModel(
     : fixtures.map((fixture) => fixture.constantName);
 
   return {
-    packageName: namespace, imports: imports.values(), className: `${entityType}HttpPatchTests`, activeProfile: "test",
+    packageName: `${namespace}.http`, imports: imports.values(), className: `${entityType}HttpPatchTests`, activeProfile: "test",
     endpointPath: toRestCollectionPath(entity.name), entityType: `${entityType}Entity`, persistenceEntityType: `${entityType}Entity`,
     repositoryType: `${entityType}Repository`, repositoryFieldName: toJavaFieldName(`${entityType}Repository`),
     identifierConstantName: fixtures[identifierIndex]!.constantName,

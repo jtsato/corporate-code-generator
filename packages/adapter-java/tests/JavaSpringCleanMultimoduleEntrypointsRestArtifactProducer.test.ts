@@ -29,8 +29,13 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
     });
     expect(producer.profileId).toBe("java-spring-clean-multimodule");
     expect(producer.moduleId).toBe("entrypoints-rest");
-    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-domain-create-request", "entrypoints-rest-domain-update-request", "entrypoints-rest-domain-patch-request", "entrypoints-rest-tombstone-response", "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test", "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-common-sort-field-definition", "entrypoints-rest-common-sort-definition", "entrypoints-rest-common-sort-parser", "entrypoints-rest-common-sort-parser-test", "entrypoints-rest-domain-sort-definition", "entrypoints-rest-domain-sort-definition-test", "entrypoints-rest-response-status", "entrypoints-rest-page-response", "entrypoints-rest-tombstone-page-response"]);
-    expect(artifacts.slice(0, 3)).toMatchObject([
+    expect(artifacts.map((artifact) => artifact.templateId)).toEqual(["entrypoints-rest-api", "entrypoints-rest-controller", "entrypoints-rest-response", "entrypoints-rest-domain-create-request", "entrypoints-rest-domain-update-request", "entrypoints-rest-domain-patch-request", "entrypoints-rest-tombstone-response", "entrypoints-rest-controller-test", "entrypoints-rest-filter-operator", "entrypoints-rest-filter-field-definition", "entrypoints-rest-filter-definition", "entrypoints-rest-filter-parser", "entrypoints-rest-filter-parser-test", "entrypoints-rest-domain-filter-definition", "entrypoints-rest-domain-filter-definition-test", "entrypoints-rest-common-sort-field-definition", "entrypoints-rest-common-sort-definition", "entrypoints-rest-common-sort-parser", "entrypoints-rest-common-sort-parser-test", "entrypoints-rest-domain-sort-definition", "entrypoints-rest-domain-sort-definition-test", "entrypoints-rest-response-status", "entrypoints-rest-page-response", "entrypoints-rest-tombstone-page-response", "entrypoints-rest-test-application"]);
+    expect(artifacts[0]).toMatchObject({
+      templateId: "entrypoints-rest-api",
+      outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletApi" },
+      model: { apiClassName: "WalletApi", tagName: "Wallets" },
+    });
+    expect(artifacts.slice(1, 4)).toMatchObject([
       {
         outputVariables: { packagePath: "io/github/jtsato/walletservice", domainName: "wallet", className: "WalletController" },
         model: {
@@ -113,7 +118,6 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.restore.RestoreWalletUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase",
           "io.github.jtsato.walletservice.entrypoint.rest.common.filter.RestFilterParser",
-          "io.github.jtsato.walletservice.entrypoint.rest.common.ResponseStatus",
           "io.github.jtsato.walletservice.entrypoint.rest.common.sort.RestSortParser",
           "io.github.jtsato.walletservice.entrypoint.rest.common.WalletPageResponse",
           "io.github.jtsato.walletservice.entrypoint.rest.common.WalletTombstonePageResponse",
@@ -123,16 +127,6 @@ describe("JavaSpringCleanMultimoduleEntrypointsRestArtifactProducer", () => {
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.request.UpdateWalletRequest",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.sort.WalletRestSortDefinition",
           "io.github.jtsato.walletservice.entrypoint.rest.domains.wallet.WalletTombstoneResponse",
-          "io.swagger.v3.oas.annotations.enums.ParameterIn",
-          "io.swagger.v3.oas.annotations.headers.Header",
-          "io.swagger.v3.oas.annotations.media.ArraySchema",
-          "io.swagger.v3.oas.annotations.media.Content",
-          "io.swagger.v3.oas.annotations.media.Schema",
-          "io.swagger.v3.oas.annotations.Operation",
-          "io.swagger.v3.oas.annotations.Parameter",
-          "io.swagger.v3.oas.annotations.responses.ApiResponse",
-          "io.swagger.v3.oas.annotations.responses.ApiResponses",
-          "io.swagger.v3.oas.annotations.tags.Tag",
             "java.net.URI",
             "java.util.List",
             "java.util.UUID",

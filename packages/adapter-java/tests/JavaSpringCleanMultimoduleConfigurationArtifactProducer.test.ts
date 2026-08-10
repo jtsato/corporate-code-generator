@@ -70,8 +70,8 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
           "io.github.jtsato.walletservice.core.domains.wallet.gateway.WalletGateway",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsUseCase",
           "io.github.jtsato.walletservice.core.domains.wallet.usecase.find.FindWalletsUseCaseInteractor",
-          "io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository",
-          "io.github.jtsato.walletservice.infra.domains.wallet.WalletGatewayProvider",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.repository.WalletRepository",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.WalletGatewayProvider",
           "org.springframework.context.annotation.Bean",
           "org.springframework.context.annotation.Configuration",
         ],
@@ -170,8 +170,8 @@ describe("JavaSpringCleanMultimoduleConfigurationArtifactProducer", () => {
       model: {
         packageName: "io.github.jtsato.walletservice",
         imports: [
-          "io.github.jtsato.walletservice.infra.domains.wallet.entity.WalletEntity",
-          "io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.entity.WalletEntity",
+          "io.github.jtsato.walletservice.infra.database.domains.wallet.repository.WalletRepository",
           "java.math.BigDecimal",
           "java.net.URI",
           "java.net.http.HttpClient",

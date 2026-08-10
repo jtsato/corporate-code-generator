@@ -1,0 +1,1 @@
+INSERT INTO wallet (id, balance, deletion_scope) VALUES ('11111111-1111-1111-1111-111111111111', 123.45, 'ACTIVE');

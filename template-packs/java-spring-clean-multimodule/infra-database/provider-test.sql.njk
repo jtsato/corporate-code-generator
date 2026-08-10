@@ -1,0 +1,1 @@
+INSERT INTO {{ tableName }} ({% for column in seededColumns %}{{ column.columnName }}, {% endfor %}{{ deletionScopeColumn }}) VALUES ({% for column in seededColumns %}{{ column.sqlLiteral }}, {% endfor %}'{{ activeScope }}');

@@ -15,6 +15,8 @@
   <version>{{ version }}</version>
   <packaging>pom</packaging>
 
+  <name>{{ name }}</name>
+
   <modules>
 {% for module in modules %}    <module>{{ module }}</module>
 {% endfor %}  </modules>
@@ -23,7 +25,57 @@
     <java.version>{{ javaVersion }}</java.version>
     <maven.compiler.release>{{ javaVersion }}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <archunit.version>{{ archUnitVersion }}</archunit.version>
     <springdoc-openapi.version>{{ springdocOpenapiVersion }}</springdoc-openapi.version>
+    <querydsl.version>{{ querydslVersion }}</querydsl.version>
+    <jakarta-persistence.version>{{ jakartaPersistenceVersion }}</jakarta-persistence.version>
+    <jakarta-annotation.version>{{ jakartaAnnotationVersion }}</jakarta-annotation.version>
+    <expressly.version>{{ expresslyVersion }}</expressly.version>
+    <jacoco-maven-plugin.version>{{ jacocoVersion }}</jacoco-maven-plugin.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+{% for dependency in managedDependencies %}      <dependency>
+        <groupId>{{ dependency.groupId }}</groupId>
+        <artifactId>{{ dependency.artifactId }}</artifactId>
+        <version>{{ dependency.version }}</version>
+{% if dependency.classifier %}        <classifier>{{ dependency.classifier }}</classifier>
+{% endif %}      </dependency>
+{% endfor %}    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+{% for dependency in sharedDependencies %}    <dependency>
+      <groupId>{{ dependency.groupId }}</groupId>
+      <artifactId>{{ dependency.artifactId }}</artifactId>
+{% if dependency.scope %}      <scope>{{ dependency.scope }}</scope>
+{% endif %}    </dependency>
+{% endfor %}  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>jacoco-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

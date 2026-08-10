@@ -1,0 +1,108 @@
+package {{ packageName }};
+
+{% for import in apiImports %}import {{ import }};
+{% endfor %}
+
+/**
+ * OpenAPI contract for the {{ tagName }} resource.
+ *
+ * <p>The specification annotations live here and the routing lives on the implementing
+ * controller, so the documented contract can be read without scrolling past request handling.</p>
+ */
+@Tag(name = "{{ tagName }}", description = "{{ tagDescription }}")
+public interface {{ apiClassName }} {
+
+    @Operation(summary = "{{ operationSummary }}", description = "{{ operationDescription }}")
+    @Parameter(name = "{{ filterParameterName }}", description = "{{ filterParameterDescription }}", example = "{{ filterParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
+    @Parameter(name = "{{ pageParameterName }}", description = "{{ pageParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "0", minimum = "0"))
+    @Parameter(name = "{{ sizeParameterName }}", description = "{{ sizeParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "20", minimum = "1"))
+    @Parameter(name = "{{ sortParameterName }}", description = "{{ sortParameterDescription }}", example = "{{ sortParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "{{ tagName }} found", content = @Content(schema = @Schema(implementation = {{ pageResponseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid filter", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    {{ pageResponseClassName }} {{ findAllMethodName }}({{ filterParameterType }} {{ filterParameterName }}, Integer {{ pageParameterName }}, Integer {{ sizeParameterName }}, {{ sortParameterType }} {{ sortParameterName }});
+
+    @Operation(summary = "{{ deletedOperationSummary }}", description = "{{ deletedOperationDescription }}")
+    @Parameter(name = "{{ filterParameterName }}", description = "{{ filterParameterDescription }}", example = "{{ filterParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
+    @Parameter(name = "{{ pageParameterName }}", description = "{{ pageParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "0", minimum = "0"))
+    @Parameter(name = "{{ sizeParameterName }}", description = "{{ sizeParameterDescription }}", schema = @Schema(type = "integer", defaultValue = "20", minimum = "1"))
+    @Parameter(name = "{{ sortParameterName }}", description = "{{ sortParameterDescription }}", example = "{{ sortParameterExample }}", array = @ArraySchema(schema = @Schema(type = "string")))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Deleted {{ tagName }} found", content = @Content(schema = @Schema(implementation = {{ deletedPageResponseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid filter", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    {{ deletedPageResponseClassName }} findDeleted({{ filterParameterType }} {{ filterParameterName }}, Integer {{ pageParameterName }}, Integer {{ sizeParameterName }}, {{ sortParameterType }} {{ sortParameterName }});
+
+    @Operation(summary = "{{ findByIdOperationSummary }}", description = "{{ findByIdOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "{{ domainClassName }} found", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    {{ responseClassName }} {{ findByIdMethodName }}({{ identifierType }} {{ identifierParameterName }});
+
+    @Operation(summary = "{{ deletedByIdOperationSummary }}", description = "{{ deletedByIdOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Deleted {{ domainClassName }} found", content = @Content(schema = @Schema(implementation = {{ deletedResponseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    {{ deletedResponseClassName }} findDeletedById({{ identifierType }} {{ identifierParameterName }});
+
+    @Operation(summary = "{{ updateOperationSummary }}", description = "{{ updateOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "{{ domainClassName }} updated", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    {{ responseClassName }} {{ updateMethodName }}({{ identifierType }} {{ identifierParameterName }}, {{ updateRequestType }} request);
+
+    @Operation(summary = "{{ patchOperationSummary }}", description = "{{ patchOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "{{ patchResponseStatus }}", description = "{{ domainClassName }} patched", content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    {{ responseClassName }} {{ patchMethodName }}({{ identifierType }} {{ identifierParameterName }}, {{ patchRequestType }} request);
+
+    @Operation(summary = "{{ createOperationSummary }}", description = "{{ createOperationDescription }}")
+    @ApiResponses({
+        @ApiResponse(responseCode = "{{ createResponseStatus }}", description = "{{ domainClassName }} created", headers = @Header(name = "Location", description = "Location of the created resource", schema = @Schema(type = "string")), content = @Content(schema = @Schema(implementation = {{ responseClassName }}.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "409", description = "{{ domainClassName }} already exists", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    ResponseEntity<{{ responseClassName }}> {{ createMethodName }}({{ createRequestType }} request);
+
+    @Operation(summary = "{{ deleteOperationSummary }}", description = "{{ deleteOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "{{ deleteResponseStatus }}", description = "{{ domainClassName }} deleted"),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    ResponseEntity<Void> {{ deleteMethodName }}({{ identifierType }} {{ identifierParameterName }});
+
+    @Operation(summary = "{{ restoreOperationSummary }}", description = "{{ restoreOperationDescription }}")
+    @Parameter(name = "{{ identifierParameterName }}", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string", format = "uuid"))
+    @ApiResponses({
+        @ApiResponse(responseCode = "{{ restoreResponseStatus }}", description = "{{ domainClassName }} restored"),
+        @ApiResponse(responseCode = "400", description = "Invalid identifier", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "404", description = "{{ domainClassName }} not found", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "409", description = "{{ domainClassName }} cannot be restored", content = @Content(schema = @Schema(implementation = ResponseStatus.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ResponseStatus.class)))
+    })
+    ResponseEntity<Void> {{ restoreMethodName }}({{ identifierType }} {{ identifierParameterName }});
+}

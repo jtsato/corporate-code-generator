@@ -23,7 +23,8 @@
 {% endfor %}  </dependencies>
 {% if hasSpringBootPlugin %}
   <build>
-    <plugins>
+{% if finalName %}    <finalName>{{ finalName }}</finalName>
+{% endif %}    <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

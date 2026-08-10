@@ -25,8 +25,8 @@ import io.github.jtsato.walletservice.core.domains.wallet.usecase.restore.Restor
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.restore.RestoreWalletUseCaseInteractor;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCase;
 import io.github.jtsato.walletservice.core.domains.wallet.usecase.update.UpdateWalletUseCaseInteractor;
-import io.github.jtsato.walletservice.infra.domains.wallet.repository.WalletRepository;
-import io.github.jtsato.walletservice.infra.domains.wallet.WalletGatewayProvider;
+import io.github.jtsato.walletservice.infra.database.domains.wallet.repository.WalletRepository;
+import io.github.jtsato.walletservice.infra.database.domains.wallet.WalletGatewayProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

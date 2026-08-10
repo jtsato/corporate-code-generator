@@ -111,7 +111,7 @@ describe("Java multi-module generation", () => {
     expect(notAuditedContent).not.toContain("existing");
   });
 
-  it("renders the one hundred and forty-eight complete Maven reactor artifacts", async () => {
+  it("renders the one hundred and fifty-six complete Maven reactor artifacts", async () => {
     const modelPath = resolve(rootDirectory, "examples", "wallet-service", "model.yaml");
     const document = await new ModelLoader().load(modelPath);
     const schemaVersion = new SchemaVersionDetector().detect(document);
@@ -155,9 +155,16 @@ describe("Java multi-module generation", () => {
       ...configurationPlan.operations,
     ];
 
-    expect(operations).toHaveLength(148);
+    expect(operations).toHaveLength(156);
     expect(operations.map((operation) => operation.targetPath)).toEqual([
-      "pom.xml", "core/pom.xml", "entrypoints/rest/pom.xml", "infra/database/pom.xml", "configuration/pom.xml", ".github/workflows/java-ci.yml",
+      "pom.xml",
+      "core/pom.xml",
+      "entrypoints/rest/pom.xml",
+      "infra/database/pom.xml",
+      "configuration/pom.xml",
+      ".github/workflows/java-ci.yml",
+      ".gitignore",
+      "README.md",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/Wallet.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/model/WalletTombstone.java",
       "core/src/main/java/io/github/jtsato/walletservice/core/domains/wallet/gateway/WalletGateway.java",
@@ -223,12 +230,14 @@ describe("Java multi-module generation", () => {
       "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterConditionTests.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterGroupTests.java",
       "core/src/test/java/io/github/jtsato/walletservice/core/common/filter/FilterExpressionTests.java",
+      "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletApi.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletController.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletResponse.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/CreateWalletRequest.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/UpdateWalletRequest.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/request/PatchWalletRequest.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletTombstoneResponse.java",
+      "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/entrypoint/rest/domains/wallet/WalletControllerTests.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterOperator.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterFieldDefinition.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/filter/RestFilterDefinition.java",
@@ -245,10 +254,13 @@ describe("Java multi-module generation", () => {
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/ResponseStatus.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/WalletPageResponse.java",
       "entrypoints/rest/src/main/java/io/github/jtsato/walletservice/entrypoint/rest/common/WalletTombstonePageResponse.java",
-      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/entity/WalletEntity.java",
-      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/mapper/WalletPersistenceMapper.java",
-      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/repository/WalletRepository.java",
-      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/domains/wallet/WalletGatewayProvider.java",
+      "entrypoints/rest/src/test/java/io/github/jtsato/walletservice/RestTestApplication.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/entity/WalletEntity.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/mapper/WalletPersistenceMapper.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/repository/WalletRepository.java",
+      "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProvider.java",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderTests.java",
+      "infra/database/src/test/resources/io/github/jtsato/walletservice/infra/database/domains/wallet/WalletGatewayProviderTests.sql",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterFieldDefinition.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterDefinition.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/common/filter/QuerydslFilterValueConverter.java",
@@ -263,6 +275,7 @@ describe("Java multi-module generation", () => {
       "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/common/paging/SpringDataPageResultMapperTests.java",
       "infra/database/src/main/java/io/github/jtsato/walletservice/infra/database/domains/wallet/query/WalletPredicateBuilder.java",
       "infra/database/src/test/java/io/github/jtsato/walletservice/infra/database/domains/wallet/query/WalletPredicateBuilderTests.java",
+      "infra/database/src/test/java/io/github/jtsato/walletservice/PersistenceTestApplication.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/WalletServiceApplication.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/domains/wallet/WalletConfiguration.java",
       "configuration/src/main/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandler.java",
@@ -276,30 +289,30 @@ describe("Java multi-module generation", () => {
       "configuration/src/main/resources/application-prod.yaml",
       "configuration/src/main/resources/messages.properties",
       "configuration/src/main/resources/messages_pt_BR.properties",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletServiceApplicationTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletServiceApplicationTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/architecture/ArchitectureTests.java",
       "configuration/src/test/java/io/github/jtsato/walletservice/configuration/exception/GlobalExceptionHandlerTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletCorsSmokeTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletOpenApiSmokeTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpSmokeTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPersistenceReadTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletFindByIdPersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletCreatePersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFindByIdTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpCreateTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpUpdateTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpPatchTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpDeleteTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpFilterTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletPagingPersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletQuerydslFilterPagingPersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletUpdatePersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletDeletePersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletDeletedQueryPersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletRestorePersistenceTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpDeletedQueryTests.java",
-      "configuration/src/test/java/io/github/jtsato/walletservice/WalletHttpRestoreTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletCorsSmokeTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletOpenApiSmokeTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/smoke/WalletHttpSmokeTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpPersistenceReadTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletFindByIdPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletCreatePersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpFindByIdTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpCreateTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpUpdateTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpPatchTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpDeleteTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletQuerydslFilterPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpFilterTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletPagingPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletQuerydslFilterPagingPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletUpdatePersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletDeletePersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletDeletedQueryPersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/persistence/WalletRestorePersistenceTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpDeletedQueryTests.java",
+      "configuration/src/test/java/io/github/jtsato/walletservice/http/WalletHttpRestoreTests.java",
     ]);
 
     const controller = operations.find((operation) => operation.targetPath.endsWith("/WalletController.java"));
@@ -320,7 +333,7 @@ describe("Java multi-module generation", () => {
         "golden",
         "java-spring-clean-multimodule",
         goldenModule,
-        operation.targetPath,
+        goldenPathFor(operation.targetPath),
       ), "utf8");
       expect(normalize(operation.content)).toBe(normalize(golden));
     }
@@ -329,6 +342,12 @@ describe("Java multi-module generation", () => {
 
 function normalize(value: string): string {
   return value.replaceAll("\r\n", "\n");
+}
+
+// The generated `.gitignore` is stored without its leading dot so that it does
+// not act as a live ignore file over the golden tree itself.
+function goldenPathFor(targetPath: string): string {
+  return targetPath === ".gitignore" ? "gitignore" : targetPath;
 }
 
 function goldenModuleFor(targetPath: string): string {

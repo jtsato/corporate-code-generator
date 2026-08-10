@@ -53,14 +53,14 @@ NestJS dependencies:
 | --- | ---: |
 | `java-spring-clean --module domain` | 1 CREATE |
 | `java-spring-clean` full profile | 6 CREATE |
-| `java-spring-clean-multimodule` full profile | 148 CREATE |
-| `java-spring-clean-multimodule --module build` | 6 CREATE |
+| `java-spring-clean-multimodule` full profile | 156 CREATE |
+| `java-spring-clean-multimodule --module build` | 8 CREATE |
 | `java-spring-clean-multimodule --module core` | 65 CREATE |
-| `java-spring-clean-multimodule --module entrypoints-rest` | 87 CREATE |
-| `java-spring-clean-multimodule --module infra-database` | 83 CREATE |
-| `java-spring-clean-multimodule --module configuration` | 148 CREATE |
-| `java-spring-clean-multimodule --module build --module core` | 71 CREATE |
-| `java-spring-clean-multimodule --module build --module configuration` | 148 CREATE |
+| `java-spring-clean-multimodule --module entrypoints-rest` | 90 CREATE |
+| `java-spring-clean-multimodule --module infra-database` | 86 CREATE |
+| `java-spring-clean-multimodule --module configuration` | 156 CREATE |
+| `java-spring-clean-multimodule --module build --module core` | 73 CREATE |
+| `java-spring-clean-multimodule --module build --module configuration` | 156 CREATE |
 | `nestjs-clean-architecture` full profile | 28 CREATE |
 | `nestjs-clean-architecture --module build` | 4 CREATE |
 | `nestjs-clean-architecture --module core` | 11 CREATE |

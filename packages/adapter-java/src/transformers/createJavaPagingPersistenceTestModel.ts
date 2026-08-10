@@ -33,8 +33,8 @@ export function createJavaPagingPersistenceTestModel(
   imports.add(`${namespace}.core.common.paging.PageResult`);
   imports.add(`${namespace}.core.domains.${domainName}.model.${entityType}`);
   imports.add(`${namespace}.core.domains.${domainName}.usecase.find.${pageUseCaseType}`);
-  imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-  imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
   imports.add("java.util.List");
   imports.add("org.junit.jupiter.api.AfterEach");
   imports.add("org.junit.jupiter.api.BeforeEach");
@@ -67,7 +67,7 @@ export function createJavaPagingPersistenceTestModel(
   ];
 
   return {
-    packageName: namespace,
+    packageName: `${namespace}.persistence`,
     imports: imports.values(),
     className: `${entityType}PagingPersistenceTests`,
     activeProfile: "test",

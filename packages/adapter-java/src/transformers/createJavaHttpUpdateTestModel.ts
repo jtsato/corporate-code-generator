@@ -25,8 +25,8 @@ export function createJavaHttpUpdateTestModel(
   if (valueAttribute === undefined) throw new Error(`Cannot generate the HTTP update test for entity '${entity.name}' without a non-identifier attribute.`);
 
   const imports = new JavaImportCollector();
-  imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-  imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
   imports.add("com.fasterxml.jackson.databind.JsonNode");
   imports.add("com.fasterxml.jackson.databind.ObjectMapper");
   imports.add("java.net.URI");
@@ -89,7 +89,7 @@ export function createJavaHttpUpdateTestModel(
     : fixtures.map((fixture) => fixture.constantName);
 
   return {
-    packageName: namespace,
+    packageName: `${namespace}.http`,
     imports: imports.values(),
     className: `${entityType}HttpUpdateTests`,
     activeProfile: "test",

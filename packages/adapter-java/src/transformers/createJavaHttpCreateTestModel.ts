@@ -25,8 +25,8 @@ export function createJavaHttpCreateTestModel(
     || (entity.uniqueGroups?.length ?? 0) > 0;
 
   const imports = new JavaImportCollector();
-  imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-  imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
   imports.add("com.fasterxml.jackson.databind.JsonNode");
   imports.add("com.fasterxml.jackson.databind.ObjectMapper");
   imports.add("java.net.URI");
@@ -83,7 +83,7 @@ export function createJavaHttpCreateTestModel(
     : fixtures.map((fixture) => fixture.constantName);
 
   return {
-    packageName: namespace,
+    packageName: `${namespace}.http`,
     imports: imports.values(),
     className: `${entityType}HttpCreateTests`,
     activeProfile: "test",

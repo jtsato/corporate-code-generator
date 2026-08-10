@@ -22,8 +22,8 @@ export function createJavaHttpDeleteTestModel(
   if (identifier === undefined) throw new Error(`Cannot generate the HTTP delete test for entity '${entity.name}' without an identifier.`);
 
   const imports = new JavaImportCollector();
-  imports.add(`${namespace}.infra.domains.${domainName}.entity.${entityType}Entity`);
-  imports.add(`${namespace}.infra.domains.${domainName}.repository.${entityType}Repository`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.entity.${entityType}Entity`);
+  imports.add(`${namespace}.infra.database.domains.${domainName}.repository.${entityType}Repository`);
   imports.add("com.fasterxml.jackson.databind.JsonNode");
   imports.add("com.fasterxml.jackson.databind.ObjectMapper");
   imports.add("java.net.URI");
@@ -58,7 +58,7 @@ export function createJavaHttpDeleteTestModel(
     : fixtures.map((fixture) => fixture.constantName);
 
   return {
-    packageName: namespace,
+    packageName: `${namespace}.http`,
     imports: imports.values(),
     className: `${entityType}HttpDeleteTests`,
     activeProfile: "test",
