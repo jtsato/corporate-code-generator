@@ -106,11 +106,11 @@ The root `package.json` declares:
 - `test:coverage`;
 - `test:watch`;
 - `mutation`;
-- 30 smoke scripts.
+- 34 smoke scripts.
 
 The repository contains:
 
-- 31 files under `tests/smoke`;
+- 34 `*.smoke.test.ts` files directly under `tests/smoke`, plus 2 shared support modules under `tests/smoke/support` that declare no tests of their own;
 - 4 files under `tests/integration`;
 - 3 GitHub workflow files under `.github/workflows`.
 
@@ -118,7 +118,7 @@ The repository contains:
 
 Measured/documented CI state:
 
-- `continuous-integration.yml` runs Node.js 22, Java 25, `npm ci`, typecheck, build, coverage, single-module smoke, single-module Maven smoke, multi-module smoke families, Maven reactor smoke, and SonarCloud scan.
+- `continuous-integration.yml` runs Node.js 22, Java 25, `npm ci`, typecheck, build, coverage, single-module smoke, single-module Maven smoke, multi-module smoke families, Maven reactor smoke, the NestJS golden smoke, the NestJS generated-project smoke with `CODEGEN_REQUIRE_NPM_SMOKE=true`, and SonarCloud scan. Every declared smoke script has a corresponding workflow step.
 - `java-multimodule-maven-smoke.yml` runs the generated Java multi-module Maven smoke with `CODEGEN_REQUIRE_MAVEN_SMOKE=true`.
 - `mutation-testing.yml` runs scheduled or manual mutation testing.
 - The generated Java CI (`.github/workflows/java-ci.yml`) uses Java 25,
@@ -288,6 +288,19 @@ Run context: main workspace, generated coverage threshold gate; date: 2026-08-10
 - Negative test: raising the generated minimum to 0.95 and re-running `mvn -B verify` failed with `Rule violated for bundle wallet-service-core: lines covered ratio is 0.91, but expected minimum is 0.95`, confirming the rule is enforced and not merely declared.
 - No branch rule was set. `configuration` has 14 branches in total and all 8 misses are in `CorsProperties` (5/12) and the anonymous `WebMvcConfigurer` in `CorsWebConfiguration` (1/2), so any uniform branch minimum above 0.42 fails every generated project and any minimum at or below it is vacuous.
 
+## Milestone 7.7 Validation
+
+Run context: main workspace, NestJS generated-project quality gate; date: 2026-08-10. Windows, Node.js 26.5.1, npm 11.18.0.
+
+- `npm run typecheck`, `npm run build`, and `npm test` passed (48 files, 212 tests). The counts are unchanged from Milestone 6.51 because the new gate is excluded from the default suite.
+- `npm run test:coverage` passed: Statements 92.34%, Branches 80.22%, Functions 96.58%, Lines 93.17%. Functions stood at 97.73% when last recorded at Milestone 6.36; the difference accumulated across 6.37 to 6.51, none of which recorded coverage figures, and is not attributable to this milestone, which changed no file under `packages/`.
+- `npm run smoke:nestjs` passed (2 tests); the 28 golden byte comparisons are unchanged.
+- `CODEGEN_REQUIRE_NPM_SMOKE=true npm run smoke:generated-project:nestjs` passed (3 tests) in about 26 seconds. A cold `npm install` of the generated project resolved 325 packages in 18 seconds with no `ERESOLVE`, peer, or engine warning; `nest build` emitted `dist/main.js` in 2 seconds with no warning; the server answered its first request 817 ms after spawn on a reserved ephemeral port. `POST /wallets` returned 201 with `{"id":...,"balance":125.5}`, `GET /wallets/{id}` returned the same body with 200, `GET /wallets/{unknown}` returned 404 with `statusCode` 404, a malformed identifier returned 400, and `/swagger-ui` returned 200.
+- The skip path was exercised deliberately, by pointing `npm_config_registry` at an unreachable host. Without `CODEGEN_REQUIRE_NPM_SMOKE` the suite skipped its 3 tests with the documented message and exited 0 in under 2 seconds; with `CODEGEN_REQUIRE_NPM_SMOKE=true` the same condition failed the run with the same message.
+- After every run, no orphaned server process and no leftover temporary tree remained.
+- NestJS dry-run counts are unchanged: full 28, `build` 4, `core` 11, `infra-persistence` 16, `web-api` 17, `bootstrap` 24. No template, profile, producer, or golden was changed by this milestone, and the Java profiles were not touched.
+- Three measured behaviours of the gate's support module, each established against a failure observed on this machine: parent-npm environment filtering compares variable names case-insensitively, because Windows delivers them upper-cased to a test worker while `process.env` lookups remain case-insensitive; removal of the generated tree retries before reporting, because an installed dependency tree is briefly held open after use and failed with `EBUSY`; and the registry probe runs with retries disabled, which is what resolves the skip path in under 2 seconds rather than 30.
+
 ## Documented facts
 
 The following facts are documented in ADRs and target-architecture docs and are treated as current unless superseded by measured facts:
@@ -301,6 +314,8 @@ The following facts are documented in ADRs and target-architecture docs and are 
 - CORS uses properties rather than hardcoded permissive origins.
 - The REST error response body is `ResponseStatus`.
 - `CODEGEN_REQUIRE_MAVEN_SMOKE=true` turns missing Maven from a skipped smoke into a failure.
+- `CODEGEN_REQUIRE_DOCKER_SMOKE=true` turns a missing Docker endpoint from a skipped smoke into a failure.
+- `CODEGEN_REQUIRE_NPM_SMOKE=true` turns an unreachable npm registry from a skipped smoke into a failure.
 
 ## Limitations
 

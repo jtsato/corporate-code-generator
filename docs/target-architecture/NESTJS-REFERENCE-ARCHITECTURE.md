@@ -121,11 +121,13 @@ end-to-end tests using NestJS's testing module and `supertest`. The reference pr
 Stryker mutation testing and a SonarCloud quality gate in CI.
 
 Classified as **Rule** for the generator's own quality gates (not generated-output requirements):
-the generated-project-runs quality gate planned for a future milestone should mirror the Java
-Golden Path's Maven-required-smoke precedent — installing dependencies, building, and running
-tests against a freshly generated NestJS project — rather than adopting the reference project's
-100%-coverage threshold or its mutation-testing/SonarCloud setup, which are that project's own
-authoring choices, not requirements this generator must reproduce in what it generates.
+the generated-project-runs quality gate mirrors the Java Golden Path's Maven-required-smoke
+precedent rather than adopting the reference project's 100%-coverage threshold or its
+mutation-testing/SonarCloud setup, which are that project's own authoring choices, not
+requirements this generator must reproduce in what it generates. That gate now exists
+([ADR-073](../adr/ADR-073-nestjs-generated-project-quality-gate.md)): it installs dependencies,
+builds, and exercises a freshly generated NestJS project over HTTP. It does not run tests
+against the generated project, because the profile generates none.
 
 ## Comparison with the Java Golden Path
 

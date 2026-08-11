@@ -66,6 +66,22 @@ CODEGEN_REQUIRE_MAVEN_SMOKE=true
 
 CI uses this environment variable for Maven smoke steps. Local development can use it when validating release readiness or Maven-sensitive changes.
 
+The generated Testcontainers verification additionally requires a reachable Docker endpoint. It follows the same policy under its own variable:
+
+```bash
+CODEGEN_REQUIRE_DOCKER_SMOKE=true
+```
+
+## npm registry policy
+
+`npm` is always present in this repository, so the NestJS generated-project gate cannot gate on tool presence. It gates instead on whether the configured registry can serve packages from the generated project directory, probed with `npm view @nestjs/core version`. By default the gate skips when the registry is unreachable. To require it and turn unreachability into a failure, set:
+
+```bash
+CODEGEN_REQUIRE_NPM_SMOKE=true
+```
+
+CI uses this environment variable for the NestJS generated-project smoke step.
+
 The full generated Java reactor gate is:
 
 ```bash
@@ -74,19 +90,22 @@ npm run smoke:maven-reactor:java-multimodule
 
 It generates the multi-module Golden Path and runs an unfiltered Maven test command against the generated reactor.
 
-## NestJS Golden Path smoke
+## NestJS Golden Path smokes
 
 ```bash
 npm run smoke:nestjs
+npm run smoke:generated-project:nestjs
 ```
 
-It requires no external toolchain and is included in the default `npm test` run. It generates the profile through the built CLI, compares every generated artifact against `tests/golden/nestjs-clean-architecture/`, and asserts that the generated Core module contains no framework imports. Automated execution of the generated NestJS project (install, build, run) is not yet a declared gate.
+`smoke:nestjs` requires no external toolchain and is included in the default `npm test` run. It generates the profile through the built CLI, compares every generated artifact against `tests/golden/nestjs-clean-architecture/`, and asserts that the generated Core module contains no framework imports.
+
+`smoke:generated-project:nestjs` is the generated-project execution gate ([ADR-073](../adr/ADR-073-nestjs-generated-project-quality-gate.md)). It generates the profile into a temporary directory, runs `npm install`, runs the generated project's own `npm run build`, starts `node dist/main.js` on a reserved ephemeral port, and asserts the create, read-by-id, unknown-identifier, request-validation, and OpenAPI behaviours before shutting the server down and removing the tree. It requires npm registry access, is excluded from `npm test` and `npm run test:coverage`, and runs as its own CI step.
 
 ## CI workflows
 
 The repository currently contains three GitHub workflows:
 
-- `.github/workflows/continuous-integration.yml`: typecheck, build, coverage, smoke families, Maven smoke families with `CODEGEN_REQUIRE_MAVEN_SMOKE=true`, Maven reactor smoke, and SonarCloud.
+- `.github/workflows/continuous-integration.yml`: typecheck, build, coverage, smoke families, Maven smoke families with `CODEGEN_REQUIRE_MAVEN_SMOKE=true`, Maven reactor smoke, the NestJS golden smoke, the NestJS generated-project smoke with `CODEGEN_REQUIRE_NPM_SMOKE=true`, and SonarCloud.
 - `.github/workflows/java-multimodule-maven-smoke.yml`: focused generated Java multi-module Maven smoke with `CODEGEN_REQUIRE_MAVEN_SMOKE=true`.
 - `.github/workflows/mutation-testing.yml`: scheduled and manual mutation testing.
 
@@ -102,6 +121,7 @@ The repository currently contains three GitHub workflows:
 | Template or producer | Typecheck, build, golden tests, focused integration tests, default tests | Relevant smoke; Maven smoke when generated Java compile/runtime behavior changes. |
 | Profile or module manifest | Typecheck, build, integration tests, dry-run verification, default tests | Relevant smoke and Maven smoke for generated Java profile changes. |
 | Generated Java runtime behavior | Typecheck, build, golden tests, relevant smoke, Maven smoke | Full reactor smoke for cross-module runtime or release-readiness changes. |
+| Generated TypeScript/NestJS output | Typecheck, build, golden tests, `npm run smoke:nestjs` | `npm run smoke:generated-project:nestjs` with `CODEGEN_REQUIRE_NPM_SMOKE=true` when generated NestJS build or runtime behavior changes. |
 | CI workflow | Syntax review, `git diff --check`, relevant local equivalent commands where practical | Remote CI result after push/PR. |
 
 Do not run all Maven smoke suites for documentation-only work unless executable files, generated expectations, CI behavior, or validation policy changes require it.

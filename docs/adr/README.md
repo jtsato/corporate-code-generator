@@ -70,3 +70,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [070](ADR-070-generated-testcontainers-verification.md) | Generated Testcontainers Verification | Accepted - Milestone 6.49. | Milestone 6.49 | Not recorded | Not recorded |
 | [071](ADR-071-generated-developer-scripts-and-smoke-requests.md) | Generated Developer Scripts and Smoke Requests | Accepted - Milestone 6.50. | Milestone 6.50 | Not recorded | Not recorded |
 | [072](ADR-072-generated-coverage-threshold-gate.md) | Generated Coverage Threshold Gate | Accepted - Milestone 6.51. | Milestone 6.51 | 060 (in part) | Not recorded |
+| [073](ADR-073-nestjs-generated-project-quality-gate.md) | NestJS Generated-Project Quality Gate | Accepted — Milestone 7.7. | Milestone 7.7 | Not recorded | Not recorded |
