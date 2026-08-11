@@ -1,0 +1,9 @@
+import { Page{{ className }}Query } from './page-{{ pluralFileName }}.query';
+import { PageResult } from '../../common/paging/page-result';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+
+export interface IPage{{ className }}UseCase {
+  execute(query: Page{{ className }}Query): Promise<PageResult<{{ className }}>>;
+}
+
+export const IPage{{ className }}UseCaseSymbol = Symbol('IPage{{ className }}UseCase');

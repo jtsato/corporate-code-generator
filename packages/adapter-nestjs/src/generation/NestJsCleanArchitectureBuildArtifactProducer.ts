@@ -11,6 +11,7 @@ const BUILD_TEMPLATE_IDS = [
   "tsconfig-json",
   "tsconfig-build-json",
   "nest-cli-json",
+  "e2e-jest-config",
 ] as const;
 
 export class NestJsCleanArchitectureBuildArtifactProducer

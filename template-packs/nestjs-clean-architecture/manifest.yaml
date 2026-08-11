@@ -18,6 +18,10 @@ templates:
     module: build
     template: build/nest-cli.json.njk
     output: nest-cli.json
+  - id: e2e-jest-config
+    module: build
+    template: build/e2e-jest.json.njk
+    output: test/jest-e2e.json
 
   - id: core-exception
     module: core
@@ -35,6 +39,26 @@ templates:
     module: core
     template: core/exceptions/validation.exception.ts.njk
     output: src/core/exceptions/validation.exception.ts
+  - id: core-page-request
+    module: core
+    template: core/common/paging/page-request.ts.njk
+    output: src/core/common/paging/page-request.ts
+  - id: core-page-result
+    module: core
+    template: core/common/paging/page-result.ts.njk
+    output: src/core/common/paging/page-result.ts
+  - id: core-filter-operator
+    module: core
+    template: core/common/filter/filter-operator.ts.njk
+    output: src/core/common/filter/filter-operator.ts
+  - id: core-filter-condition
+    module: core
+    template: core/common/filter/filter-condition.ts.njk
+    output: src/core/common/filter/filter-condition.ts
+  - id: core-filter-expression
+    module: core
+    template: core/common/filter/filter-expression.ts.njk
+    output: src/core/common/filter/filter-expression.ts
   - id: core-domain-model
     module: core
     template: core/models/model.ts.njk
@@ -87,6 +111,22 @@ templates:
     module: core
     template: core/usecases/get-by-id/get-by-id.usecase.spec.ts.njk
     output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase.spec.ts
+  - id: core-page-query
+    module: core
+    template: core/usecases/page/page.query.ts.njk
+    output: src/core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.query.ts
+  - id: core-page-gateway
+    module: core
+    template: core/usecases/page/page.gateway.ts.njk
+    output: src/core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.gateway.ts
+  - id: core-page-usecase-interface
+    module: core
+    template: core/usecases/page/page-usecase.interface.ts.njk
+    output: src/core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface.ts
+  - id: core-page-usecase
+    module: core
+    template: core/usecases/page/page.usecase.ts.njk
+    output: src/core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.usecase.ts
 
   - id: infra-persistence-entity-model
     module: infra-persistence
@@ -108,11 +148,47 @@ templates:
     module: infra-persistence
     template: infra-persistence/providers/get-by-id.provider.ts.njk
     output: src/infra/providers/get-{{ fileName }}-by-id.provider.ts
+  - id: infra-persistence-page-provider
+    module: infra-persistence
+    template: infra-persistence/providers/page.provider.ts.njk
+    output: src/infra/providers/page-{{ pluralFileName }}.provider.ts
 
   - id: web-api-not-found-exception-filter
     module: web-api
     template: web-api/commons/not-found.exception.filter.ts.njk
     output: src/web-api/commons/filters/not-found.exception.filter.ts
+  - id: web-api-health-response
+    module: web-api
+    template: web-api/health/health-response.model.ts.njk
+    output: src/web-api/health/health-response.model.ts
+  - id: web-api-health-controller
+    module: web-api
+    template: web-api/health/health.controller.ts.njk
+    output: src/web-api/health/health.controller.ts
+  - id: web-api-i18n-messages
+    module: web-api
+    template: web-api/i18n/messages.ts.njk
+    output: src/web-api/i18n/messages.ts
+  - id: web-api-i18n-service
+    module: web-api
+    template: web-api/i18n/i18n.service.ts.njk
+    output: src/web-api/i18n/i18n.service.ts
+  - id: web-api-e2e-test
+    module: web-api
+    template: web-api/e2e-test.ts.njk
+    output: test/app.e2e-spec.ts
+  - id: web-api-http-response
+    module: web-api
+    template: web-api/commons/models/http-response.model.ts.njk
+    output: src/web-api/commons/models/http-response.model.ts
+  - id: web-api-http-response-builder
+    module: web-api
+    template: web-api/commons/models/http-response.builder.ts.njk
+    output: src/web-api/commons/models/http-response.builder.ts
+  - id: web-api-response-transformer-interceptor
+    module: web-api
+    template: web-api/commons/interceptors/response-transformer.interceptor.ts.njk
+    output: src/web-api/commons/interceptors/response-transformer.interceptor.ts
   - id: web-api-validation-exception-filter
     module: web-api
     template: web-api/commons/validation.exception.filter.ts.njk
@@ -129,6 +205,18 @@ templates:
     module: web-api
     template: web-api/entrypoints/presenter.mapper.ts.njk
     output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-presenter.mapper.ts
+  - id: web-api-page-request
+    module: web-api
+    template: web-api/entrypoints/page-request.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-page-request.model.ts
+  - id: web-api-filter-parser
+    module: web-api
+    template: web-api/entrypoints/filter.parser.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-filter.parser.ts
+  - id: web-api-page-response
+    module: web-api
+    template: web-api/entrypoints/page-response.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-page-response.model.ts
   - id: web-api-controller
     module: web-api
     template: web-api/entrypoints/controller.ts.njk

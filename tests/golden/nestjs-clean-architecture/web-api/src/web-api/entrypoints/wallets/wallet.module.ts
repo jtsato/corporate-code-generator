@@ -12,8 +12,15 @@ import {
 } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id.gateway';
 import { IGetWalletByIdUseCaseSymbol } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id-usecase.interface';
 import { GetWalletByIdUseCase } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id.usecase';
+import {
+  IPageWalletGateway,
+  IPageWalletGatewaySymbol,
+} from '../../../core/usecases/page-wallets/page-wallets.gateway';
+import { IPageWalletUseCaseSymbol } from '../../../core/usecases/page-wallets/page-wallets-usecase.interface';
+import { PageWalletUseCase } from '../../../core/usecases/page-wallets/page-wallets.usecase';
 import { CreateWalletProvider } from '../../../infra/providers/create-wallet.provider';
 import { GetWalletByIdProvider } from '../../../infra/providers/get-wallet-by-id.provider';
+import { PageWalletProvider } from '../../../infra/providers/page-wallets.provider';
 import { WalletRepository } from '../../../infra/repositories/wallet.repository';
 import { WalletController } from './wallet.controller';
 
@@ -40,6 +47,16 @@ import { WalletController } from './wallet.controller';
       useFactory: (gateway: IGetWalletByIdGateway): GetWalletByIdUseCase =>
         new GetWalletByIdUseCase(gateway),
       inject: [IGetWalletByIdGatewaySymbol],
+    },
+    {
+      provide: IPageWalletGatewaySymbol,
+      useClass: PageWalletProvider,
+    },
+    {
+      provide: IPageWalletUseCaseSymbol,
+      useFactory: (gateway: IPageWalletGateway): PageWalletUseCase =>
+        new PageWalletUseCase(gateway),
+      inject: [IPageWalletGatewaySymbol],
     },
   ],
 })

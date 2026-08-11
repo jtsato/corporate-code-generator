@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
+import { FilterExpression } from '../../core/common/filter/filter-expression';
+import { PageRequest } from '../../core/common/paging/page-request';
+import { PageResult } from '../../core/common/paging/page-result';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 
 @Injectable()
@@ -15,5 +18,21 @@ export class {{ className }}Repository {
     return Promise.resolve(
       this.{{ propertyName }}s.find((entity) => entity.{{ identifier.name }} === {{ identifier.name }}),
     );
+  }
+
+  public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}Entity>> {
+    const filtered = this.{{ propertyName }}s.filter((entity) => filterExpression.conditions.every((condition) => {
+      const actual = entity[condition.field as keyof {{ className }}Entity];
+      const matches = String(actual) === condition.value;
+      return condition.operator === 'eq' ? matches : !matches;
+    }));
+    const start = pageRequest.page * pageRequest.size;
+
+    return Promise.resolve(new PageResult(
+      filtered.slice(start, start + pageRequest.size),
+      pageRequest.page,
+      pageRequest.size,
+      filtered.length,
+    ));
   }
 }

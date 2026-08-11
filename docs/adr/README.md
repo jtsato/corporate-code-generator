@@ -73,3 +73,8 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [073](ADR-073-nestjs-generated-project-quality-gate.md) | NestJS Generated-Project Quality Gate | Accepted — Milestone 7.7. | Milestone 7.7 | Not recorded | Not recorded |
 | [074](ADR-074-nestjs-core-validation-and-error-contract.md) | NestJS Core Validation and Error Contract | Accepted — Milestone 7.9. | Milestone 7.9 | Not recorded | Not recorded |
 | [075](ADR-075-nestjs-generated-core-test-support.md) | NestJS Generated Core Test Support | Accepted — Milestone 7.10. | Milestone 7.10 | Not recorded | Not recorded |
+| [076](ADR-076-nestjs-http-response-envelopes.md) | NestJS HTTP Response Envelopes | Accepted — Milestone 7.11. | Milestone 7.11 | Not recorded | Not recorded |
+| [077](ADR-077-nestjs-pagination-and-filter-foundation.md) | NestJS Pagination and Filter Foundation | Accepted — Milestone 7.12. | Milestone 7.12 | Not recorded | Not recorded |
+| [078](ADR-078-nestjs-health-checks.md) | NestJS Health Checks | Accepted — Milestone 7.13. | Milestone 7.13 | Not recorded | Not recorded |
+| [079](ADR-079-nestjs-basic-i18n-error-messages.md) | NestJS Basic i18n Error Messages | Accepted — Milestone 7.14. | Milestone 7.14 | Not recorded | Not recorded |
+| [080](ADR-080-nestjs-generated-e2e-tests.md) | NestJS Generated e2e Tests | Accepted — Milestone 7.15. | Milestone 7.15 | Not recorded | Not recorded |

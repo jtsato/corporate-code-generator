@@ -19,6 +19,10 @@ const PER_ENTITY_TEMPLATE_IDS = [
   "core-get-by-id-gateway",
   "core-get-by-id-usecase-interface",
   "core-get-by-id-usecase",
+  "core-page-query",
+  "core-page-gateway",
+  "core-page-usecase-interface",
+  "core-page-usecase",
   "core-get-by-id-usecase-test",
 ] as const;
 
@@ -27,6 +31,11 @@ const APPLICATION_TEMPLATES = [
   "core-field-violation",
   "core-not-found-exception",
   "core-validation-exception",
+  "core-page-request",
+  "core-page-result",
+  "core-filter-operator",
+  "core-filter-condition",
+  "core-filter-expression",
 ] as const;
 
 export class NestJsCleanArchitectureCoreArtifactProducer
@@ -57,6 +66,7 @@ export class NestJsCleanArchitectureCoreArtifactProducer
         model: entity,
         outputVariables: {
           fileName: entity.fileName,
+          pluralFileName: entity.pluralFileName,
         },
       })),
     );

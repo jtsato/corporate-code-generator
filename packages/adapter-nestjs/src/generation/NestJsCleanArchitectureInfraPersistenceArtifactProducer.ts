@@ -12,6 +12,7 @@ const PER_ENTITY_TEMPLATE_IDS = [
   "infra-persistence-repository",
   "infra-persistence-create-provider",
   "infra-persistence-get-by-id-provider",
+  "infra-persistence-page-provider",
 ] as const;
 
 export class NestJsCleanArchitectureInfraPersistenceArtifactProducer
@@ -36,6 +37,7 @@ export class NestJsCleanArchitectureInfraPersistenceArtifactProducer
         model,
         outputVariables: {
           fileName: model.fileName,
+          pluralFileName: model.pluralFileName,
         },
       }));
     });

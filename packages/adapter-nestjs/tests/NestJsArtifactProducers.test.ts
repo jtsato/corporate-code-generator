@@ -42,6 +42,7 @@ describe("NestJS clean architecture artifact producers", () => {
       "tsconfig-json",
       "tsconfig-build-json",
       "nest-cli-json",
+      "e2e-jest-config",
     ]);
   });
 
@@ -59,7 +60,11 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(templateIds).toContain("core-get-by-id-usecase");
     expect(templateIds).toContain("core-get-by-id-usecase-test");
     expect(templateIds).toContain("core-get-by-id-query-validator");
-    expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet" });
+    expect(templateIds).toContain("core-page-query");
+    expect(templateIds).toContain("core-page-gateway");
+    expect(templateIds).toContain("core-page-usecase-interface");
+    expect(templateIds).toContain("core-page-usecase");
+    expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
   });
 
   it("passes both file-name variables to web-api templates", () => {
@@ -69,6 +74,17 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(controller?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-not-found-exception-filter");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-validation-exception-filter");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-http-response");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-http-response-builder");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-response-transformer-interceptor");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-page-request");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-filter-parser");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-page-response");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-response");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-controller");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-messages");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-service");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-e2e-test");
   });
 
   it("produces persistence artifacts per entity", () => {
@@ -80,6 +96,7 @@ describe("NestJS clean architecture artifact producers", () => {
       "infra-persistence-repository",
       "infra-persistence-create-provider",
       "infra-persistence-get-by-id-provider",
+      "infra-persistence-page-provider",
     ]);
   });
 

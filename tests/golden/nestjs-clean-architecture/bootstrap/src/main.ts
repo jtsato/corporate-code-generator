@@ -1,12 +1,14 @@
 import 'reflect-metadata';
 
 import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { NotFoundExceptionFilter } from './web-api/commons/filters/not-found.exception.filter';
+import { ResponseTransformerInterceptor } from './web-api/commons/interceptors/response-transformer.interceptor';
 import { ValidationExceptionFilter } from './web-api/commons/filters/validation.exception.filter';
+import { I18nService } from './web-api/i18n/i18n.service';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -18,7 +20,9 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  app.useGlobalFilters(new NotFoundExceptionFilter(), new ValidationExceptionFilter());
+  const i18n = new I18nService();
+  app.useGlobalFilters(new NotFoundExceptionFilter(i18n), new ValidationExceptionFilter(i18n));
+  app.useGlobalInterceptors(new ResponseTransformerInterceptor(app.get(HttpAdapterHost)));
 
   const document = SwaggerModule.createDocument(
     app,

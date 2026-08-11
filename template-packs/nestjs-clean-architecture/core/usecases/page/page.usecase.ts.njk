@@ -1,0 +1,15 @@
+import { FilterExpression } from '../../common/filter/filter-expression';
+import { PageRequest } from '../../common/paging/page-request';
+import { PageResult } from '../../common/paging/page-result';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Page{{ className }}Query } from './page-{{ pluralFileName }}.query';
+import { IPage{{ className }}Gateway } from './page-{{ pluralFileName }}.gateway';
+import { IPage{{ className }}UseCase } from './page-{{ pluralFileName }}-usecase.interface';
+
+export class Page{{ className }}UseCase implements IPage{{ className }}UseCase {
+  public constructor(private readonly gateway: IPage{{ className }}Gateway) {}
+
+  public async execute(query: Page{{ className }}Query): Promise<PageResult<{{ className }}>> {
+    return this.gateway.execute(query.pageRequest, query.filterExpression);
+  }
+}

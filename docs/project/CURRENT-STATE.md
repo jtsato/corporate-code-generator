@@ -61,12 +61,12 @@ NestJS dependencies:
 | `java-spring-clean-multimodule --module configuration` | 164 CREATE |
 | `java-spring-clean-multimodule --module build --module core` | 76 CREATE |
 | `java-spring-clean-multimodule --module build --module configuration` | 164 CREATE |
-| `nestjs-clean-architecture` full profile | 35 CREATE |
-| `nestjs-clean-architecture --module build` | 4 CREATE |
-| `nestjs-clean-architecture --module core` | 17 CREATE |
-| `nestjs-clean-architecture --module infra-persistence` | 22 CREATE |
-| `nestjs-clean-architecture --module web-api` | 24 CREATE |
-| `nestjs-clean-architecture --module bootstrap` | 31 CREATE |
+| `nestjs-clean-architecture` full profile | 57 CREATE |
+| `nestjs-clean-architecture --module build` | 5 CREATE |
+| `nestjs-clean-architecture --module core` | 26 CREATE |
+| `nestjs-clean-architecture --module infra-persistence` | 32 CREATE |
+| `nestjs-clean-architecture --module web-api` | 44 CREATE |
+| `nestjs-clean-architecture --module bootstrap` | 52 CREATE |
 
 The `entrypoints-rest` and `infra-database` selections include `core` transitively. The `configuration` selection includes all required modules transitively.
 
@@ -84,7 +84,7 @@ Measured and documented implemented capabilities in the current Java multi-modul
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
 - Container packaging: a multi-stage `Dockerfile` (Maven builder stage, Alpine JRE runtime, non-root UID/GID 10001, `JAVA_TOOL_OPTIONS` container-aware heap sizing, `HEALTHCHECK` against `/actuator/health`), a `.dockerignore`, and a Compose file. Spring Boot Actuator is on the `configuration` classpath with only the `health` endpoint exposed over HTTP and `show-details: never`.
 - Explicit i18n policy: generated `LocaleConfiguration` selects English by default, allows only `en` and `pt-BR` through `Accept-Language`, loads UTF-8 message bundles, and disables JVM system-locale fallback; generated locale tests cover Portuguese, unsupported, and missing-header negotiation.
-- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators for create and find-by-id flows, colocated Jest tests for those use cases, plus a web-layer HTTP 400 filter. Its full-profile example emits 35 CREATE operations and its Core remains free of NestJS and `class-validator` imports.
+- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators for create and find-by-id flows, colocated Jest tests, transport-level HTTP response envelopes, zero-based pagination with `eq`/`ne` filters, liveness/readiness endpoints, deterministic English/Portuguese error messages, and a native Jest/Supertest e2e suite. Its full-profile example emits 57 CREATE operations and its Core remains free of NestJS and `class-validator` imports.
 
 Current documented REST surface:
 
@@ -323,6 +323,49 @@ Run context: NestJS generated Core test support; date: 2026-08-11.
 - The generated package declares Jest/ts-jest scripts and configuration; generated Core specs cover invalid-input gateway short-circuiting and successful use-case delegation.
 - `CODEGEN_REQUIRE_NPM_SMOKE=true npm run smoke:generated-project:nestjs` passed all 3 tests, including the generated project's own `npm test` before build/runtime HTTP checks.
 - `npm run test:coverage` passed after milestone 7.10: Statements 92.05%, Branches 78.91%, Functions 96.61%, Lines 92.85%.
+
+## Milestone 7.11 Validation
+
+Run context: NestJS HTTP response envelopes; date: 2026-08-11.
+
+- `npm run build` passed.
+- Focused adapter and NestJS golden smoke validation passed: 2 test files and 8 tests.
+- Fresh built-CLI dry-run produced 38 CREATE operations: build 4, core 17, infra-persistence 22, web-api 27, and bootstrap 34 when transitive dependencies are included.
+- Generated controllers return `HttpResponse<T>` values; the global interceptor applies explicit status and headers while returning the original response body.
+- `CODEGEN_REQUIRE_NPM_SMOKE=true npm run smoke:generated-project:nestjs` passed all 3 tests, including generated Jest, build, create/read HTTP behavior, and the `Location` header on creation.
+
+## Milestone 7.12 Validation
+
+Run context: NestJS pagination and filter foundation; date: 2026-08-11.
+
+- `npm run build` passed.
+- Focused adapter and NestJS golden smoke validation passed: 2 test files and 8 tests.
+- Fresh built-CLI dry-run produced 51 CREATE operations: build 4, core 26, infra-persistence 32, web-api 39, and bootstrap 47 when transitive dependencies are included.
+- Generated collection reads support zero-based paging, bounded sizes, page metadata, and `eq`/`ne` filters parsed at the web boundary and evaluated by the in-memory persistence adapter.
+- `CODEGEN_REQUIRE_NPM_SMOKE=true npm run smoke:generated-project:nestjs` passed all 3 tests, including generated build/Jest and page/filter HTTP behavior.
+
+## Milestone 7.13 Validation
+
+Run context: NestJS health checks; date: 2026-08-11.
+
+- Fresh built-CLI dry-run increased to 53 CREATE operations.
+- Generated `/health-check/live` and `/health-check/ready` both returned HTTP 200 with `{ "status": "UP" }` in the generated-project gate.
+
+## Milestone 7.14 Validation
+
+Run context: NestJS basic i18n error messages; date: 2026-08-11.
+
+- Fresh built-CLI dry-run increased to 55 CREATE operations.
+- Generated validation filters selected `Falha de validação` for `Accept-Language: pt-BR`; the default English contract remained unchanged.
+- The generated project compiled and passed the localized HTTP assertion in the generated-project gate.
+
+## Milestone 7.15 Validation
+
+Run context: NestJS generated e2e tests; date: 2026-08-11.
+
+- Fresh built-CLI dry-run produced 57 CREATE operations: build 5, core 26, infra-persistence 32, web-api 44, and bootstrap 52 when transitive dependencies are included.
+- Generated output includes `test/jest-e2e.json`, `test/app.e2e-spec.ts`, `test:e2e`, Supertest, and its type dependency.
+- `CODEGEN_REQUIRE_NPM_SMOKE=true npm run smoke:generated-project:nestjs` passed all 3 repository gate tests, including the generated project's native `npm run test:e2e`.
 
 ## Documented facts
 

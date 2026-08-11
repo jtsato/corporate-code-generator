@@ -244,6 +244,11 @@ Future schema work must validate incompatible combinations, such as a provider o
 | Composite active uniqueness | Supported in Java multi-module | `uniqueGroups` declares attribute-name tuples; each tuple is constrained with the technical deletion scope and checked against active rows. |
 | Deleted-only queries and restore | Supported in Java multi-module | Explicit `/deleted` query routes return tombstone views; `POST /{id}/restore` returns 204, with 404/409 error semantics. |
 | NestJS Clean Architecture generated Core validation and tests | Supported in NestJS Golden Path | Create commands and find-by-id queries validate semantic primitive values in framework-free Core; colocated Jest tests cover validation short-circuiting and gateway delegation; the web layer maps violations to HTTP 400. |
+| NestJS HTTP response envelopes | Supported in NestJS Golden Path | Web controllers return a transport-level `HttpResponse<T>`; a global interceptor applies status and headers while preserving the response body shape. |
+| NestJS pagination and filters | Supported in NestJS Golden Path | Collection endpoints expose bounded zero-based paging and `eq`/`ne` filter expressions; Core owns semantic page/filter models and the web layer parses query syntax. |
+| NestJS health checks | Supported in NestJS Golden Path | Generated liveness and readiness endpoints return a stable `UP` status through the response transport. |
+| NestJS basic i18n | Supported in NestJS Golden Path | Generated error filters select deterministic English or Portuguese messages from `Accept-Language`. |
+| NestJS generated e2e tests | Supported in NestJS Golden Path | Generated Jest/Supertest tests boot the application and cover the generated HTTP contracts. |
 | Security | Planned/future | Requires explicit model/profile decisions. |
 | Deployment/IaC | Planned/future | Not implied by current Java Golden Path. |
 | Additional languages/stacks | NestJS supported; others planned/future | Additional Golden Paths must preserve technology-agnostic Core/model boundaries. |

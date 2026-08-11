@@ -90,8 +90,8 @@ the Java multi-module Golden Path's Maven-module-first, use-case-second organiza
 * Global exception filters translate each domain exception type to an HTTP status. Classified as
   **Module** content, explicitly deferred (depends on the exception hierarchy above).
 * A generic response envelope and a response-transforming interceptor wrap all responses in a
-  consistent shape. Classified as **Rule**, explicitly deferred — the initial slice generates no
-  REST layer at all.
+  consistent shape. Classified as **Rule** and adopted by milestone 7.11 with transport-level
+  status/header handling while preserving existing JSON body shapes.
 * Dependency injection uses a `Symbol()` token co-located with every port interface, wired in each
   feature's NestJS `@Module` via `{ provide: TokenSymbol, useClass: Implementation }`. Classified
   as **Technology Adapter** convention to reuse directly once the `bootstrap` module is
@@ -101,12 +101,12 @@ the Java multi-module Golden Path's Maven-module-first, use-case-second organiza
 ## Cross-cutting capabilities observed
 
 Present in the reference, all explicitly deferred by ADR-057 pending their own milestones:
-OpenAPI/Swagger documentation, internationalization (English/Portuguese message files), a
+OpenAPI/Swagger documentation, a
 request-timing interceptor, environment configuration through `@nestjs/config` and a single `.env`
 file (no per-environment profile split).
 
-Not present in the reference, and therefore not inherited as defaults: pagination, filtering,
-sorting, soft delete, real authentication/authorization enforcement (only a Swagger security-scheme
+Not present in the reference, and therefore not inherited as defaults: sorting, soft delete, real
+authentication/authorization enforcement (only a Swagger security-scheme
 annotation, not an enforced guard), CORS configuration, and any architecture-boundary lint tool
 (no dependency-cruiser or ESLint boundary rules were found; layering is enforced by convention
 only). This absence is itself useful precedent: the reference project does not assume an
@@ -117,7 +117,8 @@ baseline discipline for the Java Golden Path.
 
 Unit tests are colocated with source (`*.spec.ts`), targeting 100% coverage in the reference
 project's own Jest configuration. A separate top-level `test/` directory holds whole-application
-end-to-end tests using NestJS's testing module and `supertest`. The reference project also runs
+end-to-end tests using NestJS and `supertest`. The generated path now follows this layout with a
+native Jest e2e command. The reference project also runs
 Stryker mutation testing and a SonarCloud quality gate in CI.
 
 Classified as **Rule** for the generator's own quality gates (not generated-output requirements):
@@ -126,8 +127,9 @@ precedent rather than adopting the reference project's 100%-coverage threshold o
 mutation-testing/SonarCloud setup, which are that project's own authoring choices, not
 requirements this generator must reproduce in what it generates. That gate now exists
 ([ADR-073](../adr/ADR-073-nestjs-generated-project-quality-gate.md)): it installs dependencies,
-builds, and exercises a freshly generated NestJS project over HTTP. It does not run tests
-against the generated project, because the profile generates none.
+builds, runs the generated Jest suite, and exercises a freshly generated NestJS project over HTTP.
+The generator does not adopt the reference project's 100% coverage threshold or mutation-testing
+and SonarCloud setup.
 
 ## Comparison with the Java Golden Path
 
@@ -150,8 +152,8 @@ sequencing (single-module before multi-module, if a multi-module variant is ever
 ## Milestone 7.0 conclusion
 
 The reference project's layering, DI convention, and mapper-pattern discipline are directly
-reusable. Its capability set (no pagination, filtering, sorting, soft delete, real persistence,
-enforced authentication, or architecture-boundary lint) supports a conservative initial scope for
+reusable. Its capability set (no sorting, soft delete, real persistence, enforced authentication,
+or architecture-boundary lint) supports a conservative initial scope for
 the `nestjs-clean-architecture` Golden Path, consistent with how the Java Golden Path started
 narrow and grew one milestone at a time. No IR/Application Model changes are required to begin
 implementation. Milestone 7.1 refactors CLI producer dispatch into a registry before any NestJS

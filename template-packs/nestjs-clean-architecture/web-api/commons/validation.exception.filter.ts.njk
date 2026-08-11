@@ -2,15 +2,19 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/commo
 import { Response } from 'express';
 
 import { ValidationException } from '../../../core/exceptions/validation.exception';
+import { I18nService } from '../../i18n/i18n.service';
 
 @Catch(ValidationException)
 export class ValidationExceptionFilter implements ExceptionFilter {
+  public constructor(private readonly i18n: I18nService) {}
+
   public catch(exception: ValidationException, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
+    const request = host.switchToHttp().getRequest<{ headers: { 'accept-language'?: string | string[] } }>();
 
     response.status(HttpStatus.BAD_REQUEST).json({
       statusCode: HttpStatus.BAD_REQUEST,
-      message: exception.message,
+      message: this.i18n.translate('validationFailed', request.headers['accept-language']),
       violations: exception.violations,
     });
   }

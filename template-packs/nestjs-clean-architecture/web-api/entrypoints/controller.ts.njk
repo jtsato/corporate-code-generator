@@ -1,7 +1,14 @@
-import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Inject, Param, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { Create{{ className }}Command } from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.command';
+import { PageRequest } from '../../../core/common/paging/page-request';
+import { PageResult } from '../../../core/common/paging/page-result';
+import { Page{{ className }}Query } from '../../../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.query';
+import {
+  IPage{{ className }}UseCase,
+  IPage{{ className }}UseCaseSymbol,
+} from '../../../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface';
 import {
   ICreate{{ className }}UseCase,
   ICreate{{ className }}UseCaseSymbol,
@@ -12,6 +19,11 @@ import {
   IGet{{ className }}ByIdUseCaseSymbol,
 } from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
 import { Create{{ className }}Request } from './create-{{ fileName }}-request.model';
+import { {{ className }}FilterParser } from './{{ fileName }}-filter.parser';
+import { {{ className }}PageRequest } from './{{ fileName }}-page-request.model';
+import { {{ className }}PageResponse } from './{{ fileName }}-page-response.model';
+import { HttpResponseBuilder } from '../../commons/models/http-response.builder';
+import { HttpResponse } from '../../commons/models/http-response.model';
 import { {{ className }}Presenter } from './{{ fileName }}-presenter.mapper';
 import { {{ className }}Response } from './{{ fileName }}-response.model';
 
@@ -23,11 +35,13 @@ export class {{ className }}Controller {
     private readonly create{{ className }}UseCase: ICreate{{ className }}UseCase,
     @Inject(IGet{{ className }}ByIdUseCaseSymbol)
     private readonly get{{ className }}ByIdUseCase: IGet{{ className }}ByIdUseCase,
+    @Inject(IPage{{ className }}UseCaseSymbol)
+    private readonly page{{ className }}UseCase: IPage{{ className }}UseCase,
   ) {}
 
   @Post()
   @ApiCreatedResponse({ type: {{ className }}Response })
-  public async create(@Body() request: Create{{ className }}Request): Promise<{{ className }}Response> {
+  public async create(@Body() request: Create{{ className }}Request): Promise<HttpResponse<{{ className }}Response>> {
     const {{ propertyName }} = await this.create{{ className }}UseCase.execute(
       new Create{{ className }}Command(
 {%- for property in properties %}
@@ -36,16 +50,45 @@ export class {{ className }}Controller {
       ),
     );
 
-    return {{ className }}Presenter.of({{ propertyName }});
+    return new HttpResponseBuilder<{{ className }}Response>()
+      .withStatus(HttpStatus.CREATED)
+      .withHeaders({ Location: `{{ restCollectionPath }}/${request.{{ identifier.name }}}` })
+      .withBody({{ className }}Presenter.of({{ propertyName }}))
+      .build();
+  }
+
+  @Get()
+  @ApiOkResponse({ type: {{ className }}PageResponse })
+  public async page(@Query() request: {{ className }}PageRequest): Promise<HttpResponse<{{ className }}PageResponse>> {
+    const page = await this.page{{ className }}UseCase.execute(
+      new Page{{ className }}Query(
+        new PageRequest(request.page ?? 0, request.size ?? 20),
+        {{ className }}FilterParser.parse(request.filter),
+      ),
+    );
+    const responsePage = new PageResult(
+      page.items.map({{ className }}Presenter.of),
+      page.page,
+      page.size,
+      page.totalItems,
+    );
+
+    return new HttpResponseBuilder<{{ className }}PageResponse>()
+      .withStatus(HttpStatus.OK)
+      .withBody(new {{ className }}PageResponse(responsePage))
+      .build();
   }
 
   @Get('/:{{ identifier.name }}')
   @ApiOkResponse({ type: {{ className }}Response })
-  public async getById(@Param('{{ identifier.name }}') {{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Response> {
+  public async getById(@Param('{{ identifier.name }}') {{ identifier.name }}: {{ identifier.type }}): Promise<HttpResponse<{{ className }}Response>> {
     const {{ propertyName }} = await this.get{{ className }}ByIdUseCase.execute(
       new Get{{ className }}ByIdQuery({{ identifier.name }}),
     );
 
-    return {{ className }}Presenter.of({{ propertyName }});
+    return new HttpResponseBuilder<{{ className }}Response>()
+      .withStatus(HttpStatus.OK)
+      .withBody({{ className }}Presenter.of({{ propertyName }}))
+      .build();
   }
 }

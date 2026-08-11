@@ -62,6 +62,7 @@ describe("NestJS generated project smoke test", () => {
     await installNpmDependencies(projectRoot);
     await runNpmScript(projectRoot, "build");
     await runNpmScript(projectRoot, "test");
+    await runNpmScript(projectRoot, "test:e2e");
 
     const port = await reserveEphemeralPort();
     // Published before readiness is awaited, so teardown can reach the process even if
@@ -86,6 +87,7 @@ describe("NestJS generated project smoke test", () => {
     const manifest = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as { readonly scripts: Record<string, string> };
     expect(manifest.scripts["build"]).toBe("nest build");
     expect(manifest.scripts["test"]).toBe("jest --runInBand");
+    expect(manifest.scripts["test:e2e"]).toBe("jest --config ./test/jest-e2e.json --runInBand");
     expect(manifest.scripts["start:prod"]).toBe("node dist/main");
   }, 30_000);
 
@@ -95,17 +97,38 @@ describe("NestJS generated project smoke test", () => {
     const identifier = randomUUID();
     const balance = 125.5;
 
+    const emptyPage = await fetch(`${running.baseUrl}/wallets?page=0&size=20`);
+    expect(emptyPage.status, running.output()).toBe(200);
+    await expect(emptyPage.json()).resolves.toEqual({
+      items: [],
+      page: 0,
+      size: 20,
+      totalItems: 0,
+      totalPages: 0,
+    });
+
     const created = await fetch(`${running.baseUrl}/wallets`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id: identifier, balance }),
     });
     expect(created.status, running.output()).toBe(201);
+    expect(created.headers.get("location")).toBe(`/wallets/${identifier}`);
     await expect(created.json()).resolves.toEqual({ id: identifier, balance });
 
     const read = await fetch(`${running.baseUrl}/wallets/${identifier}`);
     expect(read.status, running.output()).toBe(200);
     await expect(read.json()).resolves.toEqual({ id: identifier, balance });
+
+    const filtered = await fetch(`${running.baseUrl}/wallets?filter=id:eq:${identifier}`);
+    expect(filtered.status, running.output()).toBe(200);
+    await expect(filtered.json()).resolves.toEqual({
+      items: [{ id: identifier, balance }],
+      page: 0,
+      size: 20,
+      totalItems: 1,
+      totalPages: 1,
+    });
 
     const missing = await fetch(`${running.baseUrl}/wallets/${randomUUID()}`);
     expect(missing.status, running.output()).toBe(404);
@@ -124,6 +147,12 @@ describe("NestJS generated project smoke test", () => {
     expect(rejected.status, running.output()).toBe(400);
     await expect(rejected.json()).resolves.toMatchObject({ statusCode: 400 });
 
+    const rejectedPortuguese = await fetch(`${running.baseUrl}/wallets/not-a-uuid`, {
+      headers: { "accept-language": "pt-BR" },
+    });
+    expect(rejectedPortuguese.status, running.output()).toBe(400);
+    await expect(rejectedPortuguese.json()).resolves.toMatchObject({ message: "Falha de validação" });
+
     const invalidIdentifier = await fetch(`${running.baseUrl}/wallets/not-a-uuid`);
     expect(invalidIdentifier.status, running.output()).toBe(400);
     await expect(invalidIdentifier.json()).resolves.toEqual({
@@ -135,5 +164,13 @@ describe("NestJS generated project smoke test", () => {
     const swagger = await fetch(`${running.baseUrl}/swagger-ui`);
     expect(swagger.status, running.output()).toBe(200);
     await swagger.arrayBuffer();
+
+    const live = await fetch(`${running.baseUrl}/health-check/live`);
+    expect(live.status, running.output()).toBe(200);
+    await expect(live.json()).resolves.toEqual({ status: "UP" });
+
+    const ready = await fetch(`${running.baseUrl}/health-check/ready`);
+    expect(ready.status, running.output()).toBe(200);
+    await expect(ready.json()).resolves.toEqual({ status: "UP" });
   }, 60_000);
 });

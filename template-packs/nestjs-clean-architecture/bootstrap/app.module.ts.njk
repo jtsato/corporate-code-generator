@@ -3,11 +3,13 @@ import { Module } from '@nestjs/common';
 {% for entity in entities -%}
 import { {{ entity.className }}Module } from './web-api/entrypoints/{{ entity.pluralFileName }}/{{ entity.fileName }}.module';
 {% endfor %}
+import { HealthController } from './web-api/health/health.controller';
 @Module({
   imports: [
 {%- for entity in entities %}
     {{ entity.className }}Module,
 {%- endfor %}
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

@@ -1,0 +1,10 @@
+import { FilterExpression } from '../../common/filter/filter-expression';
+import { PageRequest } from '../../common/paging/page-request';
+import { PageResult } from '../../common/paging/page-result';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+
+export interface IPage{{ className }}Gateway {
+  execute(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}>>;
+}
+
+export const IPage{{ className }}GatewaySymbol = Symbol('IPage{{ className }}Gateway');

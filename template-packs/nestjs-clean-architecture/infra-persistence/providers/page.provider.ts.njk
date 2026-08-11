@@ -1,0 +1,24 @@
+import { Injectable } from '@nestjs/common';
+
+import { FilterExpression } from '../../core/common/filter/filter-expression';
+import { PageRequest } from '../../core/common/paging/page-request';
+import { PageResult } from '../../core/common/paging/page-result';
+import { {{ className }} } from '../../core/models/{{ fileName }}.model';
+import { IPage{{ className }}Gateway } from '../../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.gateway';
+import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
+import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
+
+@Injectable()
+export class Page{{ className }}Provider implements IPage{{ className }}Gateway {
+  public constructor(private readonly repository: {{ className }}Repository) {}
+
+  public async execute(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}>> {
+    const page = await this.repository.findPage(pageRequest, filterExpression);
+    return new PageResult(
+      page.items.map({{ className }}Mapper.toDomain),
+      page.page,
+      page.size,
+      page.totalItems,
+    );
+  }
+}
