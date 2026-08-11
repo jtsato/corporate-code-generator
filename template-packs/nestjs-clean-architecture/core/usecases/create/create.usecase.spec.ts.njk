@@ -1,0 +1,37 @@
+import { ValidationException } from '../../exceptions/validation.exception';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Create{{ className }}Command } from './create-{{ fileName }}.command';
+import { Create{{ className }}UseCase } from './create-{{ fileName }}.usecase';
+
+describe('Create{{ className }}UseCase', () => {
+  it('rejects invalid commands before calling the gateway', async () => {
+    const gateway = {
+      execute: jest.fn(async ({{ propertyName }}: {{ className }}): Promise<{{ className }}> => {{ propertyName }}),
+    };
+    const useCase = new Create{{ className }}UseCase(gateway);
+
+    await expect(useCase.execute(new Create{{ className }}Command(
+{%- for property in properties %}
+      {{ property.invalidTestValue if property.identifier else property.testValue }},
+{%- endfor %}
+    ))).rejects.toBeInstanceOf(ValidationException);
+    expect(gateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('passes a validated entity to the gateway', async () => {
+    const gateway = {
+      execute: jest.fn(async ({{ propertyName }}: {{ className }}): Promise<{{ className }}> => {{ propertyName }}),
+    };
+    const useCase = new Create{{ className }}UseCase(gateway);
+
+    const result = await useCase.execute(new Create{{ className }}Command(
+{%- for property in properties %}
+      {{ property.testValue }},
+{%- endfor %}
+    ));
+
+    expect(result).toBeInstanceOf({{ className }});
+    expect(gateway.execute).toHaveBeenCalledTimes(1);
+    expect(gateway.execute.mock.calls[0][0]).toBeInstanceOf({{ className }});
+  });
+});

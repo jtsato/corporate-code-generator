@@ -1,0 +1,23 @@
+import { FieldViolation } from '../../exceptions/field-violation';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { Create{{ className }}Command } from './create-{{ fileName }}.command';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export class Create{{ className }}CommandValidator {
+  public validate(command: Create{{ className }}Command): void {
+    const violations: FieldViolation[] = [];
+{%- for property in properties %}
+    {
+      const value = command.{{ property.name }};
+{%- for statement in property.coreValidationStatements %}
+      {{ statement }}
+{%- endfor %}
+    }
+{%- endfor %}
+
+    if (violations.length > 0) {
+      throw new ValidationException(violations);
+    }
+  }
+}

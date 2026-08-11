@@ -1,12 +1,18 @@
 import { {{ className }} } from '../../models/{{ fileName }}.model';
 import { Create{{ className }}Command } from './create-{{ fileName }}.command';
+import { Create{{ className }}CommandValidator } from './create-{{ fileName }}-command.validator';
 import { ICreate{{ className }}Gateway } from './create-{{ fileName }}.gateway';
 import { ICreate{{ className }}UseCase } from './create-{{ fileName }}-usecase.interface';
 
 export class Create{{ className }}UseCase implements ICreate{{ className }}UseCase {
-  public constructor(private readonly gateway: ICreate{{ className }}Gateway) {}
+  public constructor(
+    private readonly gateway: ICreate{{ className }}Gateway,
+    private readonly validator: Create{{ className }}CommandValidator = new Create{{ className }}CommandValidator(),
+  ) {}
 
   public async execute(command: Create{{ className }}Command): Promise<{{ className }}> {
+    this.validator.validate(command);
+
     const {{ propertyName }} = new {{ className }}(
 {%- for property in properties %}
       command.{{ property.name }},

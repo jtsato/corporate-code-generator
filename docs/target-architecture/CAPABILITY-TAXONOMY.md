@@ -243,9 +243,10 @@ Future schema work must validate incompatible combinations, such as a provider o
 | Attribute-level active uniqueness | Supported in Java multi-module | `unique: true` uses a composite constraint with the technical deletion scope, allowing reuse after soft delete. |
 | Composite active uniqueness | Supported in Java multi-module | `uniqueGroups` declares attribute-name tuples; each tuple is constrained with the technical deletion scope and checked against active rows. |
 | Deleted-only queries and restore | Supported in Java multi-module | Explicit `/deleted` query routes return tombstone views; `POST /{id}/restore` returns 204, with 404/409 error semantics. |
+| NestJS Clean Architecture generated Core validation and tests | Supported in NestJS Golden Path | Create commands and find-by-id queries validate semantic primitive values in framework-free Core; colocated Jest tests cover validation short-circuiting and gateway delegation; the web layer maps violations to HTTP 400. |
 | Security | Planned/future | Requires explicit model/profile decisions. |
 | Deployment/IaC | Planned/future | Not implied by current Java Golden Path. |
-| Additional languages/stacks | Planned/future | Must preserve technology-agnostic Core/model boundaries. |
+| Additional languages/stacks | NestJS supported; others planned/future | Additional Golden Paths must preserve technology-agnostic Core/model boundaries. |
 
 ## Compatibility and non-regression rules
 

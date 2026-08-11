@@ -45,14 +45,20 @@ describe("NestJS clean architecture artifact producers", () => {
     ]);
   });
 
-  it("produces application-scoped exceptions once and use-case artifacts per entity", () => {
+  it("produces application-scoped exceptions once and validation artifacts per entity", () => {
     const invocations = new NestJsCleanArchitectureCoreArtifactProducer().produce(request);
     const templateIds = invocations.map((invocation) => invocation.templateId);
 
     expect(templateIds.filter((id) => id === "core-exception")).toHaveLength(1);
+    expect(templateIds).toContain("core-field-violation");
+    expect(templateIds).toContain("core-validation-exception");
     expect(templateIds.filter((id) => id === "core-domain-model")).toHaveLength(1);
     expect(templateIds).toContain("core-create-usecase");
+    expect(templateIds).toContain("core-create-usecase-test");
+    expect(templateIds).toContain("core-create-command-validator");
     expect(templateIds).toContain("core-get-by-id-usecase");
+    expect(templateIds).toContain("core-get-by-id-usecase-test");
+    expect(templateIds).toContain("core-get-by-id-query-validator");
     expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet" });
   });
 
@@ -62,6 +68,7 @@ describe("NestJS clean architecture artifact producers", () => {
 
     expect(controller?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-not-found-exception-filter");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-validation-exception-filter");
   });
 
   it("produces persistence artifacts per entity", () => {

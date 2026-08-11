@@ -6,6 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { NotFoundExceptionFilter } from './web-api/commons/filters/not-found.exception.filter';
+import { ValidationExceptionFilter } from './web-api/commons/filters/validation.exception.filter';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -17,7 +18,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  app.useGlobalFilters(new NotFoundExceptionFilter());
+  app.useGlobalFilters(new NotFoundExceptionFilter(), new ValidationExceptionFilter());
 
   const document = SwaggerModule.createDocument(
     app,

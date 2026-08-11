@@ -32,8 +32,24 @@ describe("NestJsEntityTransformer", () => {
     const model = transformer.transform(entity());
 
     expect(model.properties).toEqual([
-      expect.objectContaining({ name: "id", type: "string", validationDecorator: "IsUUID" }),
-      expect.objectContaining({ name: "balance", type: "number", validationDecorator: "IsNumber" }),
+      expect.objectContaining({
+        name: "id",
+        type: "string",
+        validationDecorator: "IsUUID",
+        testValue: '"00000000-0000-0000-0000-000000000001"',
+        coreValidationStatements: expect.arrayContaining([
+          expect.stringContaining("UUID_PATTERN"),
+        ]),
+      }),
+      expect.objectContaining({
+        name: "balance",
+        type: "number",
+        validationDecorator: "IsNumber",
+        testValue: "1.5",
+        coreValidationStatements: expect.arrayContaining([
+          expect.stringContaining("Number.isFinite"),
+        ]),
+      }),
     ]);
   });
 

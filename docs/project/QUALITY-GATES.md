@@ -99,7 +99,7 @@ npm run smoke:generated-project:nestjs
 
 `smoke:nestjs` requires no external toolchain and is included in the default `npm test` run. It generates the profile through the built CLI, compares every generated artifact against `tests/golden/nestjs-clean-architecture/`, and asserts that the generated Core module contains no framework imports.
 
-`smoke:generated-project:nestjs` is the generated-project execution gate ([ADR-073](../adr/ADR-073-nestjs-generated-project-quality-gate.md)). It generates the profile into a temporary directory, runs `npm install`, runs the generated project's own `npm run build`, starts `node dist/main.js` on a reserved ephemeral port, and asserts the create, read-by-id, unknown-identifier, request-validation, and OpenAPI behaviours before shutting the server down and removing the tree. It requires npm registry access, is excluded from `npm test` and `npm run test:coverage`, and runs as its own CI step.
+`smoke:generated-project:nestjs` is the generated-project execution gate ([ADR-073](../adr/ADR-073-nestjs-generated-project-quality-gate.md), [ADR-075](../adr/ADR-075-nestjs-generated-core-test-support.md)). It generates the profile into a temporary directory, runs `npm install`, runs the generated project's own `npm run build` and `npm test`, starts `node dist/main.js` on a reserved ephemeral port, and asserts the create, read-by-id, unknown-identifier, request-validation, and OpenAPI behaviours before shutting the server down and removing the tree. It requires npm registry access, is excluded from `npm test` and `npm run test:coverage`, and runs as its own CI step.
 
 ## CI workflows
 

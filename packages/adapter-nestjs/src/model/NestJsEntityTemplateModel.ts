@@ -5,6 +5,9 @@ export interface NestJsPropertyTemplateModel {
   readonly identifier: boolean;
   readonly validationDecorator: string;
   readonly swaggerType: string;
+  readonly coreValidationStatements: readonly string[];
+  readonly testValue: string;
+  readonly invalidTestValue: string;
 }
 
 export interface NestJsEntityTemplateModel {

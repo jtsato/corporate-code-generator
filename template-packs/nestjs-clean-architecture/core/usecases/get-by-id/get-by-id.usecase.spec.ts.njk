@@ -1,0 +1,34 @@
+import { ValidationException } from '../../exceptions/validation.exception';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Get{{ className }}ByIdQuery } from './get-{{ fileName }}-by-id.query';
+import { Get{{ className }}ByIdUseCase } from './get-{{ fileName }}-by-id.usecase';
+
+describe('Get{{ className }}ByIdUseCase', () => {
+  it('rejects an invalid identifier before calling the gateway', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => undefined),
+    };
+    const useCase = new Get{{ className }}ByIdUseCase(gateway);
+
+    await expect(useCase.execute(new Get{{ className }}ByIdQuery({{ identifier.invalidTestValue }})))
+      .rejects.toBeInstanceOf(ValidationException);
+    expect(gateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('returns the entity loaded by the gateway', async () => {
+    const expected = new {{ className }}(
+{%- for property in properties %}
+      {{ property.testValue }},
+{%- endfor %}
+    );
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => expected),
+    };
+    const useCase = new Get{{ className }}ByIdUseCase(gateway);
+
+    const result = await useCase.execute(new Get{{ className }}ByIdQuery({{ identifier.testValue }}));
+
+    expect(result).toBe(expected);
+    expect(gateway.execute).toHaveBeenCalledWith({{ identifier.testValue }});
+  });
+});

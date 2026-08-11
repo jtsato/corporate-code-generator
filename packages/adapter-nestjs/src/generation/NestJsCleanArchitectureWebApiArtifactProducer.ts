@@ -8,6 +8,7 @@ import { NestJsEntityTransformer } from "../transformers/NestJsEntityTransformer
 
 const APPLICATION_TEMPLATE_IDS = [
   "web-api-not-found-exception-filter",
+  "web-api-validation-exception-filter",
 ] as const;
 
 const PER_ENTITY_TEMPLATE_IDS = [

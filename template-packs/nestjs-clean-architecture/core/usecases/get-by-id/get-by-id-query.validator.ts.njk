@@ -1,0 +1,19 @@
+import { FieldViolation } from '../../exceptions/field-violation';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { Get{{ className }}ByIdQuery } from './get-{{ fileName }}-by-id.query';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export class Get{{ className }}ByIdQueryValidator {
+  public validate(query: Get{{ className }}ByIdQuery): void {
+    const violations: FieldViolation[] = [];
+    const value = query.{{ identifier.name }};
+{%- for statement in identifier.coreValidationStatements %}
+    {{ statement }}
+{%- endfor %}
+
+    if (violations.length > 0) {
+      throw new ValidationException(violations);
+    }
+  }
+}

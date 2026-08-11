@@ -61,6 +61,7 @@ describe("NestJS generated project smoke test", () => {
 
     await installNpmDependencies(projectRoot);
     await runNpmScript(projectRoot, "build");
+    await runNpmScript(projectRoot, "test");
 
     const port = await reserveEphemeralPort();
     // Published before readiness is awaited, so teardown can reach the process even if
@@ -84,6 +85,7 @@ describe("NestJS generated project smoke test", () => {
 
     const manifest = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as { readonly scripts: Record<string, string> };
     expect(manifest.scripts["build"]).toBe("nest build");
+    expect(manifest.scripts["test"]).toBe("jest --runInBand");
     expect(manifest.scripts["start:prod"]).toBe("node dist/main");
   }, 30_000);
 
@@ -121,6 +123,14 @@ describe("NestJS generated project smoke test", () => {
     });
     expect(rejected.status, running.output()).toBe(400);
     await expect(rejected.json()).resolves.toMatchObject({ statusCode: 400 });
+
+    const invalidIdentifier = await fetch(`${running.baseUrl}/wallets/not-a-uuid`);
+    expect(invalidIdentifier.status, running.output()).toBe(400);
+    await expect(invalidIdentifier.json()).resolves.toEqual({
+      statusCode: 400,
+      message: "Validation failed",
+      violations: [{ field: "id", message: "id has an invalid value" }],
+    });
 
     const swagger = await fetch(`${running.baseUrl}/swagger-ui`);
     expect(swagger.status, running.output()).toBe(200);

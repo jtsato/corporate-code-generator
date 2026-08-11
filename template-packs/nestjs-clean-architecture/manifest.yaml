@@ -23,10 +23,18 @@ templates:
     module: core
     template: core/exceptions/core.exception.ts.njk
     output: src/core/exceptions/core.exception.ts
+  - id: core-field-violation
+    module: core
+    template: core/exceptions/field-violation.ts.njk
+    output: src/core/exceptions/field-violation.ts
   - id: core-not-found-exception
     module: core
     template: core/exceptions/not-found.exception.ts.njk
     output: src/core/exceptions/not-found.exception.ts
+  - id: core-validation-exception
+    module: core
+    template: core/exceptions/validation.exception.ts.njk
+    output: src/core/exceptions/validation.exception.ts
   - id: core-domain-model
     module: core
     template: core/models/model.ts.njk
@@ -35,6 +43,10 @@ templates:
     module: core
     template: core/usecases/create/create.command.ts.njk
     output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}.command.ts
+  - id: core-create-command-validator
+    module: core
+    template: core/usecases/create/create-command.validator.ts.njk
+    output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}-command.validator.ts
   - id: core-create-gateway
     module: core
     template: core/usecases/create/create.gateway.ts.njk
@@ -47,10 +59,18 @@ templates:
     module: core
     template: core/usecases/create/create.usecase.ts.njk
     output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase.ts
+  - id: core-create-usecase-test
+    module: core
+    template: core/usecases/create/create.usecase.spec.ts.njk
+    output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase.spec.ts
   - id: core-get-by-id-query
     module: core
     template: core/usecases/get-by-id/get-by-id.query.ts.njk
     output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.query.ts
+  - id: core-get-by-id-query-validator
+    module: core
+    template: core/usecases/get-by-id/get-by-id-query.validator.ts.njk
+    output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-query.validator.ts
   - id: core-get-by-id-gateway
     module: core
     template: core/usecases/get-by-id/get-by-id.gateway.ts.njk
@@ -63,6 +83,10 @@ templates:
     module: core
     template: core/usecases/get-by-id/get-by-id.usecase.ts.njk
     output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase.ts
+  - id: core-get-by-id-usecase-test
+    module: core
+    template: core/usecases/get-by-id/get-by-id.usecase.spec.ts.njk
+    output: src/core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase.spec.ts
 
   - id: infra-persistence-entity-model
     module: infra-persistence
@@ -89,6 +113,10 @@ templates:
     module: web-api
     template: web-api/commons/not-found.exception.filter.ts.njk
     output: src/web-api/commons/filters/not-found.exception.filter.ts
+  - id: web-api-validation-exception-filter
+    module: web-api
+    template: web-api/commons/validation.exception.filter.ts.njk
+    output: src/web-api/commons/filters/validation.exception.filter.ts
   - id: web-api-create-request
     module: web-api
     template: web-api/entrypoints/create-request.model.ts.njk
