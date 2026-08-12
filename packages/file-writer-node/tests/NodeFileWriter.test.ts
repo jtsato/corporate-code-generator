@@ -22,7 +22,7 @@ describe("NodeFileWriter", () => {
     await withTempRoot(async (root) => {
       await writeFile(join(root, "existing.txt"), "original");
       await expect(new NodeFileWriter().write(FilePlan.create([{ kind: "CREATE", targetPath: "existing.txt", content: "new" }]), root))
-        .rejects.toMatchObject({ code: "IO002", targetPath: "existing.txt", operationIndex: 0 });
+        .rejects.toMatchObject({ name: "FileWriteError", code: "IO002", targetPath: "existing.txt", operationIndex: 0 });
       await expect(readFile(join(root, "existing.txt"), "utf8")).resolves.toBe("original");
     });
   });

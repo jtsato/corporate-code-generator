@@ -20,4 +20,32 @@ describe("Java database names", () => {
     expect(first).toHaveLength(63);
     expect(first).toBe(toJavaDatabaseUniqueConstraintName("product", columns));
   });
+
+  it("names a single column constraint without a group segment", () => {
+    expect(toJavaDatabaseUniqueConstraintName("wallet", ["document_number"]))
+      .toBe("uk_wallet_document_number_active_scope");
+  });
+
+  it("names a multi column constraint with a group segment", () => {
+    expect(toJavaDatabaseUniqueConstraintName("wallet", ["tenant_id", "document_number"]))
+      .toBe("uk_wallet_g2_tenant_id_document_number_active_scope");
+  });
+
+  it("keeps a name that exactly reaches the identifier limit unhashed", () => {
+    const column = "external_reference_identifier_for_scopes";
+    const name = toJavaDatabaseUniqueConstraintName("wallet", [column]);
+
+    expect(name).toBe("uk_wallet_external_reference_identifier_for_scopes_active_scope");
+    expect(name).toHaveLength(63);
+  });
+
+  it("truncates an over-long name and appends a zero padded hash", () => {
+    const name = toJavaDatabaseUniqueConstraintName(
+      "tenant_scoped_customer_account",
+      ["external_reference_identifier", "document_number_1"],
+    );
+
+    expect(name).toBe("uk_tenant_scoped_customer_account_g2_external_referenc_064d739e");
+    expect(name).toHaveLength(63);
+  });
 });

@@ -6,6 +6,7 @@ import {
 
 import {
   TemplatePack,
+  TemplateDefinitionNotFoundError,
   TemplatePackLoader,
   TemplatePackResolver,
   findTemplateDefinition,
@@ -29,5 +30,15 @@ describe("TemplateDefinition lookup", () => {
 
     expect(() => findTemplateDefinition(pack, "missing-definition"))
       .toThrow("Template definition 'missing-definition' was not found.");
+  });
+
+  it("should describe the missing definition error contract", () => {
+    const error = new TemplateDefinitionNotFoundError("missing-definition");
+
+    expect(error.code).toBe("TEMPLATE006");
+    expect(error.name).toBe("TemplateDefinitionNotFoundError");
+    expect(error.message).toBe(
+      "Template definition 'missing-definition' was not found.",
+    );
   });
 });
