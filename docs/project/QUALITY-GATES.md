@@ -29,6 +29,8 @@ Java multi-module smoke commands declared in `package.json` include:
 npm run smoke:java-multimodule
 npm run smoke:maven:java-multimodule
 npm run smoke:archunit:java-multimodule
+npm run smoke:mutation:java-multimodule
+npm run smoke:testcontainers:java-multimodule
 npm run smoke:validation:java-multimodule
 npm run smoke:paging:java-multimodule
 npm run smoke:paging-runtime:java-multimodule

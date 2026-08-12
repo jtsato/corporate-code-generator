@@ -22,6 +22,7 @@ AI can assist development of the generator, models, tests, templates, and docume
 
 - `java-spring-clean`: single-module Java/Spring Clean Architecture scaffold.
 - `java-spring-clean-multimodule`: multi-module Java/Spring Clean Architecture scaffold with build, core, REST entrypoint, database infrastructure, and configuration modules.
+- `nestjs-clean-architecture`: TypeScript/NestJS Clean Architecture scaffold with build, core, persistence infrastructure, web-api, and bootstrap modules.
 
 For measured profile versions, module selections, artifact counts, implemented runtime capabilities, scripts, smoke files, and CI state, see [Current State](docs/project/CURRENT-STATE.md).
 
@@ -96,6 +97,7 @@ docs/                     Product, architecture, target architecture, ADR, and p
 - [Quality Gates](docs/project/QUALITY-GATES.md)
 - [Solution Specification](docs/SOLUTION-SPECIFICATION.md)
 - [Generated Java Reference Architecture](docs/target-architecture/REFERENCE-ARCHITECTURE.md)
+- [NestJS Reference Architecture](docs/target-architecture/NESTJS-REFERENCE-ARCHITECTURE.md)
 - [Capability Taxonomy](docs/target-architecture/CAPABILITY-TAXONOMY.md)
 - [ADR index](docs/adr/README.md)
 - [Contributing](CONTRIBUTING.md)

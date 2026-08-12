@@ -173,10 +173,6 @@ templates:
     module: web-api
     template: web-api/i18n/i18n.service.ts.njk
     output: src/web-api/i18n/i18n.service.ts
-  - id: web-api-e2e-test
-    module: web-api
-    template: web-api/e2e-test.ts.njk
-    output: test/app.e2e-spec.ts
   - id: web-api-http-response
     module: web-api
     template: web-api/commons/models/http-response.model.ts.njk
@@ -221,10 +217,6 @@ templates:
     module: web-api
     template: web-api/entrypoints/controller.ts.njk
     output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller.ts
-  - id: web-api-module
-    module: web-api
-    template: web-api/entrypoints/module.ts.njk
-    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.module.ts
 
   - id: bootstrap-main
     module: bootstrap
@@ -234,3 +226,11 @@ templates:
     module: bootstrap
     template: bootstrap/app.module.ts.njk
     output: src/app.module.ts
+  - id: bootstrap-e2e-test
+    module: bootstrap
+    template: bootstrap/e2e-test.ts.njk
+    output: test/app.e2e-spec.ts
+  - id: bootstrap-entity-module
+    module: bootstrap
+    template: bootstrap/modules/module.ts.njk
+    output: src/modules/{{ fileName }}.module.ts

@@ -78,3 +78,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [078](ADR-078-nestjs-health-checks.md) | NestJS Health Checks | Accepted — Milestone 7.13. | Milestone 7.13 | Not recorded | Not recorded |
 | [079](ADR-079-nestjs-basic-i18n-error-messages.md) | NestJS Basic i18n Error Messages | Accepted — Milestone 7.14. | Milestone 7.14 | Not recorded | Not recorded |
 | [080](ADR-080-nestjs-generated-e2e-tests.md) | NestJS Generated e2e Tests | Accepted — Milestone 7.15. | Milestone 7.15 | Not recorded | Not recorded |
+| [081](ADR-081-nestjs-composition-root-wiring.md) | NestJS Composition-Root Wiring | Accepted — Milestone 7.16. | Milestone 7.16 | 057 (in part), 080 (in part) | Not recorded |

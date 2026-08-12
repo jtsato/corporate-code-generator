@@ -26,6 +26,7 @@ This directory contains the project documentation. Canonical current facts and r
 - [Generated Java Reference Architecture](target-architecture/REFERENCE-ARCHITECTURE.md)
 - [Capability Taxonomy and Profile Options](target-architecture/CAPABILITY-TAXONOMY.md)
 - [Extended Reference Architecture](target-architecture/EXTENDED-REFERENCE-ARCHITECTURE.md)
+- [NestJS Reference Architecture](target-architecture/NESTJS-REFERENCE-ARCHITECTURE.md)
 
 ## Architectural decisions
 

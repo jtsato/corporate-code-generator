@@ -3,26 +3,26 @@ import { Module } from '@nestjs/common';
 import {
   ICreateWalletGateway,
   ICreateWalletGatewaySymbol,
-} from '../../../core/usecases/create-wallet/create-wallet.gateway';
-import { ICreateWalletUseCaseSymbol } from '../../../core/usecases/create-wallet/create-wallet-usecase.interface';
-import { CreateWalletUseCase } from '../../../core/usecases/create-wallet/create-wallet.usecase';
+} from '../core/usecases/create-wallet/create-wallet.gateway';
+import { ICreateWalletUseCaseSymbol } from '../core/usecases/create-wallet/create-wallet-usecase.interface';
+import { CreateWalletUseCase } from '../core/usecases/create-wallet/create-wallet.usecase';
 import {
   IGetWalletByIdGateway,
   IGetWalletByIdGatewaySymbol,
-} from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id.gateway';
-import { IGetWalletByIdUseCaseSymbol } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id-usecase.interface';
-import { GetWalletByIdUseCase } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id.usecase';
+} from '../core/usecases/get-wallet-by-id/get-wallet-by-id.gateway';
+import { IGetWalletByIdUseCaseSymbol } from '../core/usecases/get-wallet-by-id/get-wallet-by-id-usecase.interface';
+import { GetWalletByIdUseCase } from '../core/usecases/get-wallet-by-id/get-wallet-by-id.usecase';
 import {
   IPageWalletGateway,
   IPageWalletGatewaySymbol,
-} from '../../../core/usecases/page-wallets/page-wallets.gateway';
-import { IPageWalletUseCaseSymbol } from '../../../core/usecases/page-wallets/page-wallets-usecase.interface';
-import { PageWalletUseCase } from '../../../core/usecases/page-wallets/page-wallets.usecase';
-import { CreateWalletProvider } from '../../../infra/providers/create-wallet.provider';
-import { GetWalletByIdProvider } from '../../../infra/providers/get-wallet-by-id.provider';
-import { PageWalletProvider } from '../../../infra/providers/page-wallets.provider';
-import { WalletRepository } from '../../../infra/repositories/wallet.repository';
-import { WalletController } from './wallet.controller';
+} from '../core/usecases/page-wallets/page-wallets.gateway';
+import { IPageWalletUseCaseSymbol } from '../core/usecases/page-wallets/page-wallets-usecase.interface';
+import { PageWalletUseCase } from '../core/usecases/page-wallets/page-wallets.usecase';
+import { CreateWalletProvider } from '../infra/providers/create-wallet.provider';
+import { GetWalletByIdProvider } from '../infra/providers/get-wallet-by-id.provider';
+import { PageWalletProvider } from '../infra/providers/page-wallets.provider';
+import { WalletRepository } from '../infra/repositories/wallet.repository';
+import { WalletController } from '../web-api/entrypoints/wallets/wallet.controller';
 
 @Module({
   controllers: [WalletController],

@@ -9,6 +9,11 @@ import { NestJsEntityTransformer } from "../transformers/NestJsEntityTransformer
 const APPLICATION_TEMPLATE_IDS = [
   "bootstrap-main",
   "bootstrap-app-module",
+  "bootstrap-e2e-test",
+] as const;
+
+const PER_ENTITY_TEMPLATE_IDS = [
+  "bootstrap-entity-module",
 ] as const;
 
 export class NestJsCleanArchitectureBootstrapArtifactProducer
@@ -25,12 +30,25 @@ export class NestJsCleanArchitectureBootstrapArtifactProducer
   public produce(
     request: GenerationRequest,
   ): readonly TemplateInvocation[] {
-    const model = this.transformer.transformApplication(request.application);
+    const application = this.transformer.transformApplication(request.application);
 
-    return APPLICATION_TEMPLATE_IDS.map((templateId) => ({
+    const applicationInvocations = APPLICATION_TEMPLATE_IDS.map((templateId) => ({
       templateId,
-      model,
+      model: application,
       outputVariables: {},
     }));
+
+    const entityInvocations = application.entities.flatMap((entity) =>
+      PER_ENTITY_TEMPLATE_IDS.map((templateId) => ({
+        templateId,
+        model: entity,
+        outputVariables: {
+          fileName: entity.fileName,
+          pluralFileName: entity.pluralFileName,
+        },
+      })),
+    );
+
+    return [...applicationInvocations, ...entityInvocations];
   }
 }

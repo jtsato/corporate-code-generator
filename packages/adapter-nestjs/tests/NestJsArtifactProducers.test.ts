@@ -84,7 +84,16 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-controller");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-messages");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-service");
-    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-e2e-test");
+  });
+
+  it("keeps artifacts that depend on other modules out of the web-api module", () => {
+    const invocations = new NestJsCleanArchitectureWebApiArtifactProducer().produce(request);
+    const templateIds = invocations.map((invocation) => invocation.templateId);
+
+    expect(templateIds).not.toContain("bootstrap-entity-module");
+    expect(templateIds).not.toContain("web-api-module");
+    expect(templateIds).not.toContain("bootstrap-e2e-test");
+    expect(templateIds).not.toContain("web-api-e2e-test");
   });
 
   it("produces persistence artifacts per entity", () => {
@@ -100,12 +109,15 @@ describe("NestJS clean architecture artifact producers", () => {
     ]);
   });
 
-  it("produces a single bootstrap composition root", () => {
+  it("produces a single bootstrap composition root plus one wiring module per entity", () => {
     const invocations = new NestJsCleanArchitectureBootstrapArtifactProducer().produce(request);
 
     expect(invocations.map((invocation) => invocation.templateId)).toEqual([
       "bootstrap-main",
       "bootstrap-app-module",
+      "bootstrap-e2e-test",
+      "bootstrap-entity-module",
     ]);
+    expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
   });
 });

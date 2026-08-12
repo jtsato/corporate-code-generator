@@ -62,7 +62,6 @@ const GENERATED_PATHS = [
   "src/web-api/entrypoints/wallets/wallet-response.model.ts",
   "src/web-api/entrypoints/wallets/wallet-presenter.mapper.ts",
   "src/web-api/entrypoints/wallets/wallet.controller.ts",
-  "src/web-api/entrypoints/wallets/wallet.module.ts",
   "src/web-api/health/health-response.model.ts",
   "src/web-api/health/health.controller.ts",
   "src/web-api/i18n/messages.ts",
@@ -70,6 +69,7 @@ const GENERATED_PATHS = [
   "test/app.e2e-spec.ts",
   "src/main.ts",
   "src/app.module.ts",
+  "src/modules/wallet.module.ts",
 ] as const;
 
 interface CommandResult { readonly code: number; readonly stdout: string; readonly stderr: string; }
@@ -92,7 +92,9 @@ function goldenModule(targetPath: string): string {
   if (targetPath.startsWith("src/core/")) return "core";
   if (targetPath.startsWith("src/infra/")) return "infra-persistence";
   if (targetPath.startsWith("src/web-api/")) return "web-api";
+  if (targetPath.startsWith("src/modules/")) return "bootstrap";
   if (targetPath === "src/main.ts" || targetPath === "src/app.module.ts") return "bootstrap";
+  if (targetPath === "test/app.e2e-spec.ts") return "bootstrap";
   return "build";
 }
 

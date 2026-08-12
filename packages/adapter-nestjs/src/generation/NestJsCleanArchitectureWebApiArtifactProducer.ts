@@ -11,7 +11,6 @@ const APPLICATION_TEMPLATE_IDS = [
   "web-api-health-controller",
   "web-api-i18n-messages",
   "web-api-i18n-service",
-  "web-api-e2e-test",
   "web-api-http-response",
   "web-api-http-response-builder",
   "web-api-response-transformer-interceptor",
@@ -27,7 +26,6 @@ const PER_ENTITY_TEMPLATE_IDS = [
   "web-api-filter-parser",
   "web-api-page-response",
   "web-api-controller",
-  "web-api-module",
 ] as const;
 
 export class NestJsCleanArchitectureWebApiArtifactProducer

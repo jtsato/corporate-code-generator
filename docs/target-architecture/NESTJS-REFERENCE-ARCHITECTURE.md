@@ -96,14 +96,20 @@ the Java multi-module Golden Path's Maven-module-first, use-case-second organiza
   feature's NestJS `@Module` via `{ provide: TokenSymbol, useClass: Implementation }`. Classified
   as **Technology Adapter** convention to reuse directly once the `bootstrap` module is
   implemented — it is the NestJS-idiomatic equivalent of the Java Golden Path's explicit Spring
-  wiring in its `configuration` module (ADR-015).
+  wiring in its `configuration` module (ADR-015). The generated path adopted the convention itself,
+  and milestone 7.16 ([ADR-081](../adr/ADR-081-nestjs-composition-root-wiring.md)) moved the
+  per-entity `@Module` out of `web-api` into the `bootstrap` composition root at
+  `src/modules/<entity>.module.ts`. The generated layout therefore departs from the reference
+  project's feature-co-located modules: co-location is the more common NestJS idiom, but it is what
+  forced a delivery-layer artifact to import persistence.
 
 ## Cross-cutting capabilities observed
 
-Present in the reference, all explicitly deferred by ADR-057 pending their own milestones:
-OpenAPI/Swagger documentation, a
-request-timing interceptor, environment configuration through `@nestjs/config` and a single `.env`
-file (no per-environment profile split).
+Present in the reference and deferred by ADR-057 pending their own milestones. OpenAPI/Swagger
+documentation was subsequently adopted by milestones 7.5 and 7.6 (annotated entrypoints plus a
+`/swagger-ui` endpoint), and the reference's health-check endpoint by milestone 7.13. Still deferred:
+a request-timing interceptor, and environment configuration through `@nestjs/config` and a single
+`.env` file (no per-environment profile split).
 
 Not present in the reference, and therefore not inherited as defaults: sorting, soft delete, real
 authentication/authorization enforcement (only a Swagger security-scheme
