@@ -1,0 +1,8 @@
+export class Update{{ className }}Command {
+  public constructor(
+    public readonly {{ identifier.name }}: {{ identifier.type }},
+{%- for property in mutableProperties %}
+    public readonly {{ property.name }}: {{ property.type }},
+{%- endfor %}
+  ) {}
+}

@@ -1,0 +1,43 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { IGet{{ className }}ByIdGateway } from '../get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
+import { IUpdate{{ className }}Gateway } from '../update-{{ fileName }}/update-{{ fileName }}.gateway';
+import { Patch{{ className }}Command } from './patch-{{ fileName }}.command';
+import { Patch{{ className }}CommandValidator } from './patch-{{ fileName }}-command.validator';
+import { IPatch{{ className }}UseCase } from './patch-{{ fileName }}-usecase.interface';
+
+export class Patch{{ className }}UseCase implements IPatch{{ className }}UseCase {
+  public constructor(
+    private readonly getByIdGateway: IGet{{ className }}ByIdGateway,
+    private readonly updateGateway: IUpdate{{ className }}Gateway,
+    private readonly validator: Patch{{ className }}CommandValidator = new Patch{{ className }}CommandValidator(),
+  ) {}
+
+  public async execute(command: Patch{{ className }}Command): Promise<{{ className }}> {
+    this.validator.validate(command);
+
+    const current = await this.getByIdGateway.execute(command.{{ identifier.name }});
+    if (current === undefined) {
+      throw new NotFoundException(`{{ className }} not found: ${command.{{ identifier.name }}}`);
+    }
+
+    const updatedEntity = new {{ className }}(
+{%- for property in properties %}
+{%- if property.identifier %}
+      current.{{ property.name }},
+{%- else %}
+      Object.prototype.hasOwnProperty.call(command.changes, '{{ property.name }}')
+        ? (command.changes.{{ property.name }} as {{ property.type }})
+        : current.{{ property.name }},
+{%- endif %}
+{%- endfor %}
+    );
+    const updated = await this.updateGateway.execute(updatedEntity);
+
+    if (updated === undefined) {
+      throw new NotFoundException(`{{ className }} not found: ${command.{{ identifier.name }}}`);
+    }
+
+    return updated;
+  }
+}

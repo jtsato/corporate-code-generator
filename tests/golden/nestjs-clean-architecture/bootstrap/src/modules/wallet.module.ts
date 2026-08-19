@@ -13,6 +13,20 @@ import {
 import { IGetWalletByIdUseCaseSymbol } from '../core/usecases/get-wallet-by-id/get-wallet-by-id-usecase.interface';
 import { GetWalletByIdUseCase } from '../core/usecases/get-wallet-by-id/get-wallet-by-id.usecase';
 import {
+  IUpdateWalletGateway,
+  IUpdateWalletGatewaySymbol,
+} from '../core/usecases/update-wallet/update-wallet.gateway';
+import { IUpdateWalletUseCaseSymbol } from '../core/usecases/update-wallet/update-wallet-usecase.interface';
+import { UpdateWalletUseCase } from '../core/usecases/update-wallet/update-wallet.usecase';
+import { IPatchWalletUseCaseSymbol } from '../core/usecases/patch-wallet/patch-wallet-usecase.interface';
+import { PatchWalletUseCase } from '../core/usecases/patch-wallet/patch-wallet.usecase';
+import {
+  IDeleteWalletGateway,
+  IDeleteWalletGatewaySymbol,
+} from '../core/usecases/delete-wallet/delete-wallet.gateway';
+import { IDeleteWalletUseCaseSymbol } from '../core/usecases/delete-wallet/delete-wallet-usecase.interface';
+import { DeleteWalletUseCase } from '../core/usecases/delete-wallet/delete-wallet.usecase';
+import {
   IPageWalletGateway,
   IPageWalletGatewaySymbol,
 } from '../core/usecases/page-wallets/page-wallets.gateway';
@@ -20,6 +34,8 @@ import { IPageWalletUseCaseSymbol } from '../core/usecases/page-wallets/page-wal
 import { PageWalletUseCase } from '../core/usecases/page-wallets/page-wallets.usecase';
 import { CreateWalletProvider } from '../infra/providers/create-wallet.provider';
 import { GetWalletByIdProvider } from '../infra/providers/get-wallet-by-id.provider';
+import { UpdateWalletProvider } from '../infra/providers/update-wallet.provider';
+import { DeleteWalletProvider } from '../infra/providers/delete-wallet.provider';
 import { PageWalletProvider } from '../infra/providers/page-wallets.provider';
 import { WalletRepository } from '../infra/repositories/wallet.repository';
 import { WalletController } from '../web-api/entrypoints/wallets/wallet.controller';
@@ -37,6 +53,14 @@ import { WalletController } from '../web-api/entrypoints/wallets/wallet.controll
       useClass: GetWalletByIdProvider,
     },
     {
+      provide: IUpdateWalletGatewaySymbol,
+      useClass: UpdateWalletProvider,
+    },
+    {
+      provide: IDeleteWalletGatewaySymbol,
+      useClass: DeleteWalletProvider,
+    },
+    {
       provide: ICreateWalletUseCaseSymbol,
       useFactory: (gateway: ICreateWalletGateway): CreateWalletUseCase =>
         new CreateWalletUseCase(gateway),
@@ -47,6 +71,24 @@ import { WalletController } from '../web-api/entrypoints/wallets/wallet.controll
       useFactory: (gateway: IGetWalletByIdGateway): GetWalletByIdUseCase =>
         new GetWalletByIdUseCase(gateway),
       inject: [IGetWalletByIdGatewaySymbol],
+    },
+    {
+      provide: IUpdateWalletUseCaseSymbol,
+      useFactory: (gateway: IUpdateWalletGateway): UpdateWalletUseCase =>
+        new UpdateWalletUseCase(gateway),
+      inject: [IUpdateWalletGatewaySymbol],
+    },
+    {
+      provide: IPatchWalletUseCaseSymbol,
+      useFactory: (getByIdGateway: IGetWalletByIdGateway, updateGateway: IUpdateWalletGateway): PatchWalletUseCase =>
+        new PatchWalletUseCase(getByIdGateway, updateGateway),
+      inject: [IGetWalletByIdGatewaySymbol, IUpdateWalletGatewaySymbol],
+    },
+    {
+      provide: IDeleteWalletUseCaseSymbol,
+      useFactory: (gateway: IDeleteWalletGateway): DeleteWalletUseCase =>
+        new DeleteWalletUseCase(gateway),
+      inject: [IDeleteWalletGatewaySymbol],
     },
     {
       provide: IPageWalletGatewaySymbol,

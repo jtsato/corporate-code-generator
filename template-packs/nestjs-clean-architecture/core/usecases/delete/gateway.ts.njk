@@ -1,0 +1,5 @@
+export interface IDelete{{ className }}Gateway {
+  execute({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>;
+}
+
+export const IDelete{{ className }}GatewaySymbol = Symbol('IDelete{{ className }}Gateway');

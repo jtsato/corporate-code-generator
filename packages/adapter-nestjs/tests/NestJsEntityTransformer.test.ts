@@ -36,7 +36,8 @@ describe("NestJsEntityTransformer", () => {
         name: "id",
         type: "string",
         validationDecorator: "IsUUID",
-        testValue: '"00000000-0000-0000-0000-000000000001"',
+        testValue: '"00000000-0000-4000-8000-000000000001"',
+        alternateTestValue: '"00000000-0000-4000-8000-000000000002"',
         coreValidationStatements: expect.arrayContaining([
           expect.stringContaining("UUID_PATTERN"),
         ]),
@@ -53,11 +54,66 @@ describe("NestJsEntityTransformer", () => {
     ]);
   });
 
+  it("prepares a distinct alternate value for generated mutation tests", () => {
+    const model = transformer.transform(entity());
+
+    expect(model.properties.find((property) => property.name === "balance")).toEqual(expect.objectContaining({
+      testValue: "1.5",
+      alternateTestValue: "2.5",
+    }));
+  });
+
   it("exposes the identifier attribute separately", () => {
     const model = transformer.transform(entity());
 
     expect(model.identifier.name).toBe("id");
     expect(model.identifier.type).toBe("string");
+    expect(model.identifier.pathValueExpression).toBe("id");
+  });
+
+  it("prepares mutable properties and update/patch validation imports", () => {
+    const model = transformer.transform(entity());
+
+    expect(model.mutableProperties.map((property) => property.name)).toEqual(["balance"]);
+    expect(model.updateRequestValidationImports).toEqual(["IsNotEmpty", "IsNumber"]);
+    expect(model.patchRequestValidationImports).toEqual(["IsNumber", "IsOptional"]);
+  });
+
+  it("normalizes numeric path identifiers without hiding invalid values from Core validation", () => {
+    const model = transformer.transform(entity({
+      attributes: [
+        { name: "id", type: "int64", required: true, identifier: true },
+        { name: "balance", type: "decimal", required: true, identifier: false },
+      ],
+    }));
+
+    expect(model.identifier.pathValueExpression).toBe("Number(id)");
+    expect(model.identifier.coreValidationStatements).toEqual(expect.arrayContaining([
+      expect.stringContaining("Number.isSafeInteger"),
+    ]));
+  });
+
+  it.each(["date", "datetime"] as const)(
+    "normalizes %s path identifiers as dates while preserving invalid dates for Core validation",
+    (type) => {
+      const model = transformer.transform(entity({
+        attributes: [
+          { name: "id", type, required: true, identifier: true },
+          { name: "balance", type: "decimal", required: true, identifier: false },
+        ],
+      }));
+
+      expect(model.identifier.pathValueExpression).toBe("new Date(id)");
+      expect(model.identifier.coreValidationStatements).toEqual(expect.arrayContaining([
+        expect.stringContaining("Number.isNaN(value.getTime())"),
+      ]));
+    },
+  );
+
+  it("uses the route parameter directly for UUID path identifiers", () => {
+    const model = transformer.transform(entity());
+
+    expect(model.identifier.pathValueExpression).toBe("id");
   });
 
   it("collects sorted unique request validation imports including IsNotEmpty", () => {

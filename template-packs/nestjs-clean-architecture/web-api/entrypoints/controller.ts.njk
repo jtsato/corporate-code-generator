@@ -1,7 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Inject, Param, Post, Query } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpStatus, Inject, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { Create{{ className }}Command } from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.command';
+import { Delete{{ className }}Command } from '../../../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.command';
+import {
+  IDelete{{ className }}UseCase,
+  IDelete{{ className }}UseCaseSymbol,
+} from '../../../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface';
 import { PageRequest } from '../../../core/common/paging/page-request';
 import { PageResult } from '../../../core/common/paging/page-result';
 import { Page{{ className }}Query } from '../../../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.query';
@@ -13,15 +18,28 @@ import {
   ICreate{{ className }}UseCase,
   ICreate{{ className }}UseCaseSymbol,
 } from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface';
+import { Patch{{ className }}Command } from '../../../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.command';
+import type { Patch{{ className }}Changes } from '../../../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.changes';
+import {
+  IPatch{{ className }}UseCase,
+  IPatch{{ className }}UseCaseSymbol,
+} from '../../../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface';
 import { Get{{ className }}ByIdQuery } from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.query';
 import {
   IGet{{ className }}ByIdUseCase,
   IGet{{ className }}ByIdUseCaseSymbol,
 } from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
 import { Create{{ className }}Request } from './create-{{ fileName }}-request.model';
+import { Patch{{ className }}Request } from './patch-{{ fileName }}-request.model';
 import { {{ className }}FilterParser } from './{{ fileName }}-filter.parser';
 import { {{ className }}PageRequest } from './{{ fileName }}-page-request.model';
 import { {{ className }}PageResponse } from './{{ fileName }}-page-response.model';
+import { Update{{ className }}Request } from './update-{{ fileName }}-request.model';
+import { Update{{ className }}Command } from '../../../core/usecases/update-{{ fileName }}/update-{{ fileName }}.command';
+import {
+  IUpdate{{ className }}UseCase,
+  IUpdate{{ className }}UseCaseSymbol,
+} from '../../../core/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface';
 import { HttpResponseBuilder } from '../../commons/models/http-response.builder';
 import { HttpResponse } from '../../commons/models/http-response.model';
 import { {{ className }}Presenter } from './{{ fileName }}-presenter.mapper';
@@ -37,6 +55,12 @@ export class {{ className }}Controller {
     private readonly get{{ className }}ByIdUseCase: IGet{{ className }}ByIdUseCase,
     @Inject(IPage{{ className }}UseCaseSymbol)
     private readonly page{{ className }}UseCase: IPage{{ className }}UseCase,
+    @Inject(IUpdate{{ className }}UseCaseSymbol)
+    private readonly update{{ className }}UseCase: IUpdate{{ className }}UseCase,
+    @Inject(IPatch{{ className }}UseCaseSymbol)
+    private readonly patch{{ className }}UseCase: IPatch{{ className }}UseCase,
+    @Inject(IDelete{{ className }}UseCaseSymbol)
+    private readonly delete{{ className }}UseCase: IDelete{{ className }}UseCase,
   ) {}
 
   @Post()
@@ -79,16 +103,77 @@ export class {{ className }}Controller {
       .build();
   }
 
-  @Get('/:{{ identifier.name }}')
+  @Get('/:id')
   @ApiOkResponse({ type: {{ className }}Response })
-  public async getById(@Param('{{ identifier.name }}') {{ identifier.name }}: {{ identifier.type }}): Promise<HttpResponse<{{ className }}Response>> {
+  @ApiNotFoundResponse()
+  public async getById(@Param('id') id: string): Promise<HttpResponse<{{ className }}Response>> {
     const {{ propertyName }} = await this.get{{ className }}ByIdUseCase.execute(
-      new Get{{ className }}ByIdQuery({{ identifier.name }}),
+      new Get{{ className }}ByIdQuery({{ identifier.pathValueExpression }}),
     );
 
     return new HttpResponseBuilder<{{ className }}Response>()
       .withStatus(HttpStatus.OK)
       .withBody({{ className }}Presenter.of({{ propertyName }}))
+      .build();
+  }
+
+  @Put('/:id')
+  @ApiOkResponse({ type: {{ className }}Response })
+  @ApiNotFoundResponse()
+  public async update(
+    @Param('id') id: string,
+    @Body() request: Update{{ className }}Request,
+  ): Promise<HttpResponse<{{ className }}Response>> {
+    const {{ propertyName }} = await this.update{{ className }}UseCase.execute(
+      new Update{{ className }}Command(
+        {{ identifier.pathValueExpression }},
+{%- for property in mutableProperties %}
+        request.{{ property.name }},
+{%- endfor %}
+      ),
+    );
+
+    return new HttpResponseBuilder<{{ className }}Response>()
+      .withStatus(HttpStatus.OK)
+      .withBody({{ className }}Presenter.of({{ propertyName }}))
+      .build();
+  }
+
+  @Patch('/:id')
+  @ApiOkResponse({ type: {{ className }}Response })
+  @ApiNotFoundResponse()
+  public async patch(
+    @Param('id') id: string,
+    @Body() request: Patch{{ className }}Request,
+  ): Promise<HttpResponse<{{ className }}Response>> {
+    const changes: Patch{{ className }}Changes = {
+{%- for property in mutableProperties %}
+      ...(Object.prototype.hasOwnProperty.call(request, '{{ property.name }}')
+        ? { {{ property.name }}: request.{{ property.name }} }
+        : {}),
+{%- endfor %}
+    };
+
+    const {{ propertyName }} = await this.patch{{ className }}UseCase.execute(
+      new Patch{{ className }}Command({{ identifier.pathValueExpression }}, changes),
+    );
+
+    return new HttpResponseBuilder<{{ className }}Response>()
+      .withStatus(HttpStatus.OK)
+      .withBody({{ className }}Presenter.of({{ propertyName }}))
+      .build();
+  }
+
+  @Delete('/:id')
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse()
+  public async delete(@Param('id') id: string): Promise<HttpResponse<void>> {
+    await this.delete{{ className }}UseCase.execute(
+      new Delete{{ className }}Command({{ identifier.pathValueExpression }}),
+    );
+
+    return new HttpResponseBuilder<void>()
+      .withStatus(HttpStatus.NO_CONTENT)
       .build();
   }
 }

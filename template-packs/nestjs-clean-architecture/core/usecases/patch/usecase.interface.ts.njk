@@ -1,0 +1,8 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Patch{{ className }}Command } from './patch-{{ fileName }}.command';
+
+export interface IPatch{{ className }}UseCase {
+  execute(command: Patch{{ className }}Command): Promise<{{ className }}>;
+}
+
+export const IPatch{{ className }}UseCaseSymbol = Symbol('IPatch{{ className }}UseCase');

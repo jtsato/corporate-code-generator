@@ -249,6 +249,11 @@ Future schema work must validate incompatible combinations, such as a provider o
 | NestJS health checks | Supported in NestJS Golden Path | Generated liveness and readiness endpoints return a stable `UP` status through the response transport. |
 | NestJS basic i18n | Supported in NestJS Golden Path | Generated error filters select deterministic English or Portuguese messages from `Accept-Language`. |
 | NestJS generated e2e tests | Supported in NestJS Golden Path | Generated Jest/Supertest tests boot the application and cover the generated HTTP contracts. |
+| NestJS CRUD | Supported in NestJS Golden Path | Generated Core, in-memory persistence, web-api, and bootstrap artifacts provide create, read, full replacement PUT, presence-based PATCH, and physical DELETE. The authorized command `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run smoke:generated-project:nestjs` passed with 1 file and 3 tests, including generated dependencies installed and generated build/Jest/e2e/HTTP CRUD checks. |
+| NestJS sorting | Planned/future | Collection sorting is not currently generated. |
+| NestJS soft delete and restore | Planned/future | Current DELETE physically removes the in-memory record; tombstone and restore semantics are not generated. |
+| NestJS ORM/database persistence | Planned/future | The current persistence adapter is in memory. |
+| NestJS uniqueness | Planned/future | Attribute and composite uniqueness are not currently generated for NestJS. |
 | Security | Planned/future | Requires explicit model/profile decisions. |
 | Deployment/IaC | Planned/future | Not implied by current Java Golden Path. |
 | Additional languages/stacks | NestJS supported; others planned/future | Additional Golden Paths must preserve technology-agnostic Core/model boundaries. |

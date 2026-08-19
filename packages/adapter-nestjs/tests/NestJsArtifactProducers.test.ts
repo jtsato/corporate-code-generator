@@ -1,3 +1,7 @@
+import { readFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 import type { GenerationRequest } from "@corporate-code-generator/core";
@@ -7,6 +11,8 @@ import { NestJsCleanArchitectureBuildArtifactProducer } from "../src/generation/
 import { NestJsCleanArchitectureCoreArtifactProducer } from "../src/generation/NestJsCleanArchitectureCoreArtifactProducer.js";
 import { NestJsCleanArchitectureInfraPersistenceArtifactProducer } from "../src/generation/NestJsCleanArchitectureInfraPersistenceArtifactProducer.js";
 import { NestJsCleanArchitectureWebApiArtifactProducer } from "../src/generation/NestJsCleanArchitectureWebApiArtifactProducer.js";
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 const request = {
   application: {
@@ -57,6 +63,27 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(templateIds).toContain("core-create-usecase");
     expect(templateIds).toContain("core-create-usecase-test");
     expect(templateIds).toContain("core-create-command-validator");
+    expect(templateIds).toEqual(expect.arrayContaining([
+      "core-update-command",
+      "core-update-command-validator",
+      "core-update-gateway",
+      "core-update-usecase-interface",
+      "core-update-usecase",
+      "core-update-usecase-test",
+    ]));
+    expect(templateIds).toEqual(expect.arrayContaining([
+      "core-patch-command",
+      "core-patch-changes",
+      "core-patch-command-validator",
+      "core-patch-usecase-interface",
+      "core-patch-usecase",
+      "core-patch-usecase-test",
+      "core-delete-command",
+      "core-delete-gateway",
+      "core-delete-usecase-interface",
+      "core-delete-usecase",
+      "core-delete-usecase-test",
+    ]));
     expect(templateIds).toContain("core-get-by-id-usecase");
     expect(templateIds).toContain("core-get-by-id-usecase-test");
     expect(templateIds).toContain("core-get-by-id-query-validator");
@@ -80,6 +107,10 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-page-request");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-filter-parser");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-page-response");
+    expect(invocations.map((invocation) => invocation.templateId)).toEqual(expect.arrayContaining([
+      "web-api-update-request",
+      "web-api-patch-request",
+    ]));
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-response");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-controller");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-messages");
@@ -106,7 +137,32 @@ describe("NestJS clean architecture artifact producers", () => {
       "infra-persistence-create-provider",
       "infra-persistence-get-by-id-provider",
       "infra-persistence-page-provider",
+      "infra-persistence-update-provider",
+      "infra-persistence-delete-provider",
     ]);
+  });
+
+  it("declares repository update and delete contracts", async () => {
+    const repositoryTemplate = await readFile(
+      join(repoRoot, "template-packs", "nestjs-clean-architecture", "infra-persistence", "repositories", "repository.ts.njk"),
+      "utf8",
+    );
+
+    expect(repositoryTemplate).toContain(
+      "public async updateById({{ identifier.name }}: {{ identifier.type }}, entity: {{ className }}Entity): Promise<{{ className }}Entity | undefined>",
+    );
+    expect(repositoryTemplate).toContain(
+      "const index = this.{{ propertyName }}s.findIndex((current) => current.{{ identifier.name }} === {{ identifier.name }});",
+    );
+    expect(repositoryTemplate).toContain("if (index < 0) return undefined;");
+    expect(repositoryTemplate).toContain("this.{{ propertyName }}s[index] = entity;");
+    expect(repositoryTemplate).toContain("return entity;");
+    expect(repositoryTemplate).toContain(
+      "public async deleteById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
+    );
+    expect(repositoryTemplate).toContain("if (index < 0) return false;");
+    expect(repositoryTemplate).toContain("this.{{ propertyName }}s.splice(index, 1);");
+    expect(repositoryTemplate).toContain("return true;");
   });
 
   it("produces a single bootstrap composition root plus one wiring module per entity", () => {
@@ -119,5 +175,32 @@ describe("NestJS clean architecture artifact producers", () => {
       "bootstrap-entity-module",
     ]);
     expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
+  });
+
+  it("wires CRUD providers and use cases in the generated entity module", async () => {
+    const moduleTemplate = await readFile(
+      join(repoRoot, "template-packs", "nestjs-clean-architecture", "bootstrap", "modules", "module.ts.njk"),
+      "utf8",
+    );
+
+    expect(moduleTemplate).toContain(
+      "provide: IUpdate{{ className }}GatewaySymbol,\n      useClass: Update{{ className }}Provider,",
+    );
+    expect(moduleTemplate).toContain(
+      "provide: IDelete{{ className }}GatewaySymbol,\n      useClass: Delete{{ className }}Provider,",
+    );
+    expect(moduleTemplate).toContain("provide: IUpdate{{ className }}UseCaseSymbol,");
+    expect(moduleTemplate).toContain("provide: IPatch{{ className }}UseCaseSymbol,");
+    expect(moduleTemplate).toContain("provide: IDelete{{ className }}UseCaseSymbol,");
+    expect(moduleTemplate).toContain(
+      "useFactory: (getByIdGateway: IGet{{ className }}ByIdGateway, updateGateway: IUpdate{{ className }}Gateway): Patch{{ className }}UseCase =>",
+    );
+    expect(moduleTemplate).toContain(
+      "inject: [IGet{{ className }}ByIdGatewaySymbol, IUpdate{{ className }}GatewaySymbol],",
+    );
+    expect(moduleTemplate).toContain(
+      "useFactory: (gateway: IDelete{{ className }}Gateway): Delete{{ className }}UseCase =>",
+    );
+    expect(moduleTemplate).toContain("inject: [IDelete{{ className }}GatewaySymbol],");
   });
 });

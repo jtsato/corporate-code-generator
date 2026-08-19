@@ -7,7 +7,12 @@ export interface NestJsPropertyTemplateModel {
   readonly swaggerType: string;
   readonly coreValidationStatements: readonly string[];
   readonly testValue: string;
+  readonly alternateTestValue: string;
   readonly invalidTestValue: string;
+}
+
+export interface NestJsIdentifierTemplateModel extends NestJsPropertyTemplateModel {
+  readonly pathValueExpression: string;
 }
 
 export interface NestJsEntityTemplateModel {
@@ -17,8 +22,11 @@ export interface NestJsEntityTemplateModel {
   readonly pluralFileName: string;
   readonly restCollectionPath: string;
   readonly properties: readonly NestJsPropertyTemplateModel[];
-  readonly identifier: NestJsPropertyTemplateModel;
+  readonly mutableProperties: readonly NestJsPropertyTemplateModel[];
+  readonly identifier: NestJsIdentifierTemplateModel;
   readonly requestValidationImports: readonly string[];
+  readonly updateRequestValidationImports: readonly string[];
+  readonly patchRequestValidationImports: readonly string[];
 }
 
 export interface NestJsApplicationTemplateModel {

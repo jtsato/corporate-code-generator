@@ -13,6 +13,20 @@ import {
 import { IGet{{ className }}ByIdUseCaseSymbol } from '../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
 import { Get{{ className }}ByIdUseCase } from '../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase';
 import {
+  IUpdate{{ className }}Gateway,
+  IUpdate{{ className }}GatewaySymbol,
+} from '../core/usecases/update-{{ fileName }}/update-{{ fileName }}.gateway';
+import { IUpdate{{ className }}UseCaseSymbol } from '../core/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface';
+import { Update{{ className }}UseCase } from '../core/usecases/update-{{ fileName }}/update-{{ fileName }}.usecase';
+import { IPatch{{ className }}UseCaseSymbol } from '../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface';
+import { Patch{{ className }}UseCase } from '../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.usecase';
+import {
+  IDelete{{ className }}Gateway,
+  IDelete{{ className }}GatewaySymbol,
+} from '../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway';
+import { IDelete{{ className }}UseCaseSymbol } from '../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface';
+import { Delete{{ className }}UseCase } from '../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.usecase';
+import {
   IPage{{ className }}Gateway,
   IPage{{ className }}GatewaySymbol,
 } from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.gateway';
@@ -20,6 +34,8 @@ import { IPage{{ className }}UseCaseSymbol } from '../core/usecases/page-{{ plur
 import { Page{{ className }}UseCase } from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.usecase';
 import { Create{{ className }}Provider } from '../infra/providers/create-{{ fileName }}.provider';
 import { Get{{ className }}ByIdProvider } from '../infra/providers/get-{{ fileName }}-by-id.provider';
+import { Update{{ className }}Provider } from '../infra/providers/update-{{ fileName }}.provider';
+import { Delete{{ className }}Provider } from '../infra/providers/delete-{{ fileName }}.provider';
 import { Page{{ className }}Provider } from '../infra/providers/page-{{ pluralFileName }}.provider';
 import { {{ className }}Repository } from '../infra/repositories/{{ fileName }}.repository';
 import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller';
@@ -37,6 +53,14 @@ import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileN
       useClass: Get{{ className }}ByIdProvider,
     },
     {
+      provide: IUpdate{{ className }}GatewaySymbol,
+      useClass: Update{{ className }}Provider,
+    },
+    {
+      provide: IDelete{{ className }}GatewaySymbol,
+      useClass: Delete{{ className }}Provider,
+    },
+    {
       provide: ICreate{{ className }}UseCaseSymbol,
       useFactory: (gateway: ICreate{{ className }}Gateway): Create{{ className }}UseCase =>
         new Create{{ className }}UseCase(gateway),
@@ -47,6 +71,24 @@ import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileN
       useFactory: (gateway: IGet{{ className }}ByIdGateway): Get{{ className }}ByIdUseCase =>
         new Get{{ className }}ByIdUseCase(gateway),
       inject: [IGet{{ className }}ByIdGatewaySymbol],
+    },
+    {
+      provide: IUpdate{{ className }}UseCaseSymbol,
+      useFactory: (gateway: IUpdate{{ className }}Gateway): Update{{ className }}UseCase =>
+        new Update{{ className }}UseCase(gateway),
+      inject: [IUpdate{{ className }}GatewaySymbol],
+    },
+    {
+      provide: IPatch{{ className }}UseCaseSymbol,
+      useFactory: (getByIdGateway: IGet{{ className }}ByIdGateway, updateGateway: IUpdate{{ className }}Gateway): Patch{{ className }}UseCase =>
+        new Patch{{ className }}UseCase(getByIdGateway, updateGateway),
+      inject: [IGet{{ className }}ByIdGatewaySymbol, IUpdate{{ className }}GatewaySymbol],
+    },
+    {
+      provide: IDelete{{ className }}UseCaseSymbol,
+      useFactory: (gateway: IDelete{{ className }}Gateway): Delete{{ className }}UseCase =>
+        new Delete{{ className }}UseCase(gateway),
+      inject: [IDelete{{ className }}GatewaySymbol],
     },
     {
       provide: IPage{{ className }}GatewaySymbol,

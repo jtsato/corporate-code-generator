@@ -1,6 +1,6 @@
 # Current State
 
-Verification date: 2026-08-11
+Verification date: 2026-08-19
 Baseline commit: `343008c`
 
 This document centralizes current measured facts. Architecture intent and future work are documented separately in the [Solution Specification](../SOLUTION-SPECIFICATION.md), [Generated Java Reference Architecture](../target-architecture/REFERENCE-ARCHITECTURE.md), [Capability Taxonomy](../target-architecture/CAPABILITY-TAXONOMY.md), and [Roadmap](../../ROADMAP.md).
@@ -61,12 +61,12 @@ NestJS dependencies:
 | `java-spring-clean-multimodule --module configuration` | 168 CREATE |
 | `java-spring-clean-multimodule --module build --module core` | 79 CREATE |
 | `java-spring-clean-multimodule --module build --module configuration` | 168 CREATE |
-| `nestjs-clean-architecture` full profile | 57 CREATE |
+| `nestjs-clean-architecture` full profile | 78 CREATE |
 | `nestjs-clean-architecture --module build` | 5 CREATE |
-| `nestjs-clean-architecture --module core` | 26 CREATE |
-| `nestjs-clean-architecture --module infra-persistence` | 32 CREATE |
-| `nestjs-clean-architecture --module web-api` | 42 CREATE |
-| `nestjs-clean-architecture --module bootstrap` | 52 CREATE |
+| `nestjs-clean-architecture --module core` | 43 CREATE |
+| `nestjs-clean-architecture --module infra-persistence` | 51 CREATE |
+| `nestjs-clean-architecture --module web-api` | 61 CREATE |
+| `nestjs-clean-architecture --module bootstrap` | 73 CREATE |
 
 The `entrypoints-rest` and `infra-database` selections include `core` transitively. The `configuration` selection includes all required modules transitively.
 
@@ -86,7 +86,7 @@ Measured and documented implemented capabilities in the current Java multi-modul
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
 - Container packaging: a multi-stage `Dockerfile` (Maven builder stage, Alpine JRE runtime, non-root UID/GID 10001, `JAVA_TOOL_OPTIONS` container-aware heap sizing, `HEALTHCHECK` against `/actuator/health`), a `.dockerignore`, and a Compose file. Spring Boot Actuator is on the `configuration` classpath with only the `health` endpoint exposed over HTTP and `show-details: never`.
 - Explicit i18n policy: generated `LocaleConfiguration` selects English by default, allows only `en` and `pt-BR` through `Accept-Language`, loads UTF-8 message bundles, and disables JVM system-locale fallback; generated locale tests cover Portuguese, unsupported, and missing-header negotiation.
-- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators for create and find-by-id flows, colocated Jest tests, transport-level HTTP response envelopes, zero-based pagination with `eq`/`ne` filters, liveness/readiness endpoints, deterministic English/Portuguese error messages, and a native Jest/Supertest e2e suite. Its full-profile example emits 57 CREATE operations and its Core remains free of NestJS and `class-validator` imports.
+- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators, colocated Jest tests, transport-level HTTP response envelopes, zero-based pagination with `eq`/`ne` filters, full replacement and partial update use cases, physical delete, liveness/readiness endpoints, deterministic English/Portuguese error messages, and a generated Jest/Supertest e2e suite. Its full-profile example emits 78 CREATE operations and its Core remains free of NestJS and `class-validator` imports. Persistence remains in memory; sorting, soft delete/restore, ORM/database persistence, and uniqueness remain future gaps.
 
 Current documented Java multi-module REST surface:
 
@@ -99,7 +99,7 @@ Current documented Java multi-module REST surface:
 | Partial update | `PATCH /wallets/{id}` | Implemented |
 | Delete over REST | `DELETE /wallets/{id}` | Implemented |
 
-Current documented NestJS REST surface, measured from the generated controllers at milestone 7.8:
+Current documented NestJS REST surface, measured from the generated controllers after the local Task 9 verification:
 
 | Operation | Endpoint | State |
 | --- | --- | --- |
@@ -110,9 +110,9 @@ Current documented NestJS REST surface, measured from the generated controllers 
 | Readiness | `GET /health-check/ready` | Implemented |
 | OpenAPI UI | `GET /swagger-ui` | Implemented |
 | Sorting on collection reads | `GET /wallets` | Not implemented |
-| Full replacement update | `PUT /wallets/{id}` | Not implemented |
-| Partial update | `PATCH /wallets/{id}` | Not implemented |
-| Delete | `DELETE /wallets/{id}` | Not implemented |
+| Full replacement update | `PUT /wallets/{id}` | Implemented |
+| Partial update | `PATCH /wallets/{id}` | Implemented; omitted fields remain unchanged and an empty patch returns 400 |
+| Delete | `DELETE /wallets/{id}` | Implemented; physical, non-idempotent delete returns 204, then 404 on repeat |
 
 ### Scripts, tests, and smokes
 
@@ -411,7 +411,7 @@ Findings recorded, not fixed by this milestone:
 
 - The per-entity NestJS `@Module` is emitted by the `web-api` module and imports `infra-persistence` artifacts, contradicting ADR-057's assignment of dependency-injection wiring to `bootstrap` and making a standalone `--module web-api` selection non-compiling. Scheduled as milestone 7.16 rather than fixed here, because relocating a generated artifact between modules is a structural change that warrants its own ADR.
 - The generated NestJS project has no `.gitignore` and no `README.md`. The Java Golden Path gained both at milestone 6.37 (ADR-058); the NestJS Golden Path has no equivalent. This is a capability addition, so it is recorded as a parity gap in the Roadmap rather than added by an audit milestone.
-- The NestJS REST surface implements create and read only. Update, partial update, delete, and sorting remain unimplemented and are now stated explicitly in the surface table above rather than left implicit.
+- At the time of this audit, the NestJS REST surface implemented create and read only. Task 9 locally verified full replacement update, partial update, and physical delete; sorting remains unimplemented and is stated explicitly in the current surface table above.
 - Profile version stays `0.1.0`. The Java Golden Path did not bump its profile version at its own 1.0 readiness audit (milestone 6.30), and no versioning policy ties profile version to release-readiness milestones.
 
 Documentation corrections applied by this milestone:
@@ -434,6 +434,27 @@ Run context: main workspace, NestJS composition-root wiring; date: 2026-08-11.
 - Import resolution was measured by resolving every relative import in generated output against the files that selection actually produces. Before the change the standalone `--module web-api` selection had 2 unresolved imports (`<entity>.module.ts` reaching into `../../../infra/`, and `test/app.e2e-spec.ts` reaching into `../src/app.module`). After it, both the full profile (52 TypeScript files) and the `web-api` selection (42 files) report 0 unresolved imports.
 - The two changed goldens were copied from fresh built-CLI output and their SHA-256 hashes matched the generated files.
 - One cosmetic change rode along in the same template: generated `src/app.module.ts` now has a blank line between its last import and the `@Module` decorator.
+
+## Task 9 Validation - NestJS CRUD Integration
+
+Run context: current worktree, NestJS CRUD integration; date: 2026-08-19. This evidence
+extends the Task 8 implementation and golden results. The authorized native generated-project
+gate passed with generated dependencies installed and generated build/Jest/e2e/HTTP CRUD checks.
+
+- The built CLI dry-run passed with `78` CREATE operations for the full profile and the
+  following transitive selection counts: `build` 5, `core` 43, `infra-persistence` 51,
+  `web-api` 61, and `bootstrap` 73.
+- Physical generation from the built CLI produced 78 files. The golden smoke passed over
+  all 78 expected paths, including the 21 new CRUD goldens copied from CLI output.
+- `npm run typecheck` and `npm run build` passed.
+- `npm test` passed with 55 files and 297 tests. `npm run test:coverage` also passed with
+  55 files and 297 tests; statements 92.78%, branches 81.52%, functions 97.04%, and lines
+  93.58%.
+- `npm run smoke:nestjs` passed with 2 tests, including CRUD lifecycle assertions and Core
+  framework-purity checks.
+- The authorized command `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run smoke:generated-project:nestjs`
+  passed with 1 file and 3 tests, including generated dependencies installed and generated
+  build/Jest/e2e/HTTP CRUD checks. Maven was not run.
 
 ## Documented facts
 

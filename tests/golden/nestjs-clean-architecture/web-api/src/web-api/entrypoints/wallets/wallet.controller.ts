@@ -1,7 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Inject, Param, Post, Query } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpStatus, Inject, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { CreateWalletCommand } from '../../../core/usecases/create-wallet/create-wallet.command';
+import { DeleteWalletCommand } from '../../../core/usecases/delete-wallet/delete-wallet.command';
+import {
+  IDeleteWalletUseCase,
+  IDeleteWalletUseCaseSymbol,
+} from '../../../core/usecases/delete-wallet/delete-wallet-usecase.interface';
 import { PageRequest } from '../../../core/common/paging/page-request';
 import { PageResult } from '../../../core/common/paging/page-result';
 import { PageWalletQuery } from '../../../core/usecases/page-wallets/page-wallets.query';
@@ -13,15 +18,28 @@ import {
   ICreateWalletUseCase,
   ICreateWalletUseCaseSymbol,
 } from '../../../core/usecases/create-wallet/create-wallet-usecase.interface';
+import { PatchWalletCommand } from '../../../core/usecases/patch-wallet/patch-wallet.command';
+import type { PatchWalletChanges } from '../../../core/usecases/patch-wallet/patch-wallet.changes';
+import {
+  IPatchWalletUseCase,
+  IPatchWalletUseCaseSymbol,
+} from '../../../core/usecases/patch-wallet/patch-wallet-usecase.interface';
 import { GetWalletByIdQuery } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id.query';
 import {
   IGetWalletByIdUseCase,
   IGetWalletByIdUseCaseSymbol,
 } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id-usecase.interface';
 import { CreateWalletRequest } from './create-wallet-request.model';
+import { PatchWalletRequest } from './patch-wallet-request.model';
 import { WalletFilterParser } from './wallet-filter.parser';
 import { WalletPageRequest } from './wallet-page-request.model';
 import { WalletPageResponse } from './wallet-page-response.model';
+import { UpdateWalletRequest } from './update-wallet-request.model';
+import { UpdateWalletCommand } from '../../../core/usecases/update-wallet/update-wallet.command';
+import {
+  IUpdateWalletUseCase,
+  IUpdateWalletUseCaseSymbol,
+} from '../../../core/usecases/update-wallet/update-wallet-usecase.interface';
 import { HttpResponseBuilder } from '../../commons/models/http-response.builder';
 import { HttpResponse } from '../../commons/models/http-response.model';
 import { WalletPresenter } from './wallet-presenter.mapper';
@@ -37,6 +55,12 @@ export class WalletController {
     private readonly getWalletByIdUseCase: IGetWalletByIdUseCase,
     @Inject(IPageWalletUseCaseSymbol)
     private readonly pageWalletUseCase: IPageWalletUseCase,
+    @Inject(IUpdateWalletUseCaseSymbol)
+    private readonly updateWalletUseCase: IUpdateWalletUseCase,
+    @Inject(IPatchWalletUseCaseSymbol)
+    private readonly patchWalletUseCase: IPatchWalletUseCase,
+    @Inject(IDeleteWalletUseCaseSymbol)
+    private readonly deleteWalletUseCase: IDeleteWalletUseCase,
   ) {}
 
   @Post()
@@ -80,6 +104,7 @@ export class WalletController {
 
   @Get('/:id')
   @ApiOkResponse({ type: WalletResponse })
+  @ApiNotFoundResponse()
   public async getById(@Param('id') id: string): Promise<HttpResponse<WalletResponse>> {
     const wallet = await this.getWalletByIdUseCase.execute(
       new GetWalletByIdQuery(id),
@@ -88,6 +113,62 @@ export class WalletController {
     return new HttpResponseBuilder<WalletResponse>()
       .withStatus(HttpStatus.OK)
       .withBody(WalletPresenter.of(wallet))
+      .build();
+  }
+
+  @Put('/:id')
+  @ApiOkResponse({ type: WalletResponse })
+  @ApiNotFoundResponse()
+  public async update(
+    @Param('id') id: string,
+    @Body() request: UpdateWalletRequest,
+  ): Promise<HttpResponse<WalletResponse>> {
+    const wallet = await this.updateWalletUseCase.execute(
+      new UpdateWalletCommand(
+        id,
+        request.balance,
+      ),
+    );
+
+    return new HttpResponseBuilder<WalletResponse>()
+      .withStatus(HttpStatus.OK)
+      .withBody(WalletPresenter.of(wallet))
+      .build();
+  }
+
+  @Patch('/:id')
+  @ApiOkResponse({ type: WalletResponse })
+  @ApiNotFoundResponse()
+  public async patch(
+    @Param('id') id: string,
+    @Body() request: PatchWalletRequest,
+  ): Promise<HttpResponse<WalletResponse>> {
+    const changes: PatchWalletChanges = {
+      ...(Object.prototype.hasOwnProperty.call(request, 'balance')
+        ? { balance: request.balance }
+        : {}),
+    };
+
+    const wallet = await this.patchWalletUseCase.execute(
+      new PatchWalletCommand(id, changes),
+    );
+
+    return new HttpResponseBuilder<WalletResponse>()
+      .withStatus(HttpStatus.OK)
+      .withBody(WalletPresenter.of(wallet))
+      .build();
+  }
+
+  @Delete('/:id')
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse()
+  public async delete(@Param('id') id: string): Promise<HttpResponse<void>> {
+    await this.deleteWalletUseCase.execute(
+      new DeleteWalletCommand(id),
+    );
+
+    return new HttpResponseBuilder<void>()
+      .withStatus(HttpStatus.NO_CONTENT)
       .build();
   }
 }

@@ -1,0 +1,165 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { IGet{{ className }}ByIdGateway } from '../get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
+import { IUpdate{{ className }}Gateway } from '../update-{{ fileName }}/update-{{ fileName }}.gateway';
+import { Patch{{ className }}Command } from './patch-{{ fileName }}.command';
+import { Patch{{ className }}UseCase } from './patch-{{ fileName }}.usecase';
+
+describe('Patch{{ className }}UseCase', () => {
+  it('rejects invalid commands before loading the current entity', async () => {
+    const getByIdGateway: IGet{{ className }}ByIdGateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => undefined),
+    };
+    const updateGateway: IUpdate{{ className }}Gateway = {
+      execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
+    };
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+
+    await expect(useCase.execute(new Patch{{ className }}Command(
+      {{ identifier.invalidTestValue }},
+      {
+{%- for property in mutableProperties %}
+        {{ property.name }}: {{ property.testValue }},
+{%- endfor %}
+      },
+    ))).rejects.toBeInstanceOf(ValidationException);
+    expect(getByIdGateway.execute).not.toHaveBeenCalled();
+    expect(updateGateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty patch before loading the current entity', async () => {
+    const getByIdGateway: IGet{{ className }}ByIdGateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => undefined),
+    };
+    const updateGateway: IUpdate{{ className }}Gateway = {
+      execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
+    };
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+
+    await expect(useCase.execute(new Patch{{ className }}Command(
+      {{ identifier.testValue }},
+      {},
+    ))).rejects.toBeInstanceOf(ValidationException);
+    expect(getByIdGateway.execute).not.toHaveBeenCalled();
+    expect(updateGateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid supplied value before loading the current entity', async () => {
+    const getByIdGateway: IGet{{ className }}ByIdGateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => undefined),
+    };
+    const updateGateway: IUpdate{{ className }}Gateway = {
+      execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
+    };
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+
+    await expect(useCase.execute(new Patch{{ className }}Command(
+      {{ identifier.testValue }},
+      {
+{%- if mutableProperties.length > 0 %}
+        {{ mutableProperties[0].name }}: {{ mutableProperties[0].invalidTestValue }},
+{%- endif %}
+      },
+    ))).rejects.toBeInstanceOf(ValidationException);
+    expect(getByIdGateway.execute).not.toHaveBeenCalled();
+    expect(updateGateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('preserves omitted properties and delegates the merged entity to update', async () => {
+    const current = new {{ className }}(
+{%- for property in properties %}
+      {{ property.testValue }},
+{%- endfor %}
+    );
+    const updated = new {{ className }}(
+{%- for property in properties %}
+{%- if property.identifier %}
+      {{ property.testValue }},
+{%- elif property.name == mutableProperties[0].name %}
+      {{ property.alternateTestValue }},
+{%- else %}
+      {{ property.testValue }},
+{%- endif %}
+{%- endfor %}
+    );
+    const getByIdGateway: IGet{{ className }}ByIdGateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => current),
+    };
+    const updateGateway: IUpdate{{ className }}Gateway = {
+      execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => updated),
+    };
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+
+    const result = await useCase.execute(new Patch{{ className }}Command(
+      {{ identifier.testValue }},
+      {
+{%- if mutableProperties.length > 0 %}
+        {{ mutableProperties[0].name }}: {{ mutableProperties[0].alternateTestValue }},
+{%- endif %}
+      },
+    ));
+
+    expect(result).toBe(updated);
+    expect(current.{{ mutableProperties[0].name }}).not.toBe({{ mutableProperties[0].alternateTestValue }});
+    expect(getByIdGateway.execute).toHaveBeenCalledWith({{ identifier.testValue }});
+    expect(updateGateway.execute).toHaveBeenCalledTimes(1);
+    expect(updateGateway.execute).toHaveBeenCalledWith(new {{ className }}(
+{%- for property in properties %}
+{%- if property.identifier %}
+      {{ property.testValue }},
+{%- elif property.name == mutableProperties[0].name %}
+      {{ property.alternateTestValue }},
+{%- else %}
+      {{ property.testValue }},
+{%- endif %}
+    {%- endfor %}
+    ));
+  });
+
+  it('raises NotFoundException when the current entity is missing', async () => {
+    const getByIdGateway: IGet{{ className }}ByIdGateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => undefined),
+    };
+    const updateGateway: IUpdate{{ className }}Gateway = {
+      execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
+    };
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+
+    await expect(useCase.execute(new Patch{{ className }}Command(
+      {{ identifier.testValue }},
+      {
+{%- if mutableProperties.length > 0 %}
+        {{ mutableProperties[0].name }}: {{ mutableProperties[0].testValue }},
+{%- endif %}
+      },
+    ))).rejects.toBeInstanceOf(NotFoundException);
+    expect(updateGateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('raises NotFoundException when the update gateway reports a missing entity', async () => {
+    const current = new {{ className }}(
+{%- for property in properties %}
+      {{ property.testValue }},
+{%- endfor %}
+    );
+    const getByIdGateway: IGet{{ className }}ByIdGateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => current),
+    };
+    const updateGateway: IUpdate{{ className }}Gateway = {
+      execute: jest.fn(async (_entity: {{ className }}): Promise<{{ className }} | undefined> => undefined),
+    };
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+
+    await expect(useCase.execute(new Patch{{ className }}Command(
+      {{ identifier.testValue }},
+      {
+{%- if mutableProperties.length > 0 %}
+        {{ mutableProperties[0].name }}: {{ mutableProperties[0].alternateTestValue }},
+{%- endif %}
+      },
+    ))).rejects.toBeInstanceOf(NotFoundException);
+    expect(getByIdGateway.execute).toHaveBeenCalledWith({{ identifier.testValue }});
+    expect(updateGateway.execute).toHaveBeenCalledTimes(1);
+  });
+});

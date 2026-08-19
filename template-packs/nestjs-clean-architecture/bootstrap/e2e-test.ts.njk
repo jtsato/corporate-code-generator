@@ -43,7 +43,92 @@ describe('generated NestJS HTTP API', () => {
       });
   });
 
+  it('serves the generated CRUD lifecycle', async () => {
+    const identifier = {{ entities[0].identifier.testValue }};
+    const initial = {
+{%- for property in entities[0].mutableProperties %}
+      {{ property.name }}: {{ property.testValue }},
+{%- endfor %}
+    };
+    const replacement = {
+{%- for property in entities[0].mutableProperties %}
+      {{ property.name }}: {{ property.alternateTestValue }},
+{%- endfor %}
+    };
+    const patch = {
+{%- for property in entities[0].mutableProperties %}
+{%- if loop.first %}
+      {{ property.name }}: {{ property.testValue }},
+{%- endif %}
+{%- endfor %}
+    };
+    const createdRepresentation = { {{ entities[0].identifier.name }}: identifier, ...initial };
+    const replacedRepresentation = { {{ entities[0].identifier.name }}: identifier, ...replacement };
+    const patchedRepresentation = {
+      ...replacedRepresentation,
+      ...patch,
+      {{ entities[0].identifier.name }}: identifier,
+    };
+
+    await request(app.getHttpServer())
+      .post('/{{ entities[0].pluralFileName }}')
+      .send({ {{ entities[0].identifier.name }}: identifier, ...initial })
+      .expect(201)
+      .expect(createdRepresentation);
+
+    await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(200)
+      .expect(createdRepresentation);
+
+    await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}?page=0&size=20')
+      .expect(200)
+      .expect({
+        items: [createdRepresentation],
+        page: 0,
+        size: 20,
+        totalItems: 1,
+        totalPages: 1,
+      });
+
+    await request(app.getHttpServer())
+      .put('/{{ entities[0].pluralFileName }}/' + identifier)
+      .send(replacement)
+      .expect(200)
+      .expect(replacedRepresentation);
+
+    await request(app.getHttpServer())
+      .patch('/{{ entities[0].pluralFileName }}/' + identifier)
+      .send(patch)
+      .expect(200)
+      .expect(patchedRepresentation);
+
+    await request(app.getHttpServer())
+      .patch('/{{ entities[0].pluralFileName }}/' + identifier)
+      .send({})
+      .expect(400);
+
+    const deleted = await request(app.getHttpServer())
+      .delete('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(204);
+    expect(deleted.text).toBe('');
+
+    await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .delete('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(404);
+  });
+
   it('localizes validation errors from Accept-Language', async () => {
+    await request(app.getHttpServer())
+      .post('/{{ entities[0].pluralFileName }}')
+      .send({ {{ entities[0].identifier.name }}: 'not-a-uuid' })
+      .expect(400);
+
     await request(app.getHttpServer())
       .get('/{{ entities[0].pluralFileName }}/not-a-uuid')
       .set('Accept-Language', 'pt-BR')

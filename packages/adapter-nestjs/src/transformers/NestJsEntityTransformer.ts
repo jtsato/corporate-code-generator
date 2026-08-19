@@ -18,12 +18,29 @@ function quoted(value: string): string {
   return JSON.stringify(value);
 }
 
+function pathValueExpression(type: Entity["attributes"][number]["type"]): string {
+  switch (type) {
+    case "int32":
+    case "int64":
+    case "decimal":
+      return "Number(id)";
+    case "date":
+    case "datetime":
+      return "new Date(id)";
+    case "boolean":
+      return '(id === "true" ? true : id === "false" ? false : id as never)';
+    case "string":
+    case "uuid":
+      return "id";
+  }
+}
+
 function testValue(type: Entity["attributes"][number]["type"]): string {
   switch (type) {
     case "string":
       return quoted("sample");
     case "uuid":
-      return quoted("00000000-0000-0000-0000-000000000001");
+      return quoted("00000000-0000-4000-8000-000000000001");
     case "boolean":
       return "true";
     case "int32":
@@ -34,6 +51,25 @@ function testValue(type: Entity["attributes"][number]["type"]): string {
     case "date":
     case "datetime":
       return 'new Date("2025-01-01T00:00:00.000Z")';
+  }
+}
+
+function alternateTestValue(type: Entity["attributes"][number]["type"]): string {
+  switch (type) {
+    case "string":
+      return quoted("updated");
+    case "uuid":
+      return quoted("00000000-0000-4000-8000-000000000002");
+    case "boolean":
+      return "false";
+    case "int32":
+    case "int64":
+      return "2";
+    case "decimal":
+      return "2.5";
+    case "date":
+    case "datetime":
+      return 'new Date("2025-01-02T00:00:00.000Z")';
   }
 }
 
@@ -120,22 +156,45 @@ export class NestJsEntityTransformer {
           attribute.required,
         ),
         testValue: testValue(attribute.type),
+        alternateTestValue: alternateTestValue(attribute.type),
         invalidTestValue: invalidTestValue(attribute.type),
       } satisfies NestJsPropertyTemplateModel;
     });
 
+    const identifierAttribute = entity.attributes.find((attribute) => attribute.identifier);
     const identifier = properties.find((property) => property.identifier);
 
-    if (identifier === undefined) {
+    if (identifier === undefined || identifierAttribute === undefined) {
       throw new Error(
         `NestJS generation requires an identifier attribute on entity '${entity.name}'.`,
       );
     }
 
+    const preparedIdentifier = {
+      ...identifier,
+      pathValueExpression: pathValueExpression(identifierAttribute.type),
+    };
+
+    const mutableProperties = properties.filter((property) => !property.identifier);
+
     const requestValidationImports = [
       ...new Set([
         ...properties.map((property) => property.validationDecorator),
         ...(properties.some((property) => property.required) ? ["IsNotEmpty"] : []),
+      ]),
+    ].sort();
+
+    const updateRequestValidationImports = [
+      ...new Set([
+        ...mutableProperties.map((property) => property.validationDecorator),
+        ...(mutableProperties.some((property) => property.required) ? ["IsNotEmpty"] : []),
+      ]),
+    ].sort();
+
+    const patchRequestValidationImports = [
+      ...new Set([
+        ...mutableProperties.map((property) => property.validationDecorator),
+        ...(mutableProperties.length > 0 ? ["IsOptional"] : []),
       ]),
     ].sort();
 
@@ -146,8 +205,11 @@ export class NestJsEntityTransformer {
       pluralFileName: toPluralKebabCaseName(entity.name),
       restCollectionPath: toRestCollectionPath(entity.name),
       properties,
-      identifier,
+      mutableProperties,
+      identifier: preparedIdentifier,
       requestValidationImports,
+      updateRequestValidationImports,
+      patchRequestValidationImports,
     };
   }
 

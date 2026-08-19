@@ -1,0 +1,36 @@
+import { FieldViolation } from '../../exceptions/field-violation';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { Patch{{ className }}Command } from './patch-{{ fileName }}.command';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export class Patch{{ className }}CommandValidator {
+  public validate(command: Patch{{ className }}Command): void {
+    const violations: FieldViolation[] = [];
+    {
+      const value = command.{{ identifier.name }};
+{%- for statement in identifier.coreValidationStatements %}
+      {{ statement }}
+{%- endfor %}
+    }
+
+    if (Object.keys(command.changes).length === 0) {
+      violations.push(new FieldViolation('changes', 'changes must not be empty'));
+    }
+{%- for property in mutableProperties %}
+    if (Object.prototype.hasOwnProperty.call(command.changes, '{{ property.name }}')) {
+      const value = command.changes.{{ property.name }};
+      if (value === undefined || value === null) {
+        violations.push(new FieldViolation('{{ property.name }}', '{{ property.name }} has an invalid value'));
+      }
+{%- for statement in property.coreValidationStatements %}
+      {{ statement }}
+{%- endfor %}
+    }
+{%- endfor %}
+
+    if (violations.length > 0) {
+      throw new ValidationException(violations);
+    }
+  }
+}

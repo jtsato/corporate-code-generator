@@ -91,11 +91,13 @@ describe("NestJS generated project smoke test", () => {
     expect(manifest.scripts["start:prod"]).toBe("node dist/main");
   }, 30_000);
 
-  it("serves create, read, and not-found over HTTP", async ({ skip }) => {
+  it("serves the complete CRUD lifecycle over HTTP", async ({ skip }) => {
     if (skipReason !== undefined) { skip(skipReason); return; }
     const running = server as GeneratedServer;
     const identifier = randomUUID();
     const balance = 125.5;
+    const replacementBalance = 250.75;
+    const patchedBalance = 375.25;
 
     const emptyPage = await fetch(`${running.baseUrl}/wallets?page=0&size=20`);
     expect(emptyPage.status, running.output()).toBe(200);
@@ -120,15 +122,60 @@ describe("NestJS generated project smoke test", () => {
     expect(read.status, running.output()).toBe(200);
     await expect(read.json()).resolves.toEqual({ id: identifier, balance });
 
-    const filtered = await fetch(`${running.baseUrl}/wallets?filter=id:eq:${identifier}`);
-    expect(filtered.status, running.output()).toBe(200);
-    await expect(filtered.json()).resolves.toEqual({
+    const collection = await fetch(`${running.baseUrl}/wallets?page=0&size=20`);
+    expect(collection.status, running.output()).toBe(200);
+    await expect(collection.json()).resolves.toEqual({
       items: [{ id: identifier, balance }],
       page: 0,
       size: 20,
       totalItems: 1,
       totalPages: 1,
     });
+
+    const replaced = await fetch(`${running.baseUrl}/wallets/${identifier}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ balance: replacementBalance }),
+    });
+    expect(replaced.status, running.output()).toBe(200);
+    await expect(replaced.json()).resolves.toEqual({ id: identifier, balance: replacementBalance });
+
+    const patched = await fetch(`${running.baseUrl}/wallets/${identifier}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ balance: patchedBalance }),
+    });
+    expect(patched.status, running.output()).toBe(200);
+    await expect(patched.json()).resolves.toEqual({ id: identifier, balance: patchedBalance });
+
+    const emptyPatch = await fetch(`${running.baseUrl}/wallets/${identifier}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    expect(emptyPatch.status, running.output()).toBe(400);
+
+    const filtered = await fetch(`${running.baseUrl}/wallets?filter=id:eq:${identifier}`);
+    expect(filtered.status, running.output()).toBe(200);
+    await expect(filtered.json()).resolves.toEqual({
+      items: [{ id: identifier, balance: patchedBalance }],
+      page: 0,
+      size: 20,
+      totalItems: 1,
+      totalPages: 1,
+    });
+
+    const deleted = await fetch(`${running.baseUrl}/wallets/${identifier}`, { method: "DELETE" });
+    expect(deleted.status, running.output()).toBe(204);
+    await expect(deleted.text()).resolves.toBe("");
+
+    const deletedRead = await fetch(`${running.baseUrl}/wallets/${identifier}`);
+    expect(deletedRead.status, running.output()).toBe(404);
+    await expect(deletedRead.json()).resolves.toMatchObject({ statusCode: 404 });
+
+    const repeatedDelete = await fetch(`${running.baseUrl}/wallets/${identifier}`, { method: "DELETE" });
+    expect(repeatedDelete.status, running.output()).toBe(404);
+    await expect(repeatedDelete.json()).resolves.toMatchObject({ statusCode: 404 });
 
     const missing = await fetch(`${running.baseUrl}/wallets/${randomUUID()}`);
     expect(missing.status, running.output()).toBe(404);
@@ -146,6 +193,14 @@ describe("NestJS generated project smoke test", () => {
     });
     expect(rejected.status, running.output()).toBe(400);
     await expect(rejected.json()).resolves.toMatchObject({ statusCode: 400 });
+
+    const rejectedPut = await fetch(`${running.baseUrl}/wallets/${randomUUID()}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ balance: "not-a-number" }),
+    });
+    expect(rejectedPut.status, running.output()).toBe(400);
+    await expect(rejectedPut.json()).resolves.toMatchObject({ statusCode: 400 });
 
     const rejectedPortuguese = await fetch(`${running.baseUrl}/wallets/not-a-uuid`, {
       headers: { "accept-language": "pt-BR" },

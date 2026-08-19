@@ -1,0 +1,8 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Update{{ className }}Command } from './update-{{ fileName }}.command';
+
+export interface IUpdate{{ className }}UseCase {
+  execute(command: Update{{ className }}Command): Promise<{{ className }}>;
+}
+
+export const IUpdate{{ className }}UseCaseSymbol = Symbol('IUpdate{{ className }}UseCase');

@@ -17,7 +17,7 @@ describe('GetWalletByIdUseCase', () => {
 
   it('returns the entity loaded by the gateway', async () => {
     const expected = new Wallet(
-      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-4000-8000-000000000001",
       1.5,
     );
     const gateway = {
@@ -25,9 +25,9 @@ describe('GetWalletByIdUseCase', () => {
     };
     const useCase = new GetWalletByIdUseCase(gateway);
 
-    const result = await useCase.execute(new GetWalletByIdQuery("00000000-0000-0000-0000-000000000001"));
+    const result = await useCase.execute(new GetWalletByIdQuery("00000000-0000-4000-8000-000000000001"));
 
     expect(result).toBe(expected);
-    expect(gateway.execute).toHaveBeenCalledWith("00000000-0000-0000-0000-000000000001");
+    expect(gateway.execute).toHaveBeenCalledWith("00000000-0000-4000-8000-000000000001");
   });
 });

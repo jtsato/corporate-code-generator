@@ -1,0 +1,24 @@
+import { Injectable } from '@nestjs/common';
+
+import { {{ className }} } from '../../core/models/{{ fileName }}.model';
+import { IUpdate{{ className }}Gateway } from '../../core/usecases/update-{{ fileName }}/update-{{ fileName }}.gateway';
+import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
+import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
+
+@Injectable()
+export class Update{{ className }}Provider implements IUpdate{{ className }}Gateway {
+  public constructor(private readonly repository: {{ className }}Repository) {}
+
+  public async execute({{ propertyName }}: {{ className }}): Promise<{{ className }} | undefined> {
+    const updated = await this.repository.updateById(
+      {{ propertyName }}.{{ identifier.name }},
+      {{ className }}Mapper.toEntity({{ propertyName }}),
+    );
+
+    if (updated === undefined) {
+      return undefined;
+    }
+
+    return {{ className }}Mapper.toDomain(updated);
+  }
+}

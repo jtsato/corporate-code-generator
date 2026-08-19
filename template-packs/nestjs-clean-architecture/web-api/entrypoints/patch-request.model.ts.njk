@@ -1,0 +1,11 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { {{ patchRequestValidationImports | join(", ") }} } from 'class-validator';
+
+export class Patch{{ className }}Request {
+{%- for property in mutableProperties %}
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @{{ property.validationDecorator }}()
+  public {{ property.name }}?: {{ property.type }};
+{% endfor -%}
+}

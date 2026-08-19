@@ -1,0 +1,8 @@
+import { Patch{{ className }}Changes } from './patch-{{ fileName }}.changes';
+
+export class Patch{{ className }}Command {
+  public constructor(
+    public readonly {{ identifier.name }}: {{ identifier.type }},
+    public readonly changes: Patch{{ className }}Changes,
+  ) {}
+}

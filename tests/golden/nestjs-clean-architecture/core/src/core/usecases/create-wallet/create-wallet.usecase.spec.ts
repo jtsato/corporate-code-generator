@@ -24,7 +24,7 @@ describe('CreateWalletUseCase', () => {
     const useCase = new CreateWalletUseCase(gateway);
 
     const result = await useCase.execute(new CreateWalletCommand(
-      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-4000-8000-000000000001",
       1.5,
     ));
 

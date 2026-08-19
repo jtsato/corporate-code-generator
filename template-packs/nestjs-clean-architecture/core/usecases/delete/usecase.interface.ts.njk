@@ -1,0 +1,7 @@
+import { Delete{{ className }}Command } from './delete-{{ fileName }}.command';
+
+export interface IDelete{{ className }}UseCase {
+  execute(command: Delete{{ className }}Command): Promise<void>;
+}
+
+export const IDelete{{ className }}UseCaseSymbol = Symbol('IDelete{{ className }}UseCase');

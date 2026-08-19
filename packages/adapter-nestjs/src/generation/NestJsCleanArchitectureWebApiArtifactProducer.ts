@@ -20,6 +20,8 @@ const APPLICATION_TEMPLATE_IDS = [
 
 const PER_ENTITY_TEMPLATE_IDS = [
   "web-api-create-request",
+  "web-api-update-request",
+  "web-api-patch-request",
   "web-api-response",
   "web-api-presenter",
   "web-api-page-request",

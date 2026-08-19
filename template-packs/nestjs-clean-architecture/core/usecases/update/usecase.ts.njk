@@ -1,0 +1,30 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Update{{ className }}Command } from './update-{{ fileName }}.command';
+import { Update{{ className }}CommandValidator } from './update-{{ fileName }}-command.validator';
+import { IUpdate{{ className }}Gateway } from './update-{{ fileName }}.gateway';
+import { IUpdate{{ className }}UseCase } from './update-{{ fileName }}-usecase.interface';
+
+export class Update{{ className }}UseCase implements IUpdate{{ className }}UseCase {
+  public constructor(
+    private readonly gateway: IUpdate{{ className }}Gateway,
+    private readonly validator: Update{{ className }}CommandValidator = new Update{{ className }}CommandValidator(),
+  ) {}
+
+  public async execute(command: Update{{ className }}Command): Promise<{{ className }}> {
+    this.validator.validate(command);
+
+    const {{ propertyName }} = new {{ className }}(
+{%- for property in properties %}
+      command.{{ property.name }},
+{%- endfor %}
+    );
+    const updated = await this.gateway.execute({{ propertyName }});
+
+    if (updated === undefined) {
+      throw new NotFoundException(`{{ className }} not found: ${command.{{ identifier.name }}}`);
+    }
+
+    return updated;
+  }
+}

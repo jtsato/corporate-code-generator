@@ -1,0 +1,16 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { Delete{{ className }}Command } from './delete-{{ fileName }}.command';
+import { IDelete{{ className }}Gateway } from './delete-{{ fileName }}.gateway';
+import { IDelete{{ className }}UseCase } from './delete-{{ fileName }}-usecase.interface';
+
+export class Delete{{ className }}UseCase implements IDelete{{ className }}UseCase {
+  public constructor(private readonly gateway: IDelete{{ className }}Gateway) {}
+
+  public async execute(command: Delete{{ className }}Command): Promise<void> {
+    const deleted = await this.gateway.execute(command.{{ identifier.name }});
+
+    if (!deleted) {
+      throw new NotFoundException(`{{ className }} not found: ${command.{{ identifier.name }}}`);
+    }
+  }
+}

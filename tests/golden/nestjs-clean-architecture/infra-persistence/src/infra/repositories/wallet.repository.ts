@@ -20,6 +20,20 @@ export class WalletRepository {
     );
   }
 
+  public async updateById(id: string, entity: WalletEntity): Promise<WalletEntity | undefined> {
+    const index = this.wallets.findIndex((current) => current.id === id);
+    if (index < 0) return undefined;
+    this.wallets[index] = entity;
+    return entity;
+  }
+
+  public async deleteById(id: string): Promise<boolean> {
+    const index = this.wallets.findIndex((current) => current.id === id);
+    if (index < 0) return false;
+    this.wallets.splice(index, 1);
+    return true;
+  }
+
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
     const filtered = this.wallets.filter((entity) => filterExpression.conditions.every((condition) => {
       const actual = entity[condition.field as keyof WalletEntity];

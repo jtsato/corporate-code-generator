@@ -1,0 +1,41 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { Delete{{ className }}Command } from './delete-{{ fileName }}.command';
+import { Delete{{ className }}UseCase } from './delete-{{ fileName }}.usecase';
+
+describe('Delete{{ className }}UseCase', () => {
+  it('delegates deletion and returns no body value', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<boolean> => true),
+    };
+    const useCase = new Delete{{ className }}UseCase(gateway);
+
+    const result = await useCase.execute(new Delete{{ className }}Command({{ identifier.testValue }}));
+
+    expect(result).toBeUndefined();
+    expect(gateway.execute).toHaveBeenCalledWith({{ identifier.testValue }});
+  });
+
+  it('raises NotFoundException when the gateway reports a missing entity', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<boolean> => false),
+    };
+    const useCase = new Delete{{ className }}UseCase(gateway);
+
+    await expect(useCase.execute(new Delete{{ className }}Command({{ identifier.testValue }})))
+      .rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('raises NotFoundException when deletion is repeated', async () => {
+    const gateway = {
+      execute: jest.fn()
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false),
+    };
+    const useCase = new Delete{{ className }}UseCase(gateway);
+    const command = new Delete{{ className }}Command({{ identifier.testValue }});
+
+    await expect(useCase.execute(command)).resolves.toBeUndefined();
+    await expect(useCase.execute(command)).rejects.toBeInstanceOf(NotFoundException);
+    expect(gateway.execute).toHaveBeenCalledTimes(2);
+  });
+});

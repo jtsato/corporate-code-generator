@@ -1,0 +1,7 @@
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+
+export interface IUpdate{{ className }}Gateway {
+  execute({{ propertyName }}: {{ className }}): Promise<{{ className }} | undefined>;
+}
+
+export const IUpdate{{ className }}GatewaySymbol = Symbol('IUpdate{{ className }}Gateway');

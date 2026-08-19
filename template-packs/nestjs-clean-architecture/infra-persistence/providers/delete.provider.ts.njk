@@ -1,0 +1,13 @@
+import { Injectable } from '@nestjs/common';
+
+import { IDelete{{ className }}Gateway } from '../../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway';
+import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
+
+@Injectable()
+export class Delete{{ className }}Provider implements IDelete{{ className }}Gateway {
+  public constructor(private readonly repository: {{ className }}Repository) {}
+
+  public async execute({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
+    return this.repository.deleteById({{ identifier.name }});
+  }
+}

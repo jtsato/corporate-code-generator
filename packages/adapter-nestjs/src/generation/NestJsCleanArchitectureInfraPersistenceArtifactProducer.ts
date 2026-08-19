@@ -13,6 +13,8 @@ const PER_ENTITY_TEMPLATE_IDS = [
   "infra-persistence-create-provider",
   "infra-persistence-get-by-id-provider",
   "infra-persistence-page-provider",
+  "infra-persistence-update-provider",
+  "infra-persistence-delete-provider",
 ] as const;
 
 export class NestJsCleanArchitectureInfraPersistenceArtifactProducer

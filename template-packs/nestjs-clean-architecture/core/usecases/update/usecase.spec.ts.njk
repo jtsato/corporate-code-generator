@@ -1,0 +1,59 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { {{ className }} } from '../../models/{{ fileName }}.model';
+import { Update{{ className }}Command } from './update-{{ fileName }}.command';
+import { Update{{ className }}UseCase } from './update-{{ fileName }}.usecase';
+
+describe('Update{{ className }}UseCase', () => {
+  it('rejects invalid commands before calling the gateway', async () => {
+    const gateway = {
+      execute: jest.fn(async ({{ propertyName }}: {{ className }}): Promise<{{ className }} | undefined> => {{ propertyName }}),
+    };
+    const useCase = new Update{{ className }}UseCase(gateway);
+
+    await expect(useCase.execute(new Update{{ className }}Command(
+      {{ identifier.invalidTestValue }},
+{%- for property in mutableProperties %}
+      {{ property.testValue }},
+{%- endfor %}
+    ))).rejects.toBeInstanceOf(ValidationException);
+    expect(gateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('delegates a full replacement with the identifier and mutable values', async () => {
+    const gateway = {
+      execute: jest.fn(async ({{ propertyName }}: {{ className }}): Promise<{{ className }} | undefined> => {{ propertyName }}),
+    };
+    const useCase = new Update{{ className }}UseCase(gateway);
+
+    const result = await useCase.execute(new Update{{ className }}Command(
+      {{ identifier.testValue }},
+{%- for property in mutableProperties %}
+      {{ property.testValue }},
+{%- endfor %}
+    ));
+
+    expect(result).toBeInstanceOf({{ className }});
+    expect(gateway.execute).toHaveBeenCalledTimes(1);
+    expect(gateway.execute).toHaveBeenCalledWith(expect.objectContaining({
+      {{ identifier.name }}: {{ identifier.testValue }},
+{%- for property in mutableProperties %}
+      {{ property.name }}: {{ property.testValue }},
+{%- endfor %}
+    }));
+  });
+
+  it('raises NotFoundException when the gateway cannot find the entity', async () => {
+    const gateway = {
+      execute: jest.fn(async (_{{ propertyName }}: {{ className }}): Promise<{{ className }} | undefined> => undefined),
+    };
+    const useCase = new Update{{ className }}UseCase(gateway);
+
+    await expect(useCase.execute(new Update{{ className }}Command(
+      {{ identifier.testValue }},
+{%- for property in mutableProperties %}
+      {{ property.testValue }},
+{%- endfor %}
+    ))).rejects.toBeInstanceOf(NotFoundException);
+  });
+});

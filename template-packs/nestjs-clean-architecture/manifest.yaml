@@ -87,6 +87,74 @@ templates:
     module: core
     template: core/usecases/create/create.usecase.spec.ts.njk
     output: src/core/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase.spec.ts
+  - id: core-update-command
+    module: core
+    template: core/usecases/update/command.ts.njk
+    output: src/core/usecases/update-{{ fileName }}/update-{{ fileName }}.command.ts
+  - id: core-update-command-validator
+    module: core
+    template: core/usecases/update/command.validator.ts.njk
+    output: src/core/usecases/update-{{ fileName }}/update-{{ fileName }}-command.validator.ts
+  - id: core-update-gateway
+    module: core
+    template: core/usecases/update/gateway.ts.njk
+    output: src/core/usecases/update-{{ fileName }}/update-{{ fileName }}.gateway.ts
+  - id: core-update-usecase-interface
+    module: core
+    template: core/usecases/update/usecase.interface.ts.njk
+    output: src/core/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface.ts
+  - id: core-update-usecase
+    module: core
+    template: core/usecases/update/usecase.ts.njk
+    output: src/core/usecases/update-{{ fileName }}/update-{{ fileName }}.usecase.ts
+  - id: core-update-usecase-test
+    module: core
+    template: core/usecases/update/usecase.spec.ts.njk
+    output: src/core/usecases/update-{{ fileName }}/update-{{ fileName }}.usecase.spec.ts
+  - id: core-patch-command
+    module: core
+    template: core/usecases/patch/command.ts.njk
+    output: src/core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.command.ts
+  - id: core-patch-changes
+    module: core
+    template: core/usecases/patch/changes.ts.njk
+    output: src/core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.changes.ts
+  - id: core-patch-command-validator
+    module: core
+    template: core/usecases/patch/command.validator.ts.njk
+    output: src/core/usecases/patch-{{ fileName }}/patch-{{ fileName }}-command.validator.ts
+  - id: core-patch-usecase-interface
+    module: core
+    template: core/usecases/patch/usecase.interface.ts.njk
+    output: src/core/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface.ts
+  - id: core-patch-usecase
+    module: core
+    template: core/usecases/patch/usecase.ts.njk
+    output: src/core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.usecase.ts
+  - id: core-patch-usecase-test
+    module: core
+    template: core/usecases/patch/usecase.spec.ts.njk
+    output: src/core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.usecase.spec.ts
+  - id: core-delete-command
+    module: core
+    template: core/usecases/delete/command.ts.njk
+    output: src/core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.command.ts
+  - id: core-delete-gateway
+    module: core
+    template: core/usecases/delete/gateway.ts.njk
+    output: src/core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway.ts
+  - id: core-delete-usecase-interface
+    module: core
+    template: core/usecases/delete/usecase.interface.ts.njk
+    output: src/core/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface.ts
+  - id: core-delete-usecase
+    module: core
+    template: core/usecases/delete/usecase.ts.njk
+    output: src/core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.usecase.ts
+  - id: core-delete-usecase-test
+    module: core
+    template: core/usecases/delete/usecase.spec.ts.njk
+    output: src/core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.usecase.spec.ts
   - id: core-get-by-id-query
     module: core
     template: core/usecases/get-by-id/get-by-id.query.ts.njk
@@ -152,6 +220,14 @@ templates:
     module: infra-persistence
     template: infra-persistence/providers/page.provider.ts.njk
     output: src/infra/providers/page-{{ pluralFileName }}.provider.ts
+  - id: infra-persistence-update-provider
+    module: infra-persistence
+    template: infra-persistence/providers/update.provider.ts.njk
+    output: src/infra/providers/update-{{ fileName }}.provider.ts
+  - id: infra-persistence-delete-provider
+    module: infra-persistence
+    template: infra-persistence/providers/delete.provider.ts.njk
+    output: src/infra/providers/delete-{{ fileName }}.provider.ts
 
   - id: web-api-not-found-exception-filter
     module: web-api
@@ -193,6 +269,14 @@ templates:
     module: web-api
     template: web-api/entrypoints/create-request.model.ts.njk
     output: src/web-api/entrypoints/{{ pluralFileName }}/create-{{ fileName }}-request.model.ts
+  - id: web-api-update-request
+    module: web-api
+    template: web-api/entrypoints/update-request.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/update-{{ fileName }}-request.model.ts
+  - id: web-api-patch-request
+    module: web-api
+    template: web-api/entrypoints/patch-request.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/patch-{{ fileName }}-request.model.ts
   - id: web-api-response
     module: web-api
     template: web-api/entrypoints/response.model.ts.njk
