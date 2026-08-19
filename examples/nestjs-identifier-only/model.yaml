@@ -1,0 +1,13 @@
+schemaVersion: "1.0"
+
+application:
+  name: identifier-only-service
+  namespace: io.github.jtsato.identifieronly
+
+entities:
+  - name: Marker
+    attributes:
+      - name: id
+        type: uuid
+        identifier: true
+        required: true

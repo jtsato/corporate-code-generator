@@ -10,6 +10,11 @@
 
 **Spec:** docs/superpowers/specs/2026-08-19-nestjs-crud-integration-design.md
 
+**Execution status:** Complete. Tasks 1–10 were implemented and independently reviewed on
+2026-08-19. Fresh evidence is recorded in `docs/project/CURRENT-STATE.md` and
+`docs/adr/ADR-082-nestjs-crud-integration.md`; the checklist below is retained as the
+historical implementation plan.
+
 ## Global Constraints
 
 - Do not modify the Application Model/IR or profiles/nestjs-clean-architecture/profile.yaml.

@@ -11,6 +11,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const cliEntryPoint = join(repoRoot, "packages", "cli", "dist", "index.js");
 const profileId = "nestjs-clean-architecture";
 const modelPath = "examples/nestjs-wallet-service/model.yaml";
+const identifierOnlyModelPath = "examples/nestjs-identifier-only/model.yaml";
 
 const GENERATED_PATHS = [
   "package.json",
@@ -120,6 +121,19 @@ function goldenModule(targetPath: string): string {
 }
 
 describe("NestJS clean architecture smoke test", () => {
+  it("renders CRUD artifacts for an entity with only its identifier", async () => {
+    const dryRun = await runCli([
+      "generate",
+      identifierOnlyModelPath,
+      "--profile",
+      profileId,
+      "--dry-run",
+    ]);
+
+    expect(dryRun.code, dryRun.stderr).toBe(0);
+    expect(dryRun.stdout).toContain("src/core/usecases/patch-marker/patch-marker.usecase.spec.ts");
+  });
+
   it("validates, previews, and generates the NestJS Golden Path", async () => {
     await expect(access(cliEntryPoint)).resolves.toBeUndefined();
 

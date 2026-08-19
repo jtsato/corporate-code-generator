@@ -61,7 +61,6 @@ describe('PatchWalletUseCase', () => {
     expect(getByIdGateway.execute).not.toHaveBeenCalled();
     expect(updateGateway.execute).not.toHaveBeenCalled();
   });
-
   it('preserves omitted properties and delegates the merged entity to update', async () => {
     const current = new Wallet(
       "00000000-0000-4000-8000-000000000001",

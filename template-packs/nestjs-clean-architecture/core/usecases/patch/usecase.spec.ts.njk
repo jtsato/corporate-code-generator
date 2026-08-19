@@ -66,6 +66,7 @@ describe('Patch{{ className }}UseCase', () => {
     expect(updateGateway.execute).not.toHaveBeenCalled();
   });
 
+{%- if mutableProperties.length > 0 %}
   it('preserves omitted properties and delegates the merged entity to update', async () => {
     const current = new {{ className }}(
 {%- for property in properties %}
@@ -116,6 +117,7 @@ describe('Patch{{ className }}UseCase', () => {
     {%- endfor %}
     ));
   });
+{%- endif %}
 
   it('raises NotFoundException when the current entity is missing', async () => {
     const getByIdGateway: IGet{{ className }}ByIdGateway = {

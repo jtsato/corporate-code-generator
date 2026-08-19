@@ -67,12 +67,16 @@ The measured dry-run selections, including transitive module dependencies, are:
 
 Task 8 added 21 generated golden files for the CRUD use cases, providers, and request
 models. The golden smoke compares all 78 generated paths. The local evidence also
-includes the default suite passing with 55 files and 297 tests, typecheck, build,
+includes the default suite passing with 55 files and 298 tests, typecheck, build,
 coverage, and the NestJS golden smoke passing.
 
 The authorized command `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run smoke:generated-project:nestjs`
 passed with 1 file and 3 tests, including generated dependencies installed and generated
 build/Jest/e2e/HTTP CRUD checks.
+
+The follow-up regression check also proves that an entity containing only its identifier
+renders the CRUD artifact set, including the PATCH generated test, without assuming a
+mutable property. Java golden and Maven compile smokes passed after this correction.
 
 ## Non-goals
 

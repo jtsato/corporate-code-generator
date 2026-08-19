@@ -447,14 +447,19 @@ gate passed with generated dependencies installed and generated build/Jest/e2e/H
 - Physical generation from the built CLI produced 78 files. The golden smoke passed over
   all 78 expected paths, including the 21 new CRUD goldens copied from CLI output.
 - `npm run typecheck` and `npm run build` passed.
-- `npm test` passed with 55 files and 297 tests. `npm run test:coverage` also passed with
-  55 files and 297 tests; statements 92.78%, branches 81.52%, functions 97.04%, and lines
+- `npm test` passed with 55 files and 298 tests. `npm run test:coverage` also passed with
+  55 files and 298 tests; statements 92.78%, branches 81.52%, functions 97.04%, and lines
   93.58%.
 - `npm run smoke:nestjs` passed with 2 tests, including CRUD lifecycle assertions and Core
   framework-purity checks.
 - The authorized command `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run smoke:generated-project:nestjs`
   passed with 1 file and 3 tests, including generated dependencies installed and generated
-  build/Jest/e2e/HTTP CRUD checks. Maven was not run.
+  build/Jest/e2e/HTTP CRUD checks.
+- A regression fixture with an entity containing only its identifier now renders the full
+  CRUD artifact set successfully; the PATCH generated test no longer assumes a mutable
+  property exists.
+- Follow-up validation passed with `npm run smoke:java-multimodule` (1 test) and
+  `npm run smoke:maven:java-multimodule` (1 test).
 
 ## Documented facts
 
