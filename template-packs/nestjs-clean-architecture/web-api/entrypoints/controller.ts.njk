@@ -32,6 +32,7 @@ import {
 import { Create{{ className }}Request } from './create-{{ fileName }}-request.model';
 import { Patch{{ className }}Request } from './patch-{{ fileName }}-request.model';
 import { {{ className }}FilterParser } from './{{ fileName }}-filter.parser';
+import { {{ className }}SortParser } from './{{ fileName }}-sort.parser';
 import { {{ className }}PageRequest } from './{{ fileName }}-page-request.model';
 import { {{ className }}PageResponse } from './{{ fileName }}-page-response.model';
 import { Update{{ className }}Request } from './update-{{ fileName }}-request.model';
@@ -86,7 +87,7 @@ export class {{ className }}Controller {
   public async page(@Query() request: {{ className }}PageRequest): Promise<HttpResponse<{{ className }}PageResponse>> {
     const page = await this.page{{ className }}UseCase.execute(
       new Page{{ className }}Query(
-        new PageRequest(request.page ?? 0, request.size ?? 20),
+        new PageRequest(request.page ?? 0, request.size ?? 20, {{ className }}SortParser.parse(request.sort)),
         {{ className }}FilterParser.parse(request.filter),
       ),
     );

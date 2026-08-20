@@ -182,6 +182,85 @@ describe("NestJS generated project smoke test", () => {
     await expect(missing.json()).resolves.toMatchObject({ statusCode: 404 });
   }, 120_000);
 
+  it("propagates collection sorting and composes it with filtering and pagination", async ({ skip }) => {
+    if (skipReason !== undefined) { skip(skipReason); return; }
+    const running = server as GeneratedServer;
+    const wallets = [
+      { id: "00000000-0000-4000-8000-000000000003", balance: 20 },
+      { id: "00000000-0000-4000-8000-000000000001", balance: 10 },
+      { id: "00000000-0000-4000-8000-000000000002", balance: 10 },
+      { id: "00000000-0000-4000-8000-000000000004", balance: 30 },
+    ];
+
+    for (const wallet of wallets) {
+      const response = await fetch(`${running.baseUrl}/wallets`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(wallet),
+      });
+      expect(response.status, running.output()).toBe(201);
+      await response.json();
+    }
+
+    const insertionOrder = await fetch(`${running.baseUrl}/wallets`);
+    expect(insertionOrder.status, running.output()).toBe(200);
+    await expect(insertionOrder.json()).resolves.toMatchObject({
+      items: wallets,
+    });
+
+    const ascending = await fetch(`${running.baseUrl}/wallets?sort=balance:asc`);
+    expect(ascending.status, running.output()).toBe(200);
+    await expect(ascending.json()).resolves.toMatchObject({
+      items: [wallets[1], wallets[2], wallets[0], wallets[3]],
+    });
+
+    const descending = await fetch(`${running.baseUrl}/wallets?sort=balance:desc`);
+    expect(descending.status, running.output()).toBe(200);
+    await expect(descending.json()).resolves.toMatchObject({
+      items: [wallets[3], wallets[0], wallets[1], wallets[2]],
+    });
+
+    const repeated = await fetch(`${running.baseUrl}/wallets?sort=balance:asc&sort=id:desc`);
+    expect(repeated.status, running.output()).toBe(200);
+    await expect(repeated.json()).resolves.toMatchObject({
+      items: [wallets[2], wallets[1], wallets[0], wallets[3]],
+    });
+
+    const filteredAndPaged = await fetch(
+      `${running.baseUrl}/wallets?filter=balance:eq:10&sort=id:desc&page=0&size=1`,
+    );
+    expect(filteredAndPaged.status, running.output()).toBe(200);
+    await expect(filteredAndPaged.json()).resolves.toEqual({
+      items: [wallets[2]],
+      page: 0,
+      size: 1,
+      totalItems: 2,
+      totalPages: 2,
+    });
+  }, 120_000);
+
+  it("returns the existing structured validation response for invalid collection sorting", async ({ skip }) => {
+    if (skipReason !== undefined) { skip(skipReason); return; }
+    const running = server as GeneratedServer;
+    const cases = [
+      { value: "balance", message: "sort must use the property:direction format" },
+      { value: " balance:asc", message: "unsupported sort property:  balance" },
+      { value: "unknown:asc", message: "unsupported sort property: unknown" },
+      { value: "balance:sideways", message: "sort direction must be asc or desc" },
+    ];
+
+    for (const testCase of cases) {
+      const query = new URLSearchParams({ sort: testCase.value });
+      const response = await fetch(`${running.baseUrl}/wallets?${query.toString()}`);
+      expect(response.status, running.output()).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        statusCode: 400,
+        message: "Validation failed",
+        violations: [{ field: "sort[0]", message: testCase.message }],
+      });
+    }
+  }, 120_000);
+
   it("applies the generated global validation pipe and mounts the generated OpenAPI document", async ({ skip }) => {
     if (skipReason !== undefined) { skip(skipReason); return; }
     const running = server as GeneratedServer;

@@ -10,6 +10,7 @@ const PER_ENTITY_TEMPLATE_IDS = [
   "infra-persistence-entity-model",
   "infra-persistence-mapper",
   "infra-persistence-repository",
+  "infra-persistence-repository-test",
   "infra-persistence-create-provider",
   "infra-persistence-get-by-id-provider",
   "infra-persistence-page-provider",

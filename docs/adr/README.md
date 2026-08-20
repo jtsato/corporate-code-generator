@@ -80,3 +80,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [080](ADR-080-nestjs-generated-e2e-tests.md) | NestJS Generated e2e Tests | Accepted — Milestone 7.15. | Milestone 7.15 | Not recorded | Not recorded |
 | [081](ADR-081-nestjs-composition-root-wiring.md) | NestJS Composition-Root Wiring | Accepted — Milestone 7.16. | Milestone 7.16 | 057 (in part), 080 (in part) | Not recorded |
 | [082](ADR-082-nestjs-crud-integration.md) | NestJS CRUD Integration | Accepted; native generated-project gate passed | Milestone 7.17 | Not recorded | Not recorded |
+| [083](ADR-083-nestjs-sorting.md) | NestJS Collection Sorting | Accepted — milestone 7.18 release-complete; final native gates passed | Milestone 7.18 | Not recorded | Not recorded |

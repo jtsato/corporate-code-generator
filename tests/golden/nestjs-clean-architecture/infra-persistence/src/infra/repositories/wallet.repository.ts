@@ -5,6 +5,25 @@ import { PageRequest } from '../../core/common/paging/page-request';
 import { PageResult } from '../../core/common/paging/page-result';
 import { WalletEntity } from '../models/wallet-entity.model';
 
+function compareStrings(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
+function isNullish(value: unknown): boolean {
+  return value === null || value === undefined;
+}
+
+function compareValues(left: unknown, right: unknown): number {
+  if (isNullish(left)) return isNullish(right) ? 0 : 1;
+  if (isNullish(right)) return -1;
+  if (left instanceof Date && right instanceof Date) return left.getTime() - right.getTime();
+  if (typeof left === 'number' && typeof right === 'number') return left - right;
+  if (typeof left === 'boolean' && typeof right === 'boolean') return Number(left) - Number(right);
+  return compareStrings(String(left), String(right));
+}
+
 @Injectable()
 export class WalletRepository {
   private readonly wallets: WalletEntity[] = [];
@@ -40,13 +59,35 @@ export class WalletRepository {
       const matches = String(actual) === condition.value;
       return condition.operator === 'eq' ? matches : !matches;
     }));
+    let ordered = filtered;
+    if (pageRequest.sort.length > 0) {
+      ordered = filtered
+        .map((entity, index) => ({ entity, index }))
+        .sort((left, right) => {
+          for (const sortOrder of pageRequest.sort) {
+            const leftValue = left.entity[sortOrder.property as keyof WalletEntity];
+            const rightValue = right.entity[sortOrder.property as keyof WalletEntity];
+            const comparison = compareValues(
+              leftValue,
+              rightValue,
+            );
+            if (comparison !== 0) {
+              return isNullish(leftValue) || isNullish(rightValue)
+                ? comparison
+                : sortOrder.direction === 'asc' ? comparison : -comparison;
+            }
+          }
+          return left.index - right.index;
+        })
+        .map(({ entity }) => entity);
+    }
     const start = pageRequest.page * pageRequest.size;
 
     return Promise.resolve(new PageResult(
-      filtered.slice(start, start + pageRequest.size),
+      ordered.slice(start, start + pageRequest.size),
       pageRequest.page,
       pageRequest.size,
-      filtered.length,
+      ordered.length,
     ));
   }
 }

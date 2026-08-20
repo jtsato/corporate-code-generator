@@ -87,10 +87,14 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(templateIds).toContain("core-get-by-id-usecase");
     expect(templateIds).toContain("core-get-by-id-usecase-test");
     expect(templateIds).toContain("core-get-by-id-query-validator");
+    expect(templateIds).toContain("core-sort-direction");
+    expect(templateIds).toContain("core-sort-order");
+    expect(templateIds).toContain("core-sort-order-test");
     expect(templateIds).toContain("core-page-query");
     expect(templateIds).toContain("core-page-gateway");
     expect(templateIds).toContain("core-page-usecase-interface");
     expect(templateIds).toContain("core-page-usecase");
+    expect(templateIds).toContain("core-page-request-test");
     expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
   });
 
@@ -106,6 +110,8 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-response-transformer-interceptor");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-page-request");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-filter-parser");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-sort-parser");
+    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-sort-parser-test");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-page-response");
     expect(invocations.map((invocation) => invocation.templateId)).toEqual(expect.arrayContaining([
       "web-api-update-request",
@@ -115,6 +121,32 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-controller");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-messages");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-service");
+  });
+
+  it("passes parsed sort orders to the page request", async () => {
+    const controllerTemplate = await readFile(
+      join(repoRoot, "template-packs", "nestjs-clean-architecture", "web-api", "entrypoints", "controller.ts.njk"),
+      "utf8",
+    );
+
+    expect(controllerTemplate).toContain(
+      "import { {{ className }}SortParser } from './{{ fileName }}-sort.parser';",
+    );
+    expect(controllerTemplate).toContain(
+      "new PageRequest(request.page ?? 0, request.size ?? 20, {{ className }}SortParser.parse(request.sort)),",
+    );
+  });
+
+  it("declares repeatable sort metadata on the page request DTO", async () => {
+    const pageRequestTemplate = await readFile(
+      join(repoRoot, "template-packs", "nestjs-clean-architecture", "web-api", "entrypoints", "page-request.model.ts.njk"),
+      "utf8",
+    );
+
+    expect(pageRequestTemplate).toContain("ApiPropertyOptional");
+    expect(pageRequestTemplate).toContain("example: 'balance:desc'");
+    expect(pageRequestTemplate).toContain("isArray: true");
+    expect(pageRequestTemplate).toContain("public sort?: string | string[];");
   });
 
   it("keeps artifacts that depend on other modules out of the web-api module", () => {
@@ -134,6 +166,7 @@ describe("NestJS clean architecture artifact producers", () => {
       "infra-persistence-entity-model",
       "infra-persistence-mapper",
       "infra-persistence-repository",
+      "infra-persistence-repository-test",
       "infra-persistence-create-provider",
       "infra-persistence-get-by-id-provider",
       "infra-persistence-page-provider",

@@ -32,6 +32,7 @@ import {
 import { CreateWalletRequest } from './create-wallet-request.model';
 import { PatchWalletRequest } from './patch-wallet-request.model';
 import { WalletFilterParser } from './wallet-filter.parser';
+import { WalletSortParser } from './wallet-sort.parser';
 import { WalletPageRequest } from './wallet-page-request.model';
 import { WalletPageResponse } from './wallet-page-response.model';
 import { UpdateWalletRequest } from './update-wallet-request.model';
@@ -85,7 +86,7 @@ export class WalletController {
   public async page(@Query() request: WalletPageRequest): Promise<HttpResponse<WalletPageResponse>> {
     const page = await this.pageWalletUseCase.execute(
       new PageWalletQuery(
-        new PageRequest(request.page ?? 0, request.size ?? 20),
+        new PageRequest(request.page ?? 0, request.size ?? 20, WalletSortParser.parse(request.sort)),
         WalletFilterParser.parse(request.filter),
       ),
     );

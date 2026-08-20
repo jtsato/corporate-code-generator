@@ -1,0 +1,125 @@
+import { FilterExpression } from '../../core/common/filter/filter-expression';
+import { PageRequest } from '../../core/common/paging/page-request';
+import { SortDirection } from '../../core/common/paging/sort-direction';
+import { SortOrder } from '../../core/common/paging/sort-order';
+import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
+import { {{ className }}Repository } from './{{ fileName }}.repository';
+
+describe('{{ className }}Repository', () => {
+  function createEntity(propertyName: string, value: unknown): {{ className }}Entity {
+    return new {{ className }}Entity(
+{%- for property in properties %}
+      propertyName === '{{ property.name }}' ? value as unknown as {{ property.type }} : {{ property.testValue }},
+{%- endfor %}
+    );
+  }
+
+  async function sortedItems(
+    repository: {{ className }}Repository,
+    property: string,
+    direction: SortDirection,
+  ): Promise<readonly {{ className }}Entity[]> {
+    const result = await repository.findPage(
+      new PageRequest(0, 20, [new SortOrder(property, direction)]),
+      new FilterExpression(),
+    );
+    return result.items;
+  }
+
+  it('keeps nullish values after present values for descending sort', async () => {
+    const repository = new {{ className }}Repository();
+    const present = createEntity('{{ identifier.name }}', {{ identifier.testValue }});
+    const nullValue = createEntity('{{ identifier.name }}', null);
+    const undefinedValue = createEntity('{{ identifier.name }}', undefined);
+
+    await repository.save(present);
+    await repository.save(nullValue);
+    await repository.save(undefinedValue);
+
+    await expect(sortedItems(repository, '{{ identifier.name }}', SortDirection.Desc)).resolves.toEqual([
+      present,
+      nullValue,
+      undefinedValue,
+    ]);
+  });
+
+  it('keeps nullish values after present values for ascending sort', async () => {
+    const repository = new {{ className }}Repository();
+    const present = createEntity('{{ identifier.name }}', {{ identifier.testValue }});
+    const nullValue = createEntity('{{ identifier.name }}', null);
+    const undefinedValue = createEntity('{{ identifier.name }}', undefined);
+
+    await repository.save(present);
+    await repository.save(nullValue);
+    await repository.save(undefinedValue);
+
+    await expect(sortedItems(repository, '{{ identifier.name }}', SortDirection.Asc)).resolves.toEqual([
+      present,
+      nullValue,
+      undefinedValue,
+    ]);
+  });
+{%- for property in properties %}
+{%- if property.type == 'number' %}
+
+  it('compares numeric values numerically', async () => {
+    const repository = new {{ className }}Repository();
+    const ten = createEntity('{{ property.name }}', 10);
+    const two = createEntity('{{ property.name }}', 2);
+
+    await repository.save(ten);
+    await repository.save(two);
+
+    await expect(sortedItems(repository, '{{ property.name }}', SortDirection.Asc)).resolves.toEqual([
+      two,
+      ten,
+    ]);
+  });
+{%- elif property.type == 'boolean' %}
+
+  it('orders booleans as false before true', async () => {
+    const repository = new {{ className }}Repository();
+    const trueValue = createEntity('{{ property.name }}', true);
+    const falseValue = createEntity('{{ property.name }}', false);
+
+    await repository.save(trueValue);
+    await repository.save(falseValue);
+
+    await expect(sortedItems(repository, '{{ property.name }}', SortDirection.Asc)).resolves.toEqual([
+      falseValue,
+      trueValue,
+    ]);
+  });
+{%- elif property.type == 'Date' %}
+
+  it('compares dates by epoch milliseconds', async () => {
+    const repository = new {{ className }}Repository();
+    const later = createEntity('{{ property.name }}', new Date('2025-01-02T00:00:00.000Z'));
+    const earlier = createEntity('{{ property.name }}', new Date('2025-01-01T00:00:00.000Z'));
+
+    await repository.save(later);
+    await repository.save(earlier);
+
+    await expect(sortedItems(repository, '{{ property.name }}', SortDirection.Asc)).resolves.toEqual([
+      earlier,
+      later,
+    ]);
+  });
+{%- elif property.type == 'string' %}
+
+  it('compares strings deterministically without locale dependence', async () => {
+    const repository = new {{ className }}Repository();
+    const b = createEntity('{{ property.name }}', 'b');
+    const a = createEntity('{{ property.name }}', 'a');
+
+    await repository.save(b);
+    await repository.save(a);
+
+    await expect(sortedItems(repository, '{{ property.name }}', SortDirection.Asc)).resolves.toEqual([
+      a,
+      b,
+    ]);
+  });
+{%- endif %}
+{%- endfor %}
+});

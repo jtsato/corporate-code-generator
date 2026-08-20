@@ -149,6 +149,13 @@ Baseline REST paging policy:
 
 Search and advanced filtering intent are not inferred beyond adopted capability behavior. Future model extensions must declare richer search semantics explicitly.
 
+NestJS collection sorting is implemented and supported at the current generated-profile
+level. The Web API parses repeatable `sort=<property>:<direction>` values with a
+generated property allowlist, Core carries immutable semantic sort orders, and the
+generated in-memory repository applies filter, sort, then page deterministically. The
+milestone 7.18 dependency-enabled generated-project, NestJS, Java, and Maven gates
+passed. This support does not imply database or ORM ordering.
+
 ## Persistence technology options
 
 Current persistence support uses JPA-oriented infrastructure in the generated Java Golden Path. Conceptual future options include:
@@ -250,7 +257,7 @@ Future schema work must validate incompatible combinations, such as a provider o
 | NestJS basic i18n | Supported in NestJS Golden Path | Generated error filters select deterministic English or Portuguese messages from `Accept-Language`. |
 | NestJS generated e2e tests | Supported in NestJS Golden Path | Generated Jest/Supertest tests boot the application and cover the generated HTTP contracts. |
 | NestJS CRUD | Supported in NestJS Golden Path | Generated Core, in-memory persistence, web-api, and bootstrap artifacts provide create, read, full replacement PUT, presence-based PATCH, and physical DELETE. The authorized command `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run smoke:generated-project:nestjs` passed with 1 file and 3 tests, including generated dependencies installed and generated build/Jest/e2e/HTTP CRUD checks. |
-| NestJS sorting | Planned/future | Collection sorting is not currently generated. |
+| NestJS sorting | Supported at current generated-profile level; final gates passed | Collection endpoints accept repeatable `sort=<property>:<direction>` values with exact lowercase `asc`/`desc`, generated property allowlists, stable deterministic ordering, and the existing structured HTTP 400 contract for invalid values. This milestone does not add database/ORM ordering, nested or joined fields, computed fields, configurable null ordering, case-insensitive ordering, a default sort, a schema/profile option, or Java changes. |
 | NestJS soft delete and restore | Planned/future | Current DELETE physically removes the in-memory record; tombstone and restore semantics are not generated. |
 | NestJS ORM/database persistence | Planned/future | The current persistence adapter is in memory. |
 | NestJS uniqueness | Planned/future | Attribute and composite uniqueness are not currently generated for NestJS. |

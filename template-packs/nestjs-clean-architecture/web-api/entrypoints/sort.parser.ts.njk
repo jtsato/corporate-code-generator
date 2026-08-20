@@ -1,0 +1,52 @@
+import { FieldViolation } from '../../../core/exceptions/field-violation';
+import { SortDirection } from '../../../core/common/paging/sort-direction';
+import { SortOrder } from '../../../core/common/paging/sort-order';
+import { ValidationException } from '../../../core/exceptions/validation.exception';
+
+export class {{ className }}SortParser {
+  public static parse(value: unknown): SortOrder[] {
+    if (value === undefined) return [];
+    if (typeof value !== 'string' && !Array.isArray(value)) {
+      throw this.validation(0, 'sort must be a string or an array of strings');
+    }
+
+    const expressions = Array.isArray(value) ? value : [value];
+    return expressions.map((expression, index) => this.parseExpression(expression, index));
+  }
+
+  private static parseExpression(expression: unknown, index: number): SortOrder {
+    if (typeof expression !== 'string') {
+      throw this.validation(index, 'sort value must be a string');
+    }
+
+    const segments = expression.split(':');
+    if (segments.length !== 2) {
+      throw this.validation(index, 'sort must use the property:direction format');
+    }
+
+    const [property, direction] = segments;
+    const supportedProperties = new Set([
+{%- for property in properties %}
+      '{{ property.name }}',
+{%- endfor %}
+    ]);
+    if (property.length === 0 || !supportedProperties.has(property)) {
+      throw this.validation(index, `unsupported sort property: ${property}`);
+    }
+
+    const sortDirection = direction === 'asc'
+      ? SortDirection.Asc
+      : direction === 'desc'
+        ? SortDirection.Desc
+        : undefined;
+    if (sortDirection === undefined) {
+      throw this.validation(index, 'sort direction must be asc or desc');
+    }
+
+    return new SortOrder(property, sortDirection);
+  }
+
+  private static validation(index: number, message: string): ValidationException {
+    return new ValidationException([new FieldViolation(`sort[${index}]`, message)]);
+  }
+}

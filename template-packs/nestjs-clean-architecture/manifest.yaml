@@ -39,10 +39,26 @@ templates:
     module: core
     template: core/exceptions/validation.exception.ts.njk
     output: src/core/exceptions/validation.exception.ts
+  - id: core-sort-direction
+    module: core
+    template: core/common/paging/sort-direction.ts.njk
+    output: src/core/common/paging/sort-direction.ts
+  - id: core-sort-order
+    module: core
+    template: core/common/paging/sort-order.ts.njk
+    output: src/core/common/paging/sort-order.ts
+  - id: core-sort-order-test
+    module: core
+    template: core/common/paging/sort-order.spec.ts.njk
+    output: src/core/common/paging/sort-order.spec.ts
   - id: core-page-request
     module: core
     template: core/common/paging/page-request.ts.njk
     output: src/core/common/paging/page-request.ts
+  - id: core-page-request-test
+    module: core
+    template: core/common/paging/page-request.spec.ts.njk
+    output: src/core/common/paging/page-request.spec.ts
   - id: core-page-result
     module: core
     template: core/common/paging/page-result.ts.njk
@@ -208,6 +224,10 @@ templates:
     module: infra-persistence
     template: infra-persistence/repositories/repository.ts.njk
     output: src/infra/repositories/{{ fileName }}.repository.ts
+  - id: infra-persistence-repository-test
+    module: infra-persistence
+    template: infra-persistence/repositories/repository.spec.ts.njk
+    output: src/infra/repositories/{{ fileName }}.repository.spec.ts
   - id: infra-persistence-create-provider
     module: infra-persistence
     template: infra-persistence/providers/create.provider.ts.njk
@@ -293,6 +313,14 @@ templates:
     module: web-api
     template: web-api/entrypoints/filter.parser.ts.njk
     output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-filter.parser.ts
+  - id: web-api-sort-parser
+    module: web-api
+    template: web-api/entrypoints/sort.parser.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-sort.parser.ts
+  - id: web-api-sort-parser-test
+    module: web-api
+    template: web-api/entrypoints/sort.parser.spec.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-sort.parser.spec.ts
   - id: web-api-page-response
     module: web-api
     template: web-api/entrypoints/page-response.model.ts.njk
