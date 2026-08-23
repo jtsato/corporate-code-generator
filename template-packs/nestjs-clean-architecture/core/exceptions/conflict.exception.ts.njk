@@ -1,0 +1,10 @@
+import { CoreException } from './core.exception';
+
+export class ConflictException extends CoreException {
+  public constructor(
+    defaultMessage: string,
+    public readonly fields: readonly string[] = [],
+  ) {
+    super(defaultMessage, 'conflict');
+  }
+}

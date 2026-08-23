@@ -3,12 +3,22 @@ export interface NestJsPropertyTemplateModel {
   readonly type: string;
   readonly required: boolean;
   readonly identifier: boolean;
+  readonly unique: boolean;
   readonly validationDecorator: string;
   readonly swaggerType: string;
   readonly coreValidationStatements: readonly string[];
   readonly testValue: string;
   readonly alternateTestValue: string;
   readonly invalidTestValue: string;
+}
+
+export interface NestJsUniqueAttributeModel {
+  readonly name: string;
+  readonly type: string;
+}
+
+export interface NestJsUniqueGroupCheckModel {
+  readonly attributes: readonly NestJsUniqueAttributeModel[];
 }
 
 export interface NestJsIdentifierTemplateModel extends NestJsPropertyTemplateModel {
@@ -23,6 +33,9 @@ export interface NestJsEntityTemplateModel {
   readonly restCollectionPath: string;
   readonly properties: readonly NestJsPropertyTemplateModel[];
   readonly mutableProperties: readonly NestJsPropertyTemplateModel[];
+  readonly uniqueAttributes: readonly NestJsUniqueAttributeModel[];
+  readonly uniqueGroupChecks: readonly NestJsUniqueGroupCheckModel[];
+  readonly hasUniqueAttributes: boolean;
   readonly identifier: NestJsIdentifierTemplateModel;
   readonly requestValidationImports: readonly string[];
   readonly updateRequestValidationImports: readonly string[];

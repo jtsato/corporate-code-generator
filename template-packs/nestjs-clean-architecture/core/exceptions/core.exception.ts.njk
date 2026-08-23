@@ -1,6 +1,11 @@
 export abstract class CoreException extends Error {
-  protected constructor(message: string) {
-    super(message);
+  public readonly messageKey: string;
+  public readonly defaultMessage: string;
+
+  protected constructor(defaultMessage: string, messageKey: string = 'validationFailed') {
+    super(defaultMessage);
+    this.defaultMessage = defaultMessage;
+    this.messageKey = messageKey;
     this.name = new.target.name;
   }
 }

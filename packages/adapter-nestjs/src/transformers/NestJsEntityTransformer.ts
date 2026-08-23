@@ -4,6 +4,8 @@ import type {
   NestJsApplicationTemplateModel,
   NestJsEntityTemplateModel,
   NestJsPropertyTemplateModel,
+  NestJsUniqueAttributeModel,
+  NestJsUniqueGroupCheckModel,
 } from "../model/NestJsEntityTemplateModel.js";
 import {
   toKebabCaseName,
@@ -148,6 +150,7 @@ export class NestJsEntityTransformer {
         type: resolved.name,
         required: attribute.required,
         identifier: attribute.identifier,
+        unique: attribute.unique ?? false,
         validationDecorator: resolved.validationDecorator,
         swaggerType: resolved.swaggerType,
         coreValidationStatements: createCoreValidationStatements(
@@ -176,6 +179,27 @@ export class NestJsEntityTransformer {
     };
 
     const mutableProperties = properties.filter((property) => !property.identifier);
+
+    const uniqueAttributes = properties
+      .filter((property) => property.unique && !property.identifier)
+      .map((property) => ({
+        name: property.name,
+        type: property.type,
+      } satisfies NestJsUniqueAttributeModel));
+
+    const propertiesByName = new Map(properties.map((property) => [property.name, property]));
+
+    const uniqueGroupChecks = (entity.uniqueGroups ?? [])
+      .map((group) => ({
+        attributes: group
+          .map((attributeName) => propertiesByName.get(toTypeScriptPropertyName(attributeName)))
+          .filter((property): property is NestJsPropertyTemplateModel => property !== undefined)
+          .map((property) => ({
+            name: property.name,
+            type: property.type,
+          } satisfies NestJsUniqueAttributeModel)),
+      } satisfies NestJsUniqueGroupCheckModel))
+      .filter((group) => group.attributes.length > 0);
 
     const requestValidationImports = [
       ...new Set([
@@ -206,6 +230,9 @@ export class NestJsEntityTransformer {
       restCollectionPath: toRestCollectionPath(entity.name),
       properties,
       mutableProperties,
+      uniqueAttributes,
+      uniqueGroupChecks,
+      hasUniqueAttributes: uniqueAttributes.length > 0 || uniqueGroupChecks.length > 0,
       identifier: preparedIdentifier,
       requestValidationImports,
       updateRequestValidationImports,
