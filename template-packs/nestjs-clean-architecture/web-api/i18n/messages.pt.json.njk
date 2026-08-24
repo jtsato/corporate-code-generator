@@ -1,5 +1,8 @@
 {
   "validationFailed": "Falha de validação",
   "notFound": "Recurso não encontrado",
-  "conflict": "Recurso já existe"
+  "conflict": "Recurso já existe"{% for entity in entities %},
+  "{{ entity.propertyName }}": {
+    "already-exists": "{{ entity.className }} já existe."
+  }{% endfor %}
 }

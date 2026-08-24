@@ -58,6 +58,8 @@ describe("NestJS clean architecture artifact producers", () => {
 
     expect(templateIds.filter((id) => id === "core-exception")).toHaveLength(1);
     expect(templateIds).toContain("core-field-violation");
+    expect(templateIds).toContain("core-conflict-exception");
+    expect(templateIds).toContain("core-i18n-service-interface");
     expect(templateIds).toContain("core-validation-exception");
     expect(templateIds.filter((id) => id === "core-domain-model")).toHaveLength(1);
     expect(templateIds).toContain("core-create-usecase");
@@ -119,8 +121,13 @@ describe("NestJS clean architecture artifact producers", () => {
     ]));
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-response");
     expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-health-controller");
-    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-messages");
-    expect(invocations.map((invocation) => invocation.templateId)).toContain("web-api-i18n-service");
+    expect(invocations.map((invocation) => invocation.templateId)).toEqual(expect.arrayContaining([
+      "web-api-i18n-messages-en",
+      "web-api-i18n-messages-pt",
+      "web-api-i18n-module",
+      "web-api-i18n-service",
+      "web-api-conflict-exception-filter",
+    ]));
   });
 
   it("passes parsed sort orders to the page request", async () => {
@@ -134,6 +141,9 @@ describe("NestJS clean architecture artifact producers", () => {
     );
     expect(controllerTemplate).toContain(
       "new PageRequest(request.page ?? 0, request.size ?? 20, {{ className }}SortParser.parse(request.sort)),",
+    );
+    expect(controllerTemplate).toContain(
+      "Object.prototype.hasOwnProperty.call(request, '{{ property.name }}') && request.{{ property.name }} !== undefined",
     );
   });
 
@@ -175,7 +185,7 @@ describe("NestJS clean architecture artifact producers", () => {
     ]);
   });
 
-  it("declares repository update and delete contracts", async () => {
+  it("declares repository update, delete, and uniqueness contracts", async () => {
     const repositoryTemplate = await readFile(
       join(repoRoot, "template-packs", "nestjs-clean-architecture", "infra-persistence", "repositories", "repository.ts.njk"),
       "utf8",
@@ -193,9 +203,24 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(repositoryTemplate).toContain(
       "public async deleteById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
     );
+    expect(repositoryTemplate).toContain(
+      "public async existsById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
+    );
     expect(repositoryTemplate).toContain("if (index < 0) return false;");
     expect(repositoryTemplate).toContain("this.{{ propertyName }}s.splice(index, 1);");
     expect(repositoryTemplate).toContain("return true;");
+    expect(repositoryTemplate).toContain("public async hasUniqueConflict(");
+    expect(repositoryTemplate).toContain("ignoredIdentifier?: {{ identifier.type }}");
+    expect(repositoryTemplate).toContain("if (ignoredIdentifier !== undefined && compareValues(current.{{ identifier.name }}, ignoredIdentifier) === 0) continue;");
+    expect(repositoryTemplate).toContain("!isNullish(candidate.{{ attribute.name }})");
+
+    const createProviderTemplate = await readFile(
+      join(repoRoot, "template-packs", "nestjs-clean-architecture", "infra-persistence", "providers", "create.provider.ts.njk"),
+      "utf8",
+    );
+    expect(createProviderTemplate).toContain("import { ConflictException } from '../../core/exceptions/conflict.exception';");
+    expect(createProviderTemplate).toContain("const identifierConflict = await this.repository.existsById(entity.{{ identifier.name }});");
+    expect(createProviderTemplate).toContain("if (identifierConflict");
   });
 
   it("produces a single bootstrap composition root plus one wiring module per entity", () => {

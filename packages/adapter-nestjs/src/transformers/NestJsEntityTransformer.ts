@@ -181,10 +181,12 @@ export class NestJsEntityTransformer {
     const mutableProperties = properties.filter((property) => !property.identifier);
 
     const uniqueAttributes = properties
-      .filter((property) => property.unique && !property.identifier)
+      .filter((property) => property.unique)
       .map((property) => ({
         name: property.name,
         type: property.type,
+        testValue: property.testValue,
+        alternateTestValue: property.alternateTestValue,
       } satisfies NestJsUniqueAttributeModel));
 
     const propertiesByName = new Map(properties.map((property) => [property.name, property]));
@@ -197,6 +199,8 @@ export class NestJsEntityTransformer {
           .map((property) => ({
             name: property.name,
             type: property.type,
+            testValue: property.testValue,
+            alternateTestValue: property.alternateTestValue,
           } satisfies NestJsUniqueAttributeModel)),
       } satisfies NestJsUniqueGroupCheckModel))
       .filter((group) => group.attributes.length > 0);

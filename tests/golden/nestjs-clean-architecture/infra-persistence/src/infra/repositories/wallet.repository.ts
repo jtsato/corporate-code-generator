@@ -53,6 +53,12 @@ export class WalletRepository {
     return true;
   }
 
+  public async existsById(id: string): Promise<boolean> {
+    return Promise.resolve(this.wallets.some((current) =>
+      compareValues(current.id, id) === 0,
+    ));
+  }
+
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
     const filtered = this.wallets.filter((entity) => filterExpression.conditions.every((condition) => {
       const actual = entity[condition.field as keyof WalletEntity];

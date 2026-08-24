@@ -63,6 +63,26 @@ describe("NestJsEntityTransformer", () => {
     }));
   });
 
+  it("preserves attribute and composite uniqueness metadata", () => {
+    const model = transformer.transform(entity({
+      attributes: [
+        { name: "id", type: "uuid", required: true, identifier: true, unique: true },
+        { name: "tenantId", type: "uuid", required: true, identifier: false },
+        { name: "externalId", type: "string", required: false, identifier: false },
+      ],
+      uniqueGroups: [["tenantId", "externalId"]],
+    }));
+
+    expect(model.uniqueAttributes).toEqual([{ name: "id", type: "string", testValue: '"00000000-0000-4000-8000-000000000001"', alternateTestValue: '"00000000-0000-4000-8000-000000000002"' }]);
+    expect(model.uniqueGroupChecks).toEqual([{
+      attributes: [
+        expect.objectContaining({ name: "tenantId", type: "string" }),
+        expect.objectContaining({ name: "externalId", type: "string" }),
+      ],
+    }]);
+    expect(model.hasUniqueAttributes).toBe(true);
+  });
+
   it("exposes the identifier attribute separately", () => {
     const model = transformer.transform(entity());
 

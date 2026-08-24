@@ -3,42 +3,45 @@ import { SortDirection } from '../../../core/common/paging/sort-direction';
 import { SortOrder } from '../../../core/common/paging/sort-order';
 import { WalletSortParser } from './wallet-sort.parser';
 
+const sortProperty = 'id';
+const alternateSortProperty = 'id';
+
 describe('WalletSortParser', () => {
   it('returns no sort orders when sort is missing', () => {
     expect(WalletSortParser.parse(undefined)).toEqual([]);
   });
 
   it('parses an ascending sort order', () => {
-    expect(WalletSortParser.parse('balance:asc')).toEqual([
-      new SortOrder('balance', SortDirection.Asc),
+    expect(WalletSortParser.parse(`${sortProperty}:asc`)).toEqual([
+      new SortOrder(sortProperty, SortDirection.Asc),
     ]);
   });
 
   it('parses a descending sort order', () => {
-    expect(WalletSortParser.parse('balance:desc')).toEqual([
-      new SortOrder('balance', SortDirection.Desc),
+    expect(WalletSortParser.parse(`${sortProperty}:desc`)).toEqual([
+      new SortOrder(sortProperty, SortDirection.Desc),
     ]);
   });
 
   it('preserves repeated sort order and precedence', () => {
-    expect(WalletSortParser.parse(['balance:desc', 'id:asc'])).toEqual([
-      new SortOrder('balance', SortDirection.Desc),
-      new SortOrder('id', SortDirection.Asc),
+    expect(WalletSortParser.parse([`${sortProperty}:desc`, `${alternateSortProperty}:asc`])).toEqual([
+      new SortOrder(sortProperty, SortDirection.Desc),
+      new SortOrder(alternateSortProperty, SortDirection.Asc),
     ]);
   });
 
   it.each([
     'unknown:asc',
-    'balance:sideways',
+    ` ${sortProperty}:asc`,
+    `${sortProperty}:sideways`,
     ':asc',
-    'balance:',
-    'balance',
-    'balance:asc:extra',
-    ' balance:asc',
-    'balance:asc ',
-    'balance :asc',
-    'balance: asc',
-    'balance:\tasc',
+    `${sortProperty}:`,
+    sortProperty,
+    `${sortProperty}:asc:extra`,
+    `${sortProperty}:asc `,
+    `${sortProperty} :asc`,
+    `${sortProperty}: asc`,
+    `${sortProperty}:\tasc`,
   ])('rejects invalid sort syntax: %s', (value) => {
     expect(() => WalletSortParser.parse(value)).toThrow(ValidationException);
   });
@@ -48,6 +51,6 @@ describe('WalletSortParser', () => {
   });
 
   it('rejects an array when any element is invalid', () => {
-    expect(() => WalletSortParser.parse(['balance:asc', 'balance:sideways'])).toThrow(ValidationException);
+    expect(() => WalletSortParser.parse([`${sortProperty}:asc`, `${sortProperty}:sideways`])).toThrow(ValidationException);
   });
 });

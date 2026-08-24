@@ -1,14 +1,21 @@
-import { messages } from './messages';
+import { Injectable } from '@nestjs/common';
+import { I18nContext, I18nService as NestI18nService } from 'nestjs-i18n';
 
-export type SupportedLocale = keyof typeof messages;
+import { II18nService } from '../../core/i18n/i18n-service.interface';
 
-export class I18nService {
-  public locale(header: string | string[] | undefined): SupportedLocale {
-    const value = Array.isArray(header) ? header[0] : header;
-    return value !== undefined && /^pt(?:-|$)/i.test(value.trim()) ? 'pt' : 'en';
-  }
+@Injectable()
+export class I18nService implements II18nService {
+  public constructor(private readonly service: NestI18nService) {}
 
-  public translate(key: keyof typeof messages.en, header: string | string[] | undefined): string {
-    return messages[this.locale(header)][key];
+  public translate(key: string, defaultMessage: string): string {
+    const context = I18nContext.current();
+    const translated = this.service.translate(`messages.${key}`, {
+      lang: context?.lang,
+      defaultValue: defaultMessage,
+    });
+
+    return translated === `messages.${key}` || typeof translated !== 'string'
+      ? defaultMessage
+      : translated;
   }
 }

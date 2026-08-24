@@ -2,7 +2,7 @@
 
 * Status: Accepted
 * Date: 2026-08-11
-* Milestone: 7.14
+* Milestone: 7.14 (initial implementation; extended by ADR-084)
 
 ## Context
 

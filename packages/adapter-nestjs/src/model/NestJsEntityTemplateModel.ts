@@ -15,6 +15,8 @@ export interface NestJsPropertyTemplateModel {
 export interface NestJsUniqueAttributeModel {
   readonly name: string;
   readonly type: string;
+  readonly testValue: string;
+  readonly alternateTestValue: string;
 }
 
 export interface NestJsUniqueGroupCheckModel {

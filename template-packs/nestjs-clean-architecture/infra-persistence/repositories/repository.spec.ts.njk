@@ -14,6 +14,18 @@ describe('{{ className }}Repository', () => {
     );
   }
 
+{%- if hasUniqueAttributes %}
+  function createEntityWith(overrides: Record<string, unknown>): {{ className }}Entity {
+    return new {{ className }}Entity(
+{%- for property in properties %}
+      Object.prototype.hasOwnProperty.call(overrides, '{{ property.name }}')
+        ? overrides['{{ property.name }}'] as unknown as {{ property.type }}
+        : {{ property.testValue }},
+{%- endfor %}
+    );
+  }
+{%- endif %}
+
   async function sortedItems(
     repository: {{ className }}Repository,
     property: string,
@@ -25,6 +37,16 @@ describe('{{ className }}Repository', () => {
     );
     return result.items;
   }
+
+  it('reports whether an identifier exists', async () => {
+    const repository = new {{ className }}Repository();
+    const entity = createEntity('{{ identifier.name }}', {{ identifier.testValue }});
+
+    await repository.save(entity);
+
+    await expect(repository.existsById({{ identifier.testValue }})).resolves.toBe(true);
+    await expect(repository.existsById({{ identifier.alternateTestValue }})).resolves.toBe(false);
+  });
 
   it('keeps nullish values after present values for descending sort', async () => {
     const repository = new {{ className }}Repository();
@@ -122,4 +144,69 @@ describe('{{ className }}Repository', () => {
   });
 {%- endif %}
 {%- endfor %}
+
+{%- if hasUniqueAttributes %}
+  it('reports no unique conflict for an empty repository', async () => {
+    const repository = new {{ className }}Repository();
+
+    await expect(repository.hasUniqueConflict(createEntity('{{ identifier.name }}', {{ identifier.testValue }}))).resolves.toEqual([]);
+  });
+{%- for attribute in uniqueAttributes %}
+
+  it('reports a conflict for duplicate {{ attribute.name }}', async () => {
+    const repository = new {{ className }}Repository();
+
+    await repository.save(createEntityWith({ {{ identifier.name }}: {{ identifier.testValue }}, {{ attribute.name }}: {{ attribute.testValue }} }));
+
+    const candidate = createEntityWith({ {{ identifier.name }}: {{ identifier.alternateTestValue }}, {{ attribute.name }}: {{ attribute.testValue }} });
+
+    await expect(repository.hasUniqueConflict(candidate)).resolves.toContain('{{ attribute.name }}');
+  });
+
+  it('ignores the same record for {{ attribute.name }}', async () => {
+    const repository = new {{ className }}Repository();
+    const existing = createEntityWith({ {{ identifier.name }}: {{ identifier.testValue }}, {{ attribute.name }}: {{ attribute.testValue }} });
+
+    await repository.save(existing);
+
+    await expect(repository.hasUniqueConflict(existing, existing.{{ identifier.name }})).resolves.toEqual([]);
+  });
+
+  it('skips nullish {{ attribute.name }} values', async () => {
+    const repository = new {{ className }}Repository();
+
+    await repository.save(createEntityWith({ {{ identifier.name }}: {{ identifier.testValue }}, {{ attribute.name }}: null }));
+
+    const candidate = createEntityWith({ {{ identifier.name }}: {{ identifier.alternateTestValue }}, {{ attribute.name }}: null });
+
+    await expect(repository.hasUniqueConflict(candidate)).resolves.not.toContain('{{ attribute.name }}');
+  });
+{%- endfor %}
+{%- for group in uniqueGroupChecks %}
+
+  it('requires all non-null members of a unique group {{ loop.index }}', async () => {
+    const repository = new {{ className }}Repository();
+
+    await repository.save(createEntityWith({ {{ identifier.name }}: {{ identifier.testValue }}, {% for attribute in group.attributes %}{{ attribute.name }}: {{ attribute.testValue }}{% if not loop.last %}, {% endif %}{% endfor %} }));
+
+    const candidate = createEntityWith({ {{ identifier.name }}: {{ identifier.alternateTestValue }}, {% for attribute in group.attributes %}{{ attribute.name }}: {{ attribute.testValue }}{% if not loop.last %}, {% endif %}{% endfor %} });
+
+    await expect(repository.hasUniqueConflict(candidate)).resolves.toEqual(expect.arrayContaining([
+{%- for attribute in group.attributes %}
+      '{{ attribute.name }}'{% if not loop.last %},{% endif %}
+{%- endfor %}
+    ]));
+  });
+
+  it('skips a unique group {{ loop.index }} when a member is nullish', async () => {
+    const repository = new {{ className }}Repository();
+
+    await repository.save(createEntityWith({ {{ identifier.name }}: {{ identifier.testValue }}, {% for attribute in group.attributes %}{{ attribute.name }}: {{ attribute.testValue }}{% if not loop.last %}, {% endif %}{% endfor %} }));
+
+    const candidate = createEntityWith({ {{ identifier.name }}: {{ identifier.alternateTestValue }}, {% for attribute in group.attributes %}{% if loop.first %}{{ attribute.name }}: null{% else %}{{ attribute.name }}: {{ attribute.testValue }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %} });
+
+    await expect(repository.hasUniqueConflict(candidate)).resolves.toEqual([]);
+  });
+{%- endfor %}
+{%- endif %}
 });

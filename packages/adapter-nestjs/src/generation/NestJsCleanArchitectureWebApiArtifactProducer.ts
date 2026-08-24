@@ -9,13 +9,16 @@ import { NestJsEntityTransformer } from "../transformers/NestJsEntityTransformer
 const APPLICATION_TEMPLATE_IDS = [
   "web-api-health-response",
   "web-api-health-controller",
-  "web-api-i18n-messages",
+  "web-api-i18n-messages-en",
+  "web-api-i18n-messages-pt",
+  "web-api-i18n-module",
   "web-api-i18n-service",
   "web-api-http-response",
   "web-api-http-response-builder",
   "web-api-response-transformer-interceptor",
   "web-api-not-found-exception-filter",
   "web-api-validation-exception-filter",
+  "web-api-conflict-exception-filter",
 ] as const;
 
 const PER_ENTITY_TEMPLATE_IDS = [

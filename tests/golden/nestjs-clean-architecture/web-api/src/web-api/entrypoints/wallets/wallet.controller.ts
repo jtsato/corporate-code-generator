@@ -145,7 +145,7 @@ export class WalletController {
     @Body() request: PatchWalletRequest,
   ): Promise<HttpResponse<WalletResponse>> {
     const changes: PatchWalletChanges = {
-      ...(Object.prototype.hasOwnProperty.call(request, 'balance')
+      ...(Object.prototype.hasOwnProperty.call(request, 'balance') && request.balance !== undefined
         ? { balance: request.balance }
         : {}),
     };

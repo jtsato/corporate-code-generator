@@ -1,20 +1,19 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Inject } from '@nestjs/common';
 import { Response } from 'express';
 
-import { ValidationException } from '../../../core/exceptions/validation.exception';
+import { ConflictException } from '../../../core/exceptions/conflict.exception';
 import { II18nService, II18nServiceSymbol } from '../../../core/i18n/i18n-service.interface';
 
-@Catch(ValidationException)
-export class ValidationExceptionFilter implements ExceptionFilter {
+@Catch(ConflictException)
+export class ConflictExceptionFilter implements ExceptionFilter {
   public constructor(@Inject(II18nServiceSymbol) private readonly i18n: II18nService) {}
 
-  public catch(exception: ValidationException, host: ArgumentsHost): void {
+  public catch(exception: ConflictException, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
 
-    response.status(HttpStatus.BAD_REQUEST).json({
-      statusCode: HttpStatus.BAD_REQUEST,
+    response.status(HttpStatus.CONFLICT).json({
+      statusCode: HttpStatus.CONFLICT,
       message: this.i18n.translate(exception.messageKey, exception.defaultMessage),
-      violations: exception.violations,
     });
   }
 }

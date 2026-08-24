@@ -106,10 +106,11 @@ the Java multi-module Golden Path's Maven-module-first, use-case-second organiza
 ## Cross-cutting capabilities observed
 
 Present in the reference and deferred by ADR-057 pending their own milestones. OpenAPI/Swagger
-documentation was subsequently adopted by milestones 7.5 and 7.6 (annotated entrypoints plus a
-`/swagger-ui` endpoint), and the reference's health-check endpoint by milestone 7.13. Still deferred:
-a request-timing interceptor, and environment configuration through `@nestjs/config` and a single
-`.env` file (no per-environment profile split).
+ documentation was subsequently adopted by milestones 7.5 and 7.6 (annotated entrypoints plus a
+ `/swagger-ui` endpoint), the reference's health-check endpoint by milestone 7.13, and the
+ reference's `nestjs-i18n` JSON-catalog convention by milestone 7.19. Still deferred: a
+ request-timing interceptor, and environment configuration through `@nestjs/config` and a single
+ `.env` file (no per-environment profile split).
 
 Not present in the reference, and therefore not inherited as defaults: sorting, soft delete, real
 authentication/authorization enforcement (only a Swagger security-scheme

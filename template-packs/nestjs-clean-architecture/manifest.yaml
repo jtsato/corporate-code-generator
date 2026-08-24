@@ -35,6 +35,14 @@ templates:
     module: core
     template: core/exceptions/not-found.exception.ts.njk
     output: src/core/exceptions/not-found.exception.ts
+  - id: core-conflict-exception
+    module: core
+    template: core/exceptions/conflict.exception.ts.njk
+    output: src/core/exceptions/conflict.exception.ts
+  - id: core-i18n-service-interface
+    module: core
+    template: core/i18n/i18n-service.interface.ts.njk
+    output: src/core/i18n/i18n-service.interface.ts
   - id: core-validation-exception
     module: core
     template: core/exceptions/validation.exception.ts.njk
@@ -251,8 +259,12 @@ templates:
 
   - id: web-api-not-found-exception-filter
     module: web-api
-    template: web-api/commons/not-found.exception.filter.ts.njk
+    template: web-api/commons/filters/not-found.exception.filter.ts.njk
     output: src/web-api/commons/filters/not-found.exception.filter.ts
+  - id: web-api-conflict-exception-filter
+    module: web-api
+    template: web-api/commons/filters/conflict.exception.filter.ts.njk
+    output: src/web-api/commons/filters/conflict.exception.filter.ts
   - id: web-api-health-response
     module: web-api
     template: web-api/health/health-response.model.ts.njk
@@ -261,10 +273,18 @@ templates:
     module: web-api
     template: web-api/health/health.controller.ts.njk
     output: src/web-api/health/health.controller.ts
-  - id: web-api-i18n-messages
+  - id: web-api-i18n-messages-en
     module: web-api
-    template: web-api/i18n/messages.ts.njk
-    output: src/web-api/i18n/messages.ts
+    template: web-api/i18n/messages.en.json.njk
+    output: src/web-api/i18n/en/messages.json
+  - id: web-api-i18n-messages-pt
+    module: web-api
+    template: web-api/i18n/messages.pt.json.njk
+    output: src/web-api/i18n/pt/messages.json
+  - id: web-api-i18n-module
+    module: web-api
+    template: web-api/i18n/i18n.module.ts.njk
+    output: src/web-api/i18n/i18n.module.ts
   - id: web-api-i18n-service
     module: web-api
     template: web-api/i18n/i18n.service.ts.njk
@@ -283,7 +303,7 @@ templates:
     output: src/web-api/commons/interceptors/response-transformer.interceptor.ts
   - id: web-api-validation-exception-filter
     module: web-api
-    template: web-api/commons/validation.exception.filter.ts.njk
+    template: web-api/commons/filters/validation.exception.filter.ts.njk
     output: src/web-api/commons/filters/validation.exception.filter.ts
   - id: web-api-create-request
     module: web-api

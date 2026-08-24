@@ -4,10 +4,7 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import request = require('supertest');
 
 import { AppModule } from '../src/app.module';
-import { NotFoundExceptionFilter } from '../src/web-api/commons/filters/not-found.exception.filter';
 import { ResponseTransformerInterceptor } from '../src/web-api/commons/interceptors/response-transformer.interceptor';
-import { ValidationExceptionFilter } from '../src/web-api/commons/filters/validation.exception.filter';
-import { I18nService } from '../src/web-api/i18n/i18n.service';
 
 describe('generated NestJS HTTP API', () => {
   let app: INestApplication;
@@ -15,8 +12,6 @@ describe('generated NestJS HTTP API', () => {
   beforeAll(async () => {
     app = await NestFactory.create(AppModule);
     app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-    const i18n = new I18nService();
-    app.useGlobalFilters(new NotFoundExceptionFilter(i18n), new ValidationExceptionFilter(i18n));
     app.useGlobalInterceptors(new ResponseTransformerInterceptor(app.get(HttpAdapterHost)));
     await app.init();
   });
@@ -83,7 +78,6 @@ describe('generated NestJS HTTP API', () => {
         totalItems: 1,
         totalPages: 1,
       });
-
     await request(app.getHttpServer())
       .put('/wallets/' + identifier)
       .send(replacement)
@@ -115,7 +109,7 @@ describe('generated NestJS HTTP API', () => {
       .expect(404);
   });
 
-  it('localizes validation errors from Accept-Language', async () => {
+  it('localizes validation and uniqueness errors from Accept-Language', async () => {
     await request(app.getHttpServer())
       .post('/wallets')
       .send({ id: 'not-a-uuid' })

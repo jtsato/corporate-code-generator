@@ -4,10 +4,7 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import request = require('supertest');
 
 import { AppModule } from '../src/app.module';
-import { NotFoundExceptionFilter } from '../src/web-api/commons/filters/not-found.exception.filter';
 import { ResponseTransformerInterceptor } from '../src/web-api/commons/interceptors/response-transformer.interceptor';
-import { ValidationExceptionFilter } from '../src/web-api/commons/filters/validation.exception.filter';
-import { I18nService } from '../src/web-api/i18n/i18n.service';
 
 describe('generated NestJS HTTP API', () => {
   let app: INestApplication;
@@ -15,8 +12,6 @@ describe('generated NestJS HTTP API', () => {
   beforeAll(async () => {
     app = await NestFactory.create(AppModule);
     app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-    const i18n = new I18nService();
-    app.useGlobalFilters(new NotFoundExceptionFilter(i18n), new ValidationExceptionFilter(i18n));
     app.useGlobalInterceptors(new ResponseTransformerInterceptor(app.get(HttpAdapterHost)));
     await app.init();
   });
@@ -75,6 +70,23 @@ describe('generated NestJS HTTP API', () => {
       .send({ {{ entities[0].identifier.name }}: identifier, ...initial })
       .expect(201)
       .expect(createdRepresentation);
+{%- if entities[0].hasUniqueAttributes %}
+
+    await request(app.getHttpServer())
+      .post('/{{ entities[0].pluralFileName }}')
+      .set('Accept-Language', 'pt-BR')
+      .send({
+        {{ entities[0].identifier.name }}: {{ entities[0].identifier.alternateTestValue }},
+{%- for property in entities[0].mutableProperties %}
+        {{ property.name }}: {{ property.testValue }}{% if not loop.last %},{% endif %}
+{%- endfor %}
+      })
+      .expect(409)
+      .expect({
+        statusCode: 409,
+        message: '{{ entities[0].className }} já existe.',
+      });
+{%- endif %}
 
     await request(app.getHttpServer())
       .get('/{{ entities[0].pluralFileName }}/' + identifier)
@@ -92,6 +104,7 @@ describe('generated NestJS HTTP API', () => {
         totalPages: 1,
       });
 
+{%- if entities[0].mutableProperties.length > 0 %}
     await request(app.getHttpServer())
       .put('/{{ entities[0].pluralFileName }}/' + identifier)
       .send(replacement)
@@ -108,6 +121,7 @@ describe('generated NestJS HTTP API', () => {
       .patch('/{{ entities[0].pluralFileName }}/' + identifier)
       .send({})
       .expect(400);
+{%- endif %}
 
     const deleted = await request(app.getHttpServer())
       .delete('/{{ entities[0].pluralFileName }}/' + identifier)
@@ -123,7 +137,7 @@ describe('generated NestJS HTTP API', () => {
       .expect(404);
   });
 
-  it('localizes validation errors from Accept-Language', async () => {
+  it('localizes validation and uniqueness errors from Accept-Language', async () => {
     await request(app.getHttpServer())
       .post('/{{ entities[0].pluralFileName }}')
       .send({ {{ entities[0].identifier.name }}: 'not-a-uuid' })

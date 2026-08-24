@@ -51,13 +51,13 @@ The Java multi-module Golden Path is the most complete path. It generates a Clea
 - optional attribute/composite uniqueness and auditing (`createdAt`/`updatedAt`);
 - Actuator health checks, Docker/Compose packaging, generated tests, architecture and coverage gates, developer scripts, and CI configuration.
 
-The NestJS Golden Path is a functional but intentionally smaller second path. It generates a Clean Architecture TypeScript/NestJS application with framework-free Core, in-memory persistence, CRUD REST endpoints, pagination, deterministic collection sorting, `eq`/`ne` filtering, validation, response envelopes, health checks, Swagger UI, basic English/Portuguese messages, and generated Jest/Supertest tests. Sorting is implemented at the generated-profile level, and milestone 7.18 final generated-project, NestJS, Java, and Maven gates are complete.
+The NestJS Golden Path is a functional but intentionally smaller second path. It generates a Clean Architecture TypeScript/NestJS application with framework-free Core, in-memory persistence, CRUD REST endpoints, pagination, deterministic collection sorting, `eq`/`ne` filtering, validation, response envelopes, health checks, Swagger UI, package-backed English/Portuguese `nestjs-i18n` catalogs, identifier/attribute/composite uniqueness with HTTP 409 conflicts, and generated Jest/Supertest tests. Milestone 7.19 final generated-project, NestJS, and default-suite gates are complete.
 
 The detailed measured inventory and profile-specific endpoint tables are maintained in [Current State](docs/project/CURRENT-STATE.md).
 
 ## What is still missing
 
-The largest current gap is NestJS capability parity. The NestJS path still needs real database/ORM persistence, soft delete and restore, uniqueness, auditing, CORS and environment profiles, generated repository hygiene, container packaging, CI, advanced i18n, and an architecture-boundary lint.
+The largest current gap is NestJS capability parity. The NestJS path still needs real database/ORM persistence, soft delete and restore, auditing, CORS and environment profiles, generated repository hygiene, container packaging, CI, advanced locale negotiation beyond the generated English/Portuguese catalogs, and an architecture-boundary lint.
 
 The generator platform itself still does not model or generate:
 

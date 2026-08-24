@@ -149,7 +149,7 @@ export class {{ className }}Controller {
   ): Promise<HttpResponse<{{ className }}Response>> {
     const changes: Patch{{ className }}Changes = {
 {%- for property in mutableProperties %}
-      ...(Object.prototype.hasOwnProperty.call(request, '{{ property.name }}')
+      ...(Object.prototype.hasOwnProperty.call(request, '{{ property.name }}') && request.{{ property.name }} !== undefined
         ? { {{ property.name }}: request.{{ property.name }} }
         : {}),
 {%- endfor %}

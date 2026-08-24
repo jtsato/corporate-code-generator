@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { ConflictException } from '../../core/exceptions/conflict.exception';
 import { {{ className }} } from '../../core/models/{{ fileName }}.model';
 import { ICreate{{ className }}Gateway } from '../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.gateway';
 import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
@@ -10,7 +11,17 @@ export class Create{{ className }}Provider implements ICreate{{ className }}Gate
   public constructor(private readonly repository: {{ className }}Repository) {}
 
   public async execute({{ propertyName }}: {{ className }}): Promise<{{ className }}> {
-    const saved = await this.repository.save({{ className }}Mapper.toEntity({{ propertyName }}));
+    const entity = {{ className }}Mapper.toEntity({{ propertyName }});
+    const identifierConflict = await this.repository.existsById(entity.{{ identifier.name }});
+{%- if hasUniqueAttributes %}
+    const uniqueConflicts = await this.repository.hasUniqueConflict(entity);
+{%- endif %}
+
+    if (identifierConflict{% if hasUniqueAttributes %} || uniqueConflicts.length > 0{% endif %}) {
+      throw new ConflictException('{{ propertyName }}.already-exists', '{{ className }} already exists.');
+    }
+
+    const saved = await this.repository.save(entity);
     return {{ className }}Mapper.toDomain(saved);
   }
 }

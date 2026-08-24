@@ -25,6 +25,16 @@ describe('WalletRepository', () => {
     return result.items;
   }
 
+  it('reports whether an identifier exists', async () => {
+    const repository = new WalletRepository();
+    const entity = createEntity('id', "00000000-0000-4000-8000-000000000001");
+
+    await repository.save(entity);
+
+    await expect(repository.existsById("00000000-0000-4000-8000-000000000001")).resolves.toBe(true);
+    await expect(repository.existsById("00000000-0000-4000-8000-000000000002")).resolves.toBe(false);
+  });
+
   it('keeps nullish values after present values for descending sort', async () => {
     const repository = new WalletRepository();
     const present = createEntity('id', "00000000-0000-4000-8000-000000000001");

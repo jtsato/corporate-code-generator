@@ -10,9 +10,15 @@ export class UpdateWalletProvider implements IUpdateWalletGateway {
   public constructor(private readonly repository: WalletRepository) {}
 
   public async execute(wallet: Wallet): Promise<Wallet | undefined> {
+    const entity = WalletMapper.toEntity(wallet);
+    const current = await this.repository.findById(wallet.id);
+
+    if (current === undefined) {
+      return undefined;
+    }
     const updated = await this.repository.updateById(
       wallet.id,
-      WalletMapper.toEntity(wallet),
+      entity,
     );
 
     if (updated === undefined) {

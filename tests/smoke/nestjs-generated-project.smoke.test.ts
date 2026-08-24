@@ -33,7 +33,7 @@ const execFileAsync = promisify(execFile);
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const cliEntryPoint = join(repoRoot, "packages", "cli", "dist", "index.js");
 const profileId = "nestjs-clean-architecture";
-const modelPath = "examples/nestjs-wallet-service/model.yaml";
+const modelPath = "examples/wallet-service/model.yaml";
 
 let projectRoot: string | undefined;
 let server: GeneratedServer | undefined;
@@ -118,6 +118,17 @@ describe("NestJS generated project smoke test", () => {
     expect(created.headers.get("location")).toBe(`/wallets/${identifier}`);
     await expect(created.json()).resolves.toEqual({ id: identifier, balance });
 
+    const conflict = await fetch(`${running.baseUrl}/wallets`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "accept-language": "pt-BR" },
+      body: JSON.stringify({ id: randomUUID(), balance }),
+    });
+    expect(conflict.status, running.output()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual({
+      statusCode: 409,
+      message: "Wallet já existe.",
+    });
+
     const read = await fetch(`${running.baseUrl}/wallets/${identifier}`);
     expect(read.status, running.output()).toBe(200);
     await expect(read.json()).resolves.toEqual({ id: identifier, balance });
@@ -188,7 +199,7 @@ describe("NestJS generated project smoke test", () => {
     const wallets = [
       { id: "00000000-0000-4000-8000-000000000003", balance: 20 },
       { id: "00000000-0000-4000-8000-000000000001", balance: 10 },
-      { id: "00000000-0000-4000-8000-000000000002", balance: 10 },
+      { id: "00000000-0000-4000-8000-000000000002", balance: 15 },
       { id: "00000000-0000-4000-8000-000000000004", balance: 30 },
     ];
 
@@ -217,25 +228,25 @@ describe("NestJS generated project smoke test", () => {
     const descending = await fetch(`${running.baseUrl}/wallets?sort=balance:desc`);
     expect(descending.status, running.output()).toBe(200);
     await expect(descending.json()).resolves.toMatchObject({
-      items: [wallets[3], wallets[0], wallets[1], wallets[2]],
+      items: [wallets[3], wallets[0], wallets[2], wallets[1]],
     });
 
     const repeated = await fetch(`${running.baseUrl}/wallets?sort=balance:asc&sort=id:desc`);
     expect(repeated.status, running.output()).toBe(200);
     await expect(repeated.json()).resolves.toMatchObject({
-      items: [wallets[2], wallets[1], wallets[0], wallets[3]],
+      items: [wallets[1], wallets[2], wallets[0], wallets[3]],
     });
 
     const filteredAndPaged = await fetch(
-      `${running.baseUrl}/wallets?filter=balance:eq:10&sort=id:desc&page=0&size=1`,
+      `${running.baseUrl}/wallets?filter=balance:eq:15&sort=id:desc&page=0&size=1`,
     );
     expect(filteredAndPaged.status, running.output()).toBe(200);
     await expect(filteredAndPaged.json()).resolves.toEqual({
       items: [wallets[2]],
       page: 0,
       size: 1,
-      totalItems: 2,
-      totalPages: 2,
+      totalItems: 1,
+      totalPages: 1,
     });
   }, 120_000);
 

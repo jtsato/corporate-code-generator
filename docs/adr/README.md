@@ -76,8 +76,9 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [076](ADR-076-nestjs-http-response-envelopes.md) | NestJS HTTP Response Envelopes | Accepted — Milestone 7.11. | Milestone 7.11 | Not recorded | Not recorded |
 | [077](ADR-077-nestjs-pagination-and-filter-foundation.md) | NestJS Pagination and Filter Foundation | Accepted — Milestone 7.12. | Milestone 7.12 | Not recorded | Not recorded |
 | [078](ADR-078-nestjs-health-checks.md) | NestJS Health Checks | Accepted — Milestone 7.13. | Milestone 7.13 | Not recorded | Not recorded |
-| [079](ADR-079-nestjs-basic-i18n-error-messages.md) | NestJS Basic i18n Error Messages | Accepted — Milestone 7.14. | Milestone 7.14 | Not recorded | Not recorded |
+| [079](ADR-079-nestjs-basic-i18n-error-messages.md) | NestJS Basic i18n Error Messages | Accepted — initial static-map capability; implementation extended by ADR-084. | Milestone 7.14 | Not recorded | 084 (in part) |
 | [080](ADR-080-nestjs-generated-e2e-tests.md) | NestJS Generated e2e Tests | Accepted — Milestone 7.15. | Milestone 7.15 | Not recorded | Not recorded |
 | [081](ADR-081-nestjs-composition-root-wiring.md) | NestJS Composition-Root Wiring | Accepted — Milestone 7.16. | Milestone 7.16 | 057 (in part), 080 (in part) | Not recorded |
 | [082](ADR-082-nestjs-crud-integration.md) | NestJS CRUD Integration | Accepted; native generated-project gate passed | Milestone 7.17 | Not recorded | Not recorded |
 | [083](ADR-083-nestjs-sorting.md) | NestJS Collection Sorting | Accepted — milestone 7.18 release-complete; final native gates passed | Milestone 7.18 | Not recorded | Not recorded |
+| [084](ADR-084-nestjs-package-i18n-and-in-memory-uniqueness.md) | NestJS Package-Backed i18n and In-Memory Uniqueness | Accepted — milestone 7.19 release-complete | Milestone 7.19 | 079 (in part) | Not recorded |

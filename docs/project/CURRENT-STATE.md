@@ -1,6 +1,6 @@
 # Current State
 
-Verification date: 2026-08-19
+Verification date: 2026-08-23
 Baseline commit: `343008c`
 
 This document centralizes current measured facts. Architecture intent and future work are documented separately in the [Solution Specification](../SOLUTION-SPECIFICATION.md), [Generated Java Reference Architecture](../target-architecture/REFERENCE-ARCHITECTURE.md), [Capability Taxonomy](../target-architecture/CAPABILITY-TAXONOMY.md), and [Roadmap](../../ROADMAP.md).
@@ -61,12 +61,12 @@ NestJS dependencies:
 | `java-spring-clean-multimodule --module configuration` | 168 CREATE |
 | `java-spring-clean-multimodule --module build --module core` | 79 CREATE |
 | `java-spring-clean-multimodule --module build --module configuration` | 168 CREATE |
-| `nestjs-clean-architecture` full profile | 85 CREATE |
+| `nestjs-clean-architecture` full profile | 90 CREATE |
 | `nestjs-clean-architecture --module build` | 5 CREATE |
-| `nestjs-clean-architecture --module core` | 43 CREATE |
-| `nestjs-clean-architecture --module infra-persistence` | 51 CREATE |
-| `nestjs-clean-architecture --module web-api` | 61 CREATE |
-| `nestjs-clean-architecture --module bootstrap` | 73 CREATE |
+| `nestjs-clean-architecture --module core` | 49 CREATE |
+| `nestjs-clean-architecture --module infra-persistence` | 58 CREATE |
+| `nestjs-clean-architecture --module web-api` | 72 CREATE |
+| `nestjs-clean-architecture --module bootstrap` | 85 CREATE |
 
 The `entrypoints-rest` and `infra-database` selections include `core` transitively. The `configuration` selection includes all required modules transitively.
 
@@ -86,7 +86,7 @@ Measured and documented implemented capabilities in the current Java multi-modul
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
 - Container packaging: a multi-stage `Dockerfile` (Maven builder stage, Alpine JRE runtime, non-root UID/GID 10001, `JAVA_TOOL_OPTIONS` container-aware heap sizing, `HEALTHCHECK` against `/actuator/health`), a `.dockerignore`, and a Compose file. Spring Boot Actuator is on the `configuration` classpath with only the `health` endpoint exposed over HTTP and `show-details: never`.
 - Explicit i18n policy: generated `LocaleConfiguration` selects English by default, allows only `en` and `pt-BR` through `Accept-Language`, loads UTF-8 message bundles, and disables JVM system-locale fallback; generated locale tests cover Portuguese, unsupported, and missing-header negotiation.
-- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators, colocated Jest tests, transport-level HTTP response envelopes, zero-based pagination with `eq`/`ne` filters, deterministic collection sorting, full replacement and partial update use cases, physical delete, liveness/readiness endpoints, deterministic English/Portuguese error messages, and a generated Jest/Supertest e2e suite. Its full-profile example emits 85 CREATE operations and its Core remains free of NestJS and `class-validator` imports. Persistence remains in memory; soft delete/restore, ORM/database persistence, and uniqueness remain future gaps.
+- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators, colocated Jest tests, transport-level HTTP response envelopes, zero-based pagination with `eq`/`ne` filters, deterministic collection sorting, full replacement and partial update use cases, physical delete, liveness/readiness endpoints, package-backed `nestjs-i18n` English/Portuguese JSON catalogs, localized validation/not-found/conflict filters, HTTP 409 uniqueness conflicts, identifier uniqueness, attribute-level uniqueness, composite uniqueness with nullish-member handling, and a generated Jest/Supertest e2e suite. Its full-profile example emits 90 CREATE operations and its Core remains free of NestJS, `nestjs-i18n`, and `class-validator` imports. Persistence remains in memory; soft delete/restore, ORM/database persistence, auditing, and advanced locale negotiation remain future gaps.
 
 Current documented Java multi-module REST surface:
 
@@ -487,6 +487,40 @@ section records implementation, golden, and coordinator-verified final-gate evid
 - Coordinator-verified `npm run smoke:java-multimodule` and
   `npm run smoke:maven:java-multimodule` each passed with 1 file and 1 test.
 - Coordinator-verified `git diff --check` exited 0 with only LF/CRLF warnings.
+
+## Milestone 7.19 Validation
+
+Run context: current worktree, NestJS package-backed i18n and in-memory uniqueness; date:
+2026-08-23. The implementation follows the stack established by the local
+`nestjs-clean-architecture-example` reference: NestJS, TypeScript, `nestjs-i18n` 10.6.0,
+JSON catalogs, and in-memory persistence without an ORM or database.
+
+- The built CLI full profile produced `90` files and `90 CREATE` operations. Measured
+  transitive selections are `build` 5, `core` 49, `infra-persistence` 58, `web-api` 72,
+  and `bootstrap` 85. The golden directory inventory matches these module counts and
+  `GENERATED_PATHS` contains 90 unique paths.
+- `npm run typecheck` and `npm run build` passed with exit 0.
+- `npm test` passed with 55 test files and 301 tests.
+- `npm run test:coverage` passed with 92.92% statements, 82.05% branches, 97.08% functions,
+  and 93.72% lines.
+- `npm run smoke:nestjs` passed with 1 file and 3 tests, including all 90 golden path
+  comparisons and generated Core purity checks.
+- With `CODEGEN_REQUIRE_NPM_SMOKE=true`, `npm run smoke:generated-project:nestjs` passed with
+  1 file and 5 tests. The generated project installed dependencies, copied the JSON catalogs
+  into `dist/web-api/i18n`, compiled, passed its Jest and e2e suites, returned `Falha de
+  validação` for Portuguese validation, and returned HTTP 409 with `Wallet já existe.` for a
+  duplicate unique value.
+- Generated `examples/nestjs-identifier-only` output passed `nest build`, 42 Jest tests, and
+  3 e2e tests. Generated `examples/composite-unique-service` output passed `nest build`, 48
+  Jest tests, and 3 e2e tests; a PATCH changing only `balance` returned 200 and preserved
+  `externalId`, and a duplicate composite tuple returned HTTP 409 with `Product já existe.`.
+- In-memory uniqueness checks reject duplicate identifiers independently of model-declared
+  uniqueness, reject non-null duplicate `unique: true` attributes, skip the current record on
+  update/PATCH, and skip composite groups when any candidate member is nullish.
+- Two independent full-profile generations were byte-identical. Relative-import resolution
+  reported zero unresolved imports for the tested `build`, `core`, `infra-persistence`,
+  `web-api`, and `bootstrap` selections.
+- `git diff --check` exited 0 with only LF/CRLF warnings. No commit was created.
 
 ## Documented facts
 

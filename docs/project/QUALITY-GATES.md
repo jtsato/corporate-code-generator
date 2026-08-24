@@ -101,7 +101,7 @@ npm run smoke:generated-project:nestjs
 
 `smoke:nestjs` requires no external toolchain and is included in the default `npm test` run. It generates the profile through the built CLI, compares every generated artifact against `tests/golden/nestjs-clean-architecture/`, and asserts that the generated Core module contains no framework imports.
 
-`smoke:generated-project:nestjs` is the generated-project execution gate ([ADR-073](../adr/ADR-073-nestjs-generated-project-quality-gate.md), [ADR-075](../adr/ADR-075-nestjs-generated-core-test-support.md), [ADR-076](../adr/ADR-076-nestjs-http-response-envelopes.md), [ADR-077](../adr/ADR-077-nestjs-pagination-and-filter-foundation.md), [ADR-078](../adr/ADR-078-nestjs-health-checks.md), [ADR-079](../adr/ADR-079-nestjs-basic-i18n-error-messages.md), [ADR-080](../adr/ADR-080-nestjs-generated-e2e-tests.md), [ADR-082](../adr/ADR-082-nestjs-crud-integration.md), [ADR-083](../adr/ADR-083-nestjs-sorting.md)). It generates the profile into a temporary directory, runs `npm install`, runs the generated project's own `npm run build`, `npm test`, and `npm run test:e2e`, starts `node dist/main.js` on a reserved ephemeral port, and asserts the full CRUD lifecycle: create, collection/by-id reads, full replacement PUT, presence-based PATCH including empty-patch validation, physical DELETE with an empty 204 response, and repeated read/delete 404 behavior. It also asserts pagination/filtering, collection sorting in ascending and descending order, repeated sort precedence, filter-plus-sort-plus-pagination composition, invalid/malformed/whitespace/unknown sort values through the structured HTTP 400 contract, health checks, localized validation, request-validation, and OpenAPI behavior before shutting the server down and removing the tree. It requires npm registry access, is excluded from `npm test` and `npm run test:coverage`, and runs as its own CI step.
+`smoke:generated-project:nestjs` is the generated-project execution gate ([ADR-073](../adr/ADR-073-nestjs-generated-project-quality-gate.md), [ADR-075](../adr/ADR-075-nestjs-generated-core-test-support.md), [ADR-076](../adr/ADR-076-nestjs-http-response-envelopes.md), [ADR-077](../adr/ADR-077-nestjs-pagination-and-filter-foundation.md), [ADR-078](../adr/ADR-078-nestjs-health-checks.md), [ADR-079](../adr/ADR-079-nestjs-basic-i18n-error-messages.md), [ADR-080](../adr/ADR-080-nestjs-generated-e2e-tests.md), [ADR-082](../adr/ADR-082-nestjs-crud-integration.md), [ADR-083](../adr/ADR-083-nestjs-sorting.md), [ADR-084](../adr/ADR-084-nestjs-package-i18n-and-in-memory-uniqueness.md)). It generates the profile into a temporary directory, runs `npm install`, runs the generated project's own `npm run build`, `npm test`, and `npm run test:e2e`, starts `node dist/main.js` on a reserved ephemeral port, and asserts the full CRUD lifecycle: create, collection/by-id reads, full replacement PUT, presence-based PATCH including empty-patch validation, physical DELETE with an empty 204 response, and repeated read/delete 404 behavior. It also asserts pagination/filtering, collection sorting in ascending and descending order, repeated sort precedence, filter-plus-sort-plus-pagination composition, invalid/malformed/whitespace/unknown sort values through the structured HTTP 400 contract, health checks, package-backed localized validation, Portuguese uniqueness conflict with HTTP 409, request-validation, and OpenAPI behavior before shutting the server down and removing the tree. It requires npm registry access, is excluded from `npm test` and `npm run test:coverage`, and runs as its own CI step.
 
 For milestone 7.17, the authorized command `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run smoke:generated-project:nestjs` passed with 1 file and 3 tests, including generated dependencies installed and generated build/Jest/e2e/HTTP CRUD checks.
 
@@ -114,6 +114,17 @@ sandbox `spawn EPERM`; `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run
 smoke:generated-project:nestjs` passed with 1 file and 5 tests; and the Java and Maven
 smokes each passed with 1 file and 1 test. `git diff --check` exited 0 with only
 LF/CRLF warnings. These are final-gate results, not pending claims.
+
+For milestone 7.19, final evidence is complete: `npm run typecheck` and `npm run build`
+exited 0; `npm test` passed with 55 files and 301 tests; `npm run test:coverage` passed
+with 92.92% statements, 82.05% branches, 97.08% functions, and 93.72% lines;
+`npm run smoke:nestjs` passed with 1 file and 3 tests over 90 generated paths;
+and `$env:CODEGEN_REQUIRE_NPM_SMOKE='true'; npm run smoke:generated-project:nestjs`
+passed with 1 file and 5 tests, including generated package installation, JSON catalog
+asset copying, localized Portuguese validation, HTTP 409 uniqueness conflict, generated
+Jest/e2e, and CRUD/sorting behavior. Identifier-only and composite-unique generated
+projects passed their native build, Jest, and e2e checks. Two full-profile generations
+were byte-identical, and `git diff --check` exited 0 with only LF/CRLF warnings.
 
 ## CI workflows
 

@@ -3,14 +3,38 @@ import { Module } from '@nestjs/common';
 {% for entity in entities -%}
 import { {{ entity.className }}Module } from './modules/{{ entity.fileName }}.module';
 {% endfor %}
+import { ConflictExceptionFilter } from './web-api/commons/filters/conflict.exception.filter';
 import { HealthController } from './web-api/health/health.controller';
+import { I18nModule } from './web-api/i18n/i18n.module';
+import { NotFoundExceptionFilter } from './web-api/commons/filters/not-found.exception.filter';
+import { ValidationExceptionFilter } from './web-api/commons/filters/validation.exception.filter';
+import { APP_FILTER } from '@nestjs/core';
+import { Scope } from '@nestjs/common';
 
 @Module({
   imports: [
+    I18nModule,
 {%- for entity in entities %}
     {{ entity.className }}Module,
 {%- endfor %}
   ],
   controllers: [HealthController],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: ConflictExceptionFilter,
+      scope: Scope.REQUEST,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: NotFoundExceptionFilter,
+      scope: Scope.REQUEST,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ValidationExceptionFilter,
+      scope: Scope.REQUEST,
+    },
+  ],
 })
 export class AppModule {}

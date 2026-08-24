@@ -3,42 +3,45 @@ import { SortDirection } from '../../../core/common/paging/sort-direction';
 import { SortOrder } from '../../../core/common/paging/sort-order';
 import { {{ className }}SortParser } from './{{ fileName }}-sort.parser';
 
+const sortProperty = '{{ properties[0].name }}';
+const alternateSortProperty = '{{ identifier.name }}';
+
 describe('{{ className }}SortParser', () => {
   it('returns no sort orders when sort is missing', () => {
     expect({{ className }}SortParser.parse(undefined)).toEqual([]);
   });
 
   it('parses an ascending sort order', () => {
-    expect({{ className }}SortParser.parse('balance:asc')).toEqual([
-      new SortOrder('balance', SortDirection.Asc),
+    expect({{ className }}SortParser.parse(`${sortProperty}:asc`)).toEqual([
+      new SortOrder(sortProperty, SortDirection.Asc),
     ]);
   });
 
   it('parses a descending sort order', () => {
-    expect({{ className }}SortParser.parse('balance:desc')).toEqual([
-      new SortOrder('balance', SortDirection.Desc),
+    expect({{ className }}SortParser.parse(`${sortProperty}:desc`)).toEqual([
+      new SortOrder(sortProperty, SortDirection.Desc),
     ]);
   });
 
   it('preserves repeated sort order and precedence', () => {
-    expect({{ className }}SortParser.parse(['balance:desc', 'id:asc'])).toEqual([
-      new SortOrder('balance', SortDirection.Desc),
-      new SortOrder('id', SortDirection.Asc),
+    expect({{ className }}SortParser.parse([`${sortProperty}:desc`, `${alternateSortProperty}:asc`])).toEqual([
+      new SortOrder(sortProperty, SortDirection.Desc),
+      new SortOrder(alternateSortProperty, SortDirection.Asc),
     ]);
   });
 
   it.each([
     'unknown:asc',
-    'balance:sideways',
+    ` ${sortProperty}:asc`,
+    `${sortProperty}:sideways`,
     ':asc',
-    'balance:',
-    'balance',
-    'balance:asc:extra',
-    ' balance:asc',
-    'balance:asc ',
-    'balance :asc',
-    'balance: asc',
-    'balance:\tasc',
+    `${sortProperty}:`,
+    sortProperty,
+    `${sortProperty}:asc:extra`,
+    `${sortProperty}:asc `,
+    `${sortProperty} :asc`,
+    `${sortProperty}: asc`,
+    `${sortProperty}:\tasc`,
   ])('rejects invalid sort syntax: %s', (value) => {
     expect(() => {{ className }}SortParser.parse(value)).toThrow(ValidationException);
   });
@@ -48,6 +51,6 @@ describe('{{ className }}SortParser', () => {
   });
 
   it('rejects an array when any element is invalid', () => {
-    expect(() => {{ className }}SortParser.parse(['balance:asc', 'balance:sideways'])).toThrow(ValidationException);
+    expect(() => {{ className }}SortParser.parse([`${sortProperty}:asc`, `${sortProperty}:sideways`])).toThrow(ValidationException);
   });
 });

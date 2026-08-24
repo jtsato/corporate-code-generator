@@ -130,11 +130,13 @@ describe('Patch{{ className }}UseCase', () => {
 
     await expect(useCase.execute(new Patch{{ className }}Command(
       {{ identifier.testValue }},
-      {
 {%- if mutableProperties.length > 0 %}
+      {
         {{ mutableProperties[0].name }}: {{ mutableProperties[0].testValue }},
-{%- endif %}
       },
+{%- else %}
+      { __testOnly: true } as never,
+{%- endif %}
     ))).rejects.toBeInstanceOf(NotFoundException);
     expect(updateGateway.execute).not.toHaveBeenCalled();
   });
@@ -155,11 +157,13 @@ describe('Patch{{ className }}UseCase', () => {
 
     await expect(useCase.execute(new Patch{{ className }}Command(
       {{ identifier.testValue }},
-      {
 {%- if mutableProperties.length > 0 %}
+      {
         {{ mutableProperties[0].name }}: {{ mutableProperties[0].alternateTestValue }},
-{%- endif %}
       },
+{%- else %}
+      { __testOnly: true } as never,
+{%- endif %}
     ))).rejects.toBeInstanceOf(NotFoundException);
     expect(getByIdGateway.execute).toHaveBeenCalledWith({{ identifier.testValue }});
     expect(updateGateway.execute).toHaveBeenCalledTimes(1);

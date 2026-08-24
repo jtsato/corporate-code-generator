@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
+{% if hasUniqueAttributes -%}
+import { ConflictException } from '../../core/exceptions/conflict.exception';
+{% endif -%}
 import { {{ className }} } from '../../core/models/{{ fileName }}.model';
 import { IUpdate{{ className }}Gateway } from '../../core/usecases/update-{{ fileName }}/update-{{ fileName }}.gateway';
 import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
@@ -10,9 +13,22 @@ export class Update{{ className }}Provider implements IUpdate{{ className }}Gate
   public constructor(private readonly repository: {{ className }}Repository) {}
 
   public async execute({{ propertyName }}: {{ className }}): Promise<{{ className }} | undefined> {
+    const entity = {{ className }}Mapper.toEntity({{ propertyName }});
+    const current = await this.repository.findById({{ propertyName }}.{{ identifier.name }});
+
+    if (current === undefined) {
+      return undefined;
+    }
+{%- if hasUniqueAttributes %}
+    const conflicts = await this.repository.hasUniqueConflict(entity, {{ propertyName }}.{{ identifier.name }});
+
+    if (conflicts.length > 0) {
+      throw new ConflictException('{{ propertyName }}.already-exists', '{{ className }} already exists.');
+    }
+{%- endif %}
     const updated = await this.repository.updateById(
       {{ propertyName }}.{{ identifier.name }},
-      {{ className }}Mapper.toEntity({{ propertyName }}),
+      entity,
     );
 
     if (updated === undefined) {

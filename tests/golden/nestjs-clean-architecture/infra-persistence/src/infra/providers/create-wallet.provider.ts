@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { ConflictException } from '../../core/exceptions/conflict.exception';
 import { Wallet } from '../../core/models/wallet.model';
 import { ICreateWalletGateway } from '../../core/usecases/create-wallet/create-wallet.gateway';
 import { WalletMapper } from '../mappers/wallet.mapper';
@@ -10,7 +11,14 @@ export class CreateWalletProvider implements ICreateWalletGateway {
   public constructor(private readonly repository: WalletRepository) {}
 
   public async execute(wallet: Wallet): Promise<Wallet> {
-    const saved = await this.repository.save(WalletMapper.toEntity(wallet));
+    const entity = WalletMapper.toEntity(wallet);
+    const identifierConflict = await this.repository.existsById(entity.id);
+
+    if (identifierConflict) {
+      throw new ConflictException('wallet.already-exists', 'Wallet already exists.');
+    }
+
+    const saved = await this.repository.save(entity);
     return WalletMapper.toDomain(saved);
   }
 }

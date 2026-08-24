@@ -53,6 +53,44 @@ export class {{ className }}Repository {
     return true;
   }
 
+  public async existsById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
+    return Promise.resolve(this.{{ propertyName }}s.some((current) =>
+      compareValues(current.{{ identifier.name }}, {{ identifier.name }}) === 0,
+    ));
+  }
+
+{%- if hasUniqueAttributes %}
+  public async hasUniqueConflict(
+    candidate: {{ className }}Entity,
+    ignoredIdentifier?: {{ identifier.type }},
+  ): Promise<readonly string[]> {
+    const conflicts = new Set<string>();
+
+    for (const current of this.{{ propertyName }}s) {
+      if (ignoredIdentifier !== undefined && compareValues(current.{{ identifier.name }}, ignoredIdentifier) === 0) continue;
+{%- for attribute in uniqueAttributes %}
+      if (!isNullish(candidate.{{ attribute.name }}) && compareValues(current.{{ attribute.name }}, candidate.{{ attribute.name }}) === 0) {
+        conflicts.add('{{ attribute.name }}');
+      }
+{%- endfor %}
+{%- for group in uniqueGroupChecks %}
+      if (
+{%- for attribute in group.attributes %}
+        !isNullish(candidate.{{ attribute.name }}) &&
+        compareValues(current.{{ attribute.name }}, candidate.{{ attribute.name }}) === 0{% if not loop.last %} &&{% endif %}
+{%- endfor %}
+      ) {
+{%- for attribute in group.attributes %}
+        conflicts.add('{{ attribute.name }}');
+{%- endfor %}
+      }
+{%- endfor %}
+    }
+
+    return [...conflicts];
+  }
+{%- endif %}
+
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}Entity>> {
     const filtered = this.{{ propertyName }}s.filter((entity) => filterExpression.conditions.every((condition) => {
       const actual = entity[condition.field as keyof {{ className }}Entity];
