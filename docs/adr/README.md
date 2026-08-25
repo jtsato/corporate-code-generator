@@ -86,3 +86,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [086](ADR-086-nestjs-module-boundary-validation.md) | NestJS Module Boundary Validation | Accepted — milestone 7.21 release-complete | Milestone 7.21 | 081 (in part) | Not recorded |
 | [087](ADR-087-nestjs-environment-configuration-and-cors.md) | NestJS Environment Configuration and CORS | Accepted — milestone 7.22 release-complete | Milestone 7.22 | 085 (in part) | Not recorded |
 | [088](ADR-088-nestjs-locale-negotiation-policy.md) | NestJS Locale Negotiation Policy | Accepted — milestone 7.23 release-complete | Milestone 7.23 | 084 (in part) | Not recorded |
+| [089](ADR-089-querydsl-fork-migration-for-cve-2024-49203.md) | Querydsl Fork Migration for CVE-2024-49203 | Accepted — dependency security fix | Not a milestone | 059 (in part) | Not recorded |

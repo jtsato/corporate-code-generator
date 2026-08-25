@@ -31,7 +31,10 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <archunit.version>1.4.1</archunit.version>
     <springdoc-openapi.version>3.0.3</springdoc-openapi.version>
-    <querydsl.version>5.1.0</querydsl.version>
+    <!-- Deliberately not `querydsl.version`: Spring Boot's own BOM imports
+         com.querydsl:querydsl-bom through that property, so overriding it would
+         retarget Boot's import at a groupId the fork does not publish. -->
+    <openfeign-querydsl.version>7.0</openfeign-querydsl.version>
     <jakarta-persistence.version>3.2.0</jakarta-persistence.version>
     <jakarta-annotation.version>3.0.0</jakarta-annotation.version>
     <expressly.version>5.0.0</expressly.version>
@@ -63,10 +66,9 @@
         <version>${springdoc-openapi.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.querydsl</groupId>
+        <groupId>io.github.openfeign.querydsl</groupId>
         <artifactId>querydsl-jpa</artifactId>
-        <version>${querydsl.version}</version>
-        <classifier>jakarta</classifier>
+        <version>${openfeign-querydsl.version}</version>
       </dependency>
       <dependency>
         <groupId>com.tngtech.archunit</groupId>

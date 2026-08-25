@@ -28,7 +28,10 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <archunit.version>{{ archUnitVersion }}</archunit.version>
     <springdoc-openapi.version>{{ springdocOpenapiVersion }}</springdoc-openapi.version>
-    <querydsl.version>{{ querydslVersion }}</querydsl.version>
+    <!-- Deliberately not `querydsl.version`: Spring Boot's own BOM imports
+         com.querydsl:querydsl-bom through that property, so overriding it would
+         retarget Boot's import at a groupId the fork does not publish. -->
+    <openfeign-querydsl.version>{{ querydslVersion }}</openfeign-querydsl.version>
     <jakarta-persistence.version>{{ jakartaPersistenceVersion }}</jakarta-persistence.version>
     <jakarta-annotation.version>{{ jakartaAnnotationVersion }}</jakarta-annotation.version>
     <expressly.version>{{ expresslyVersion }}</expressly.version>

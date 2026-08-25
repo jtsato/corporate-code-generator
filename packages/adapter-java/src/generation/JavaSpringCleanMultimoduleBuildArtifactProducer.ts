@@ -31,7 +31,7 @@ import { createJavaProjectSmokeRequestsModel } from "../transformers/createJavaP
 
 const archUnitVersion = "1.4.1";
 const springdocOpenapiVersion = "3.0.3";
-const querydslVersion = "5.1.0";
+const querydslVersion = "7.0";
 const jakartaPersistenceVersion = "3.2.0";
 const jakartaAnnotationVersion = "3.0.0";
 const expresslyVersion = "5.0.0";
@@ -114,7 +114,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
         { groupId: "${project.groupId}", artifactId: `${artifactId}-entrypoints-rest`, version: "${project.version}" },
         { groupId: "${project.groupId}", artifactId: `${artifactId}-infra-database`, version: "${project.version}" },
         { groupId: "org.springdoc", artifactId: "springdoc-openapi-starter-webmvc-ui", version: "${springdoc-openapi.version}" },
-        { groupId: "com.querydsl", artifactId: "querydsl-jpa", version: "${querydsl.version}", classifier: "jakarta" },
+        { groupId: "io.github.openfeign.querydsl", artifactId: "querydsl-jpa", version: "${openfeign-querydsl.version}" },
         { groupId: "com.tngtech.archunit", artifactId: "archunit-junit5", version: "${archunit.version}" },
         { groupId: "org.glassfish.expressly", artifactId: "expressly", version: "${expressly.version}" },
       ],
@@ -147,7 +147,7 @@ export class JavaSpringCleanMultimoduleBuildArtifactProducer
     const infraDatabase = this.modulePom(groupId, artifactId, version, "../../pom.xml", `${artifactId}-infra-database`, [
       { groupId: "${project.groupId}", artifactId: `${artifactId}-core` },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa" },
-      { groupId: "com.querydsl", artifactId: "querydsl-jpa", classifier: "jakarta" },
+      { groupId: "io.github.openfeign.querydsl", artifactId: "querydsl-jpa" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-test", scope: "test" },
       { groupId: "org.springframework.boot", artifactId: "spring-boot-starter-data-jpa-test", scope: "test" },
       { groupId: "com.h2database", artifactId: "h2", scope: "test" },
