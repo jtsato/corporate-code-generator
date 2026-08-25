@@ -9,6 +9,8 @@ import { NestJsEntityTransformer } from "../transformers/NestJsEntityTransformer
 const APPLICATION_TEMPLATE_IDS = [
   "bootstrap-main",
   "bootstrap-app-module",
+  "bootstrap-environment-config",
+  "bootstrap-environment-config-test",
   "bootstrap-e2e-test",
 ] as const;
 

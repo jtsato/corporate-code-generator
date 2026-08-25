@@ -84,3 +84,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [084](ADR-084-nestjs-package-i18n-and-in-memory-uniqueness.md) | NestJS Package-Backed i18n and In-Memory Uniqueness | Accepted — milestone 7.19 release-complete | Milestone 7.19 | 079 (in part) | Not recorded |
 | [085](ADR-085-nestjs-generated-repository-hygiene.md) | NestJS Generated Repository Hygiene (`.gitignore` and `README.md`) | Accepted — milestone 7.20 release-complete | Milestone 7.20 | Not recorded | Not recorded |
 | [086](ADR-086-nestjs-module-boundary-validation.md) | NestJS Module Boundary Validation | Accepted — milestone 7.21 release-complete | Milestone 7.21 | 081 (in part) | Not recorded |
+| [087](ADR-087-nestjs-environment-configuration-and-cors.md) | NestJS Environment Configuration and CORS | Accepted — milestone 7.22 release-complete | Milestone 7.22 | 085 (in part) | Not recorded |

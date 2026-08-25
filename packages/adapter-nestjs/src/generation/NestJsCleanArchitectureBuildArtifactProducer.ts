@@ -15,6 +15,10 @@ const BUILD_TEMPLATE_IDS = [
   "build-gitignore",
   "build-readme",
   "build-eslint-config",
+  "build-env-example",
+  "build-env-development",
+  "build-env-test",
+  "build-env-production",
 ] as const;
 
 export class NestJsCleanArchitectureBuildArtifactProducer

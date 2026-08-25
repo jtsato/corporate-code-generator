@@ -22,6 +22,10 @@ const GENERATED_PATHS = [
   ".gitignore",
   "README.md",
   "eslint.config.mjs",
+  ".env.example",
+  ".env.development",
+  ".env.test",
+  ".env.production",
   "src/core/exceptions/core.exception.ts",
   "src/core/exceptions/field-violation.ts",
   "src/core/exceptions/not-found.exception.ts",
@@ -106,6 +110,8 @@ const GENERATED_PATHS = [
   "test/app.e2e-spec.ts",
   "src/main.ts",
   "src/app.module.ts",
+  "src/config/environment.ts",
+  "src/config/environment.spec.ts",
   "src/modules/wallet.module.ts",
 ] as const;
 
@@ -125,10 +131,18 @@ function normalizeLineEndings(content: string): string {
   return content.replaceAll("\r\n", "\n");
 }
 
-// The generated `.gitignore` is stored without its leading dot so that it does
-// not act as a live ignore file over the golden tree itself, matching the
-// convention the Java Golden Path already uses.
-const dotlessGoldenPaths = new Map([[".gitignore", "gitignore"]]);
+// Generated dotfiles are stored without their leading dot. `.gitignore` would
+// otherwise act as a live ignore file over the golden tree itself, which is the
+// convention the Java Golden Path already uses; the `.env.*` files would be
+// swallowed by this repository's own ignore rules and so could never be
+// committed as goldens at all.
+const dotlessGoldenPaths = new Map([
+  [".gitignore", "gitignore"],
+  [".env.example", "env.example"],
+  [".env.development", "env.development"],
+  [".env.test", "env.test"],
+  [".env.production", "env.production"],
+]);
 
 function goldenPath(targetPath: string): string {
   return dotlessGoldenPaths.get(targetPath) ?? targetPath;
@@ -139,6 +153,7 @@ function goldenModule(targetPath: string): string {
   if (targetPath.startsWith("src/infra/")) return "infra-persistence";
   if (targetPath.startsWith("src/web-api/")) return "web-api";
   if (targetPath.startsWith("src/modules/")) return "bootstrap";
+  if (targetPath.startsWith("src/config/")) return "bootstrap";
   if (targetPath === "src/main.ts" || targetPath === "src/app.module.ts") return "bootstrap";
   if (targetPath === "test/app.e2e-spec.ts") return "bootstrap";
   return "build";

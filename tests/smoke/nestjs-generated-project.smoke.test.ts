@@ -93,6 +93,27 @@ describe("NestJS generated project smoke test", () => {
     expect(manifest.scripts["start:prod"]).toBe("node dist/main");
   }, 30_000);
 
+  it("applies the CORS policy the selected environment file declares", async ({ skip }) => {
+    if (skipReason !== undefined) { skip(skipReason); return; }
+    const running = server as GeneratedServer;
+
+    // NODE_ENV is unset for this server, so ConfigModule loads `.env.development`,
+    // which allows any origin with credentials off.
+    const preflight = await fetch(`${running.baseUrl}/wallets`, {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://example.test",
+        "access-control-request-method": "POST",
+        "access-control-request-headers": "content-type",
+      },
+    });
+
+    expect(preflight.status, running.output()).toBeLessThan(400);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe("*");
+    expect(preflight.headers.get("access-control-allow-methods")).toContain("POST");
+    expect(preflight.headers.get("access-control-allow-credentials")).toBeNull();
+  }, 30_000);
+
   it("rejects an import that crosses a layer boundary", async ({ skip }) => {
     if (skipReason !== undefined) { skip(skipReason); return; }
     const root = projectRoot as string;

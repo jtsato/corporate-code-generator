@@ -11,7 +11,7 @@ services to run.
 | `src/core` | Domain models, use cases, commands, queries, gateway ports, paging, filtering and validation. Framework-free. | nothing |
 | `src/infra` | Persistence models, mappers, repositories and gateway-implementing providers. | `src/core` |
 | `src/web-api` | Controllers, request/response representations, presenters, exception filters and i18n. | `src/core` |
-| `src/main.ts`, `src/app.module.ts`, `src/modules` | Composition root: binds providers and controllers to the Core dependency-injection symbols. | `src/core`, `src/infra`, `src/web-api` |
+| `src/main.ts`, `src/app.module.ts`, `src/modules`, `src/config` | Composition root: validates configuration and binds providers and controllers to the Core dependency-injection symbols. | `src/core`, `src/infra`, `src/web-api` |
 
 Dependencies point inward. `src/core` imports neither `@nestjs/*` nor
 `class-validator`, and `src/web-api` never imports `src/infra`. Only the
@@ -48,6 +48,30 @@ npm run start:dev
 
 The application listens on the port in `PORT`, defaulting to 3000. The OpenAPI
 specification is served by Swagger UI at `/swagger-ui`.
+
+## Configuration
+
+`NODE_ENV` selects one of three committed environment files — `.env.development`,
+`.env.test` or `.env.production` — and an uncommitted `.env` overrides whichever
+was selected. `.env.example` documents every variable the application reads,
+along with its default.
+
+The committed files hold no secrets. `.env` and `.env*.local` are ignored by
+version control; the per-environment files are not.
+
+Values are validated at startup by `src/config/environment.ts`, which reports
+every faulty variable at once and refuses to start. A value that is merely unset
+falls back to its documented default; a value that is present and wrong is an
+error.
+
+### CORS
+
+CORS is configured entirely from the environment and is **disabled whenever
+`CORS_ALLOWED_ORIGINS` is empty**, which is how `.env.production` ships: an
+unconfigured production deployment rejects cross-origin browser calls rather than
+accepting all of them. `.env.development` allows any origin, which is legal only
+because credentials are off — setting `CORS_ALLOW_CREDENTIALS=true` alongside a
+`*` origin fails validation, since browsers reject that combination anyway.
 
 ## HTTP API
 

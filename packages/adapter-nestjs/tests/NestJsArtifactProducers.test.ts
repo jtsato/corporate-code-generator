@@ -52,6 +52,10 @@ describe("NestJS clean architecture artifact producers", () => {
       "build-gitignore",
       "build-readme",
       "build-eslint-config",
+      "build-env-example",
+      "build-env-development",
+      "build-env-test",
+      "build-env-production",
     ]);
   });
 
@@ -232,6 +236,8 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(invocations.map((invocation) => invocation.templateId)).toEqual([
       "bootstrap-main",
       "bootstrap-app-module",
+      "bootstrap-environment-config",
+      "bootstrap-environment-config-test",
       "bootstrap-e2e-test",
       "bootstrap-entity-module",
     ]);

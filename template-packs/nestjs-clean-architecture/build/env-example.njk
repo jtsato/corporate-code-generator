@@ -1,0 +1,32 @@
+# Every variable this application reads, with its default.
+#
+# Copy to `.env` for local overrides. `.env` is not committed; the per-environment
+# files `.env.development`, `.env.test` and `.env.production` are, and `.env` wins
+# over whichever of them `NODE_ENV` selects.
+#
+# Values are validated at startup. An invalid value fails the boot with a message
+# naming every variable at fault, rather than being silently ignored.
+
+# One of: development, test, production. Selects the .env.<name> file to load.
+NODE_ENV=development
+
+# TCP port to listen on. Integer between 1 and 65535.
+PORT=3000
+
+# Comma-separated list of allowed origins. Leave empty to disable CORS entirely.
+CORS_ALLOWED_ORIGINS=
+
+# Comma-separated. Defaults to the methods this API exposes.
+CORS_ALLOWED_METHODS=GET,POST,PUT,PATCH,DELETE,OPTIONS
+
+# Comma-separated. Empty means the browser's default request headers.
+CORS_ALLOWED_HEADERS=Content-Type,Accept,Accept-Language
+
+# Comma-separated response headers a browser may read. Empty exposes none.
+CORS_EXPOSED_HEADERS=Location
+
+# Exactly `true` or `false`. Cannot be true while an allowed origin is `*`.
+CORS_ALLOW_CREDENTIALS=false
+
+# Preflight cache lifetime in seconds. Non-negative integer.
+CORS_MAX_AGE=3600

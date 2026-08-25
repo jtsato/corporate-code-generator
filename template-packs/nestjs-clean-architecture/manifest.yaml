@@ -34,6 +34,22 @@ templates:
     module: build
     template: build/eslint.config.mjs.njk
     output: eslint.config.mjs
+  - id: build-env-example
+    module: build
+    template: build/env-example.njk
+    output: .env.example
+  - id: build-env-development
+    module: build
+    template: build/env-development.njk
+    output: .env.development
+  - id: build-env-test
+    module: build
+    template: build/env-test.njk
+    output: .env.test
+  - id: build-env-production
+    module: build
+    template: build/env-production.njk
+    output: .env.production
 
   - id: core-exception
     module: core
@@ -370,6 +386,14 @@ templates:
     module: bootstrap
     template: bootstrap/app.module.ts.njk
     output: src/app.module.ts
+  - id: bootstrap-environment-config
+    module: bootstrap
+    template: bootstrap/config/environment.ts.njk
+    output: src/config/environment.ts
+  - id: bootstrap-environment-config-test
+    module: bootstrap
+    template: bootstrap/config/environment.spec.ts.njk
+    output: src/config/environment.spec.ts
   - id: bootstrap-e2e-test
     module: bootstrap
     template: bootstrap/e2e-test.ts.njk
