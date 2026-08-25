@@ -131,6 +131,9 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(invocations.map((invocation) => invocation.templateId)).toEqual(expect.arrayContaining([
       "web-api-i18n-messages-en",
       "web-api-i18n-messages-pt",
+      "web-api-i18n-language-negotiation",
+      "web-api-i18n-language-negotiation-test",
+      "web-api-i18n-language-resolver",
       "web-api-i18n-module",
       "web-api-i18n-service",
       "web-api-conflict-exception-filter",

@@ -109,8 +109,15 @@ anything else is rejected with the error contract below rather than ignored.
 Errors use a single contract: a numeric `statusCode`, a localized `message`, and
 for validation failures a `violations` array listing every invalid field.
 
-Messages are localized from the JSON catalogs in `src/web-api/i18n`. English is
-the fallback; an `Accept-Language` header starting with `pt` selects Portuguese.
+Messages are localized from the JSON catalogs in `src/web-api/i18n`, which ship
+English and Portuguese. `Accept-Language` is the only language selector.
+
+Negotiation follows an explicit policy in `src/web-api/i18n/language-negotiation.ts`
+rather than framework defaults: quality weights are honoured over header order,
+`q=0` excludes a tag, regional tags collapse to their base language so `pt-BR` and
+`pt-PT` both select Portuguese, and a language with no catalog is served in English
+rather than rejected. The negotiated language is therefore always one the project
+actually ships.
 
 ## Regenerating
 

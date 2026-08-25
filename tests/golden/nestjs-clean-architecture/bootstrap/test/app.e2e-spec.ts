@@ -109,6 +109,36 @@ describe('generated NestJS HTTP API', () => {
       .expect(404);
   });
 
+  it('negotiates the response language from Accept-Language', async () => {
+    const invalidIdentifier = '/wallets/not-a-uuid';
+
+    // Supported: the weighted header prefers Portuguese over an unsupported tag.
+    await request(app.getHttpServer())
+      .get(invalidIdentifier)
+      .set('Accept-Language', 'fr-FR;q=0.9, pt-BR;q=1.0')
+      .expect(400)
+      .expect(({ body }) => {
+        expect(body.message).toBe('Falha de validação');
+      });
+
+    // Unsupported: served in the fallback language rather than rejected.
+    await request(app.getHttpServer())
+      .get(invalidIdentifier)
+      .set('Accept-Language', 'fr-FR')
+      .expect(400)
+      .expect(({ body }) => {
+        expect(body.message).toBe('Validation failed');
+      });
+
+    // Missing: the same deterministic fallback.
+    await request(app.getHttpServer())
+      .get(invalidIdentifier)
+      .expect(400)
+      .expect(({ body }) => {
+        expect(body.message).toBe('Validation failed');
+      });
+  });
+
   it('localizes validation and uniqueness errors from Accept-Language', async () => {
     await request(app.getHttpServer())
       .post('/wallets')

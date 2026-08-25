@@ -93,6 +93,30 @@ describe("NestJS generated project smoke test", () => {
     expect(manifest.scripts["start:prod"]).toBe("node dist/main");
   }, 30_000);
 
+  it("negotiates language by quality weight, not by header order", async ({ skip }) => {
+    if (skipReason !== undefined) { skip(skipReason); return; }
+    const running = server as GeneratedServer;
+
+    // The distinguishing case for the generated policy: an unsupported language
+    // outranks a supported one. A resolver that simply forwards the first tag
+    // would land on `de`, find no catalog, and answer in English.
+    const weighted = await fetch(`${running.baseUrl}/wallets/not-a-uuid`, {
+      headers: { "accept-language": "de;q=1.0, pt;q=0.1" },
+    });
+    expect(weighted.status, running.output()).toBe(400);
+    await expect(weighted.json()).resolves.toMatchObject({ message: "Falha de validação" });
+
+    const unsupported = await fetch(`${running.baseUrl}/wallets/not-a-uuid`, {
+      headers: { "accept-language": "fr-FR" },
+    });
+    expect(unsupported.status, running.output()).toBe(400);
+    await expect(unsupported.json()).resolves.toMatchObject({ message: "Validation failed" });
+
+    const missing = await fetch(`${running.baseUrl}/wallets/not-a-uuid`);
+    expect(missing.status, running.output()).toBe(400);
+    await expect(missing.json()).resolves.toMatchObject({ message: "Validation failed" });
+  }, 30_000);
+
   it("applies the CORS policy the selected environment file declares", async ({ skip }) => {
     if (skipReason !== undefined) { skip(skipReason); return; }
     const running = server as GeneratedServer;

@@ -1,28 +1,31 @@
 import { Module } from '@nestjs/common';
 import { join } from 'path';
-import { AcceptLanguageResolver, I18nJsonLoader, I18nModule as NestI18nModule } from 'nestjs-i18n';
+import { I18nJsonLoader, I18nModule as NestI18nModule } from 'nestjs-i18n';
 
 import { II18nServiceSymbol } from '../../core/i18n/i18n-service.interface';
+import { FALLBACK_LANGUAGE } from './language-negotiation';
 import { I18nService } from './i18n.service';
+import { SupportedLanguageResolver } from './supported-language.resolver';
 
 @Module({
   imports: [
     NestI18nModule.forRoot({
-      fallbackLanguage: 'en',
-      fallbacks: {
-        'en-*': 'en',
-        'pt-*': 'pt',
-      },
+      // The resolver already guarantees a supported language, so this is the
+      // policy's second line of defence rather than the thing that decides it.
+      // There is deliberately no `fallbacks` map: regional tags are collapsed to
+      // their base language by the negotiation policy, in one place.
+      fallbackLanguage: FALLBACK_LANGUAGE,
       loader: I18nJsonLoader,
       loaderOptions: {
         path: join(__dirname, '/'),
         watch: false,
       },
       logging: false,
-      resolvers: [AcceptLanguageResolver],
+      resolvers: [SupportedLanguageResolver],
     }),
   ],
   providers: [
+    SupportedLanguageResolver,
     I18nService,
     {
       provide: II18nServiceSymbol,

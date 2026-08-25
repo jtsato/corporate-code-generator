@@ -61,12 +61,12 @@ NestJS dependencies:
 | `java-spring-clean-multimodule --module configuration` | 168 CREATE |
 | `java-spring-clean-multimodule --module build --module core` | 79 CREATE |
 | `java-spring-clean-multimodule --module build --module configuration` | 168 CREATE |
-| `nestjs-clean-architecture` full profile | 99 CREATE |
+| `nestjs-clean-architecture` full profile | 102 CREATE |
 | `nestjs-clean-architecture --module build` | 12 CREATE |
 | `nestjs-clean-architecture --module core` | 49 CREATE |
 | `nestjs-clean-architecture --module infra-persistence` | 58 CREATE |
-| `nestjs-clean-architecture --module web-api` | 72 CREATE |
-| `nestjs-clean-architecture --module bootstrap` | 87 CREATE |
+| `nestjs-clean-architecture --module web-api` | 75 CREATE |
+| `nestjs-clean-architecture --module bootstrap` | 90 CREATE |
 
 The `entrypoints-rest` and `infra-database` selections include `core` transitively. The `configuration` selection includes all required modules transitively.
 
@@ -86,7 +86,7 @@ Measured and documented implemented capabilities in the current Java multi-modul
 - Configuration profiles, property-driven CORS, OpenAPI, Swagger UI environment policy, i18n message bundles, global REST error handling, ArchUnit tests, JaCoCo configuration, and generated Java CI.
 - Container packaging: a multi-stage `Dockerfile` (Maven builder stage, Alpine JRE runtime, non-root UID/GID 10001, `JAVA_TOOL_OPTIONS` container-aware heap sizing, `HEALTHCHECK` against `/actuator/health`), a `.dockerignore`, and a Compose file. Spring Boot Actuator is on the `configuration` classpath with only the `health` endpoint exposed over HTTP and `show-details: never`.
 - Explicit i18n policy: generated `LocaleConfiguration` selects English by default, allows only `en` and `pt-BR` through `Accept-Language`, loads UTF-8 message bundles, and disables JVM system-locale fallback; generated locale tests cover Portuguese, unsupported, and missing-header negotiation.
-- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators, colocated Jest tests, transport-level HTTP response envelopes, zero-based pagination with `eq`/`ne` filters, deterministic collection sorting, full replacement and partial update use cases, physical delete, liveness/readiness endpoints, package-backed `nestjs-i18n` English/Portuguese JSON catalogs, localized validation/not-found/conflict filters, HTTP 409 uniqueness conflicts, identifier uniqueness, attribute-level uniqueness, composite uniqueness with nullish-member handling, and a generated Jest/Supertest e2e suite, plus an unconditional `.gitignore`, a model-derived `README.md`, an ESLint layer-boundary configuration, `NODE_ENV`-selected environment files with boot-time validation, and environment-driven CORS. Its full-profile example emits 99 CREATE operations and its Core remains free of NestJS, `nestjs-i18n`, and `class-validator` imports. Persistence remains in memory; soft delete/restore, ORM/database persistence, auditing, and advanced locale negotiation remain gaps, now sequenced as Planned milestones in the [NestJS Parity Gap Plan](NESTJS-PARITY-GAP-PLAN.md).
+- The NestJS Golden Path now generates framework-free Core validation exceptions and per-use-case validators, colocated Jest tests, transport-level HTTP response envelopes, zero-based pagination with `eq`/`ne` filters, deterministic collection sorting, full replacement and partial update use cases, physical delete, liveness/readiness endpoints, package-backed `nestjs-i18n` English/Portuguese JSON catalogs, localized validation/not-found/conflict filters, HTTP 409 uniqueness conflicts, identifier uniqueness, attribute-level uniqueness, composite uniqueness with nullish-member handling, and a generated Jest/Supertest e2e suite, plus an unconditional `.gitignore`, a model-derived `README.md`, an ESLint layer-boundary configuration, `NODE_ENV`-selected environment files with boot-time validation, environment-driven CORS, and an explicit `Accept-Language` negotiation policy honouring quality weights. Its full-profile example emits 102 CREATE operations and its Core remains free of NestJS, `nestjs-i18n`, and `class-validator` imports. Persistence remains in memory; ORM/database persistence, soft delete/restore, auditing, container packaging, generated continuous integration and a multi-module variant remain gaps, now sequenced as Planned milestones in the [NestJS Parity Gap Plan](NESTJS-PARITY-GAP-PLAN.md).
 
 Current documented Java multi-module REST surface:
 

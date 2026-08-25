@@ -309,6 +309,18 @@ templates:
     module: web-api
     template: web-api/i18n/messages.pt.json.njk
     output: src/web-api/i18n/pt/messages.json
+  - id: web-api-i18n-language-negotiation
+    module: web-api
+    template: web-api/i18n/language-negotiation.ts.njk
+    output: src/web-api/i18n/language-negotiation.ts
+  - id: web-api-i18n-language-negotiation-test
+    module: web-api
+    template: web-api/i18n/language-negotiation.spec.ts.njk
+    output: src/web-api/i18n/language-negotiation.spec.ts
+  - id: web-api-i18n-language-resolver
+    module: web-api
+    template: web-api/i18n/supported-language.resolver.ts.njk
+    output: src/web-api/i18n/supported-language.resolver.ts
   - id: web-api-i18n-module
     module: web-api
     template: web-api/i18n/i18n.module.ts.njk
