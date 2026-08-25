@@ -19,6 +19,9 @@ const GENERATED_PATHS = [
   "tsconfig.build.json",
   "nest-cli.json",
   "test/jest-e2e.json",
+  ".gitignore",
+  "README.md",
+  "eslint.config.mjs",
   "src/core/exceptions/core.exception.ts",
   "src/core/exceptions/field-violation.ts",
   "src/core/exceptions/not-found.exception.ts",
@@ -122,6 +125,15 @@ function normalizeLineEndings(content: string): string {
   return content.replaceAll("\r\n", "\n");
 }
 
+// The generated `.gitignore` is stored without its leading dot so that it does
+// not act as a live ignore file over the golden tree itself, matching the
+// convention the Java Golden Path already uses.
+const dotlessGoldenPaths = new Map([[".gitignore", "gitignore"]]);
+
+function goldenPath(targetPath: string): string {
+  return dotlessGoldenPaths.get(targetPath) ?? targetPath;
+}
+
 function goldenModule(targetPath: string): string {
   if (targetPath.startsWith("src/core/")) return "core";
   if (targetPath.startsWith("src/infra/")) return "infra-persistence";
@@ -172,7 +184,7 @@ describe("NestJS clean architecture smoke test", () => {
       for (const targetPath of GENERATED_PATHS) {
         const generated = await readFile(join(outputRoot, targetPath), "utf8");
         const golden = await readFile(
-          join(repoRoot, "tests", "golden", profileId, goldenModule(targetPath), targetPath),
+          join(repoRoot, "tests", "golden", profileId, goldenModule(targetPath), goldenPath(targetPath)),
           "utf8",
         );
         expect(normalizeLineEndings(generated), targetPath).toBe(normalizeLineEndings(golden));

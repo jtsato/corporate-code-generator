@@ -1,0 +1,95 @@
+# {{ applicationName }}
+
+NestJS service generated from an application model with a clean-architecture
+Golden Path. Persistence is in memory, so the application needs no external
+services to run.
+
+## Layers
+
+| Layer | Responsibility | Depends on |
+| --- | --- | --- |
+| `src/core` | Domain models, use cases, commands, queries, gateway ports, paging, filtering and validation. Framework-free. | nothing |
+| `src/infra` | Persistence models, mappers, repositories and gateway-implementing providers. | `src/core` |
+| `src/web-api` | Controllers, request/response representations, presenters, exception filters and i18n. | `src/core` |
+| `src/main.ts`, `src/app.module.ts`, `src/modules` | Composition root: binds providers and controllers to the Core dependency-injection symbols. | `src/core`, `src/infra`, `src/web-api` |
+
+Dependencies point inward. `src/core` imports neither `@nestjs/*` nor
+`class-validator`, and `src/web-api` never imports `src/infra`. Only the
+composition root knows about every layer.
+
+## Requirements
+
+- Node.js 22 or newer
+- npm 10 or newer
+
+## Install, build and test
+
+```bash
+npm install
+npm run lint
+npm run build
+npm test
+npm run test:e2e
+```
+
+Unit tests are colocated with the code they cover as `*.spec.ts`. The
+end-to-end suite lives in `test/` and drives the whole application over HTTP.
+
+`npm run lint` enforces the layer boundaries above with ESLint
+`no-restricted-imports` zones declared in `eslint.config.mjs`. An import that
+crosses a boundary the wrong way fails the lint rather than being caught in
+review.
+
+## Run
+
+```bash
+npm run start:dev
+```
+
+The application listens on the port in `PORT`, defaulting to 3000. The OpenAPI
+specification is served by Swagger UI at `/swagger-ui`.
+
+## HTTP API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/health-check/live` | Liveness probe |
+| `GET` | `/health-check/ready` | Readiness probe |
+{% for entity in entities %}
+### {{ entity.className }}
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `{{ entity.restCollectionPath }}` | List, filter, sort and page records |
+| `GET` | `{{ entity.restCollectionPath }}/{id}` | Read one record |
+| `POST` | `{{ entity.restCollectionPath }}` | Create a record |
+| `PUT` | `{{ entity.restCollectionPath }}/{id}` | Replace a record |
+| `PATCH` | `{{ entity.restCollectionPath }}/{id}` | Partially update a record |
+| `DELETE` | `{{ entity.restCollectionPath }}/{id}` | Delete a record |
+{% endfor %}
+## Collections
+
+Collection endpoints accept zero-based paging, filtering and sorting:
+
+```
+?page=0&size=20&filter=<property>:eq:<value>&sort=<property>:asc
+```
+
+`filter` supports the `eq` and `ne` operators. `sort` is repeatable and
+significant in order, so the first entry is the primary ordering; directions are
+exactly `asc` or `desc`. Both accept only properties the entity declares, and
+anything else is rejected with the error contract below rather than ignored.
+
+## Errors and language
+
+Errors use a single contract: a numeric `statusCode`, a localized `message`, and
+for validation failures a `violations` array listing every invalid field.
+
+Messages are localized from the JSON catalogs in `src/web-api/i18n`. English is
+the fallback; an `Accept-Language` header starting with `pt` selects Portuguese.
+
+## Regenerating
+
+This project is generated. Prefer changing the application model and
+regenerating over editing generated files by hand, so that manual edits are not
+lost on the next generation.

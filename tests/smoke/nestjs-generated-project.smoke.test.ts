@@ -11,7 +11,7 @@
  */
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { access, mkdtemp, readFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,7 @@ import {
   installNpmDependencies,
   removeGeneratedProject,
   reserveEphemeralPort,
+  runFailingNpmScript,
   runNpmScript,
   spawnGeneratedNodeServer,
   stopGeneratedNodeServer,
@@ -60,6 +61,7 @@ describe("NestJS generated project smoke test", () => {
     }
 
     await installNpmDependencies(projectRoot);
+    await runNpmScript(projectRoot, "lint");
     await runNpmScript(projectRoot, "build");
     await runNpmScript(projectRoot, "test");
     await runNpmScript(projectRoot, "test:e2e");
@@ -90,6 +92,33 @@ describe("NestJS generated project smoke test", () => {
     expect(manifest.scripts["test:e2e"]).toBe("jest --config ./test/jest-e2e.json --runInBand");
     expect(manifest.scripts["start:prod"]).toBe("node dist/main");
   }, 30_000);
+
+  it("rejects an import that crosses a layer boundary", async ({ skip }) => {
+    if (skipReason !== undefined) { skip(skipReason); return; }
+    const root = projectRoot as string;
+
+    // The clean run in `beforeAll` proves the generated sources satisfy the rule.
+    // This proves the rule is capable of rejecting anything at all, which a clean
+    // run alone cannot distinguish from a misconfigured or unmatched rule.
+    const modelPathInProject = join(root, "src", "core", "models", "wallet.model.ts");
+    const original = await readFile(modelPathInProject, "utf8");
+    try {
+      await writeFile(
+        modelPathInProject,
+        `import { WalletEntity } from '../../infra/models/wallet-entity.model';
+
+${original}`,
+        "utf8",
+      );
+
+      const lint = await runFailingNpmScript(root, "lint");
+      expect(lint.failed, lint.output).toBe(true);
+      expect(lint.output).toContain("no-restricted-imports");
+      expect(lint.output).toContain("Dependencies point inward");
+    } finally {
+      await writeFile(modelPathInProject, original, "utf8");
+    }
+  }, 120_000);
 
   it("serves the complete CRUD lifecycle over HTTP", async ({ skip }) => {
     if (skipReason !== undefined) { skip(skipReason); return; }

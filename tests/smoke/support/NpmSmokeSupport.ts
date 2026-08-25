@@ -106,6 +106,31 @@ export async function runNpmScript(cwd: string, scriptName: string, timeoutMs: n
 }
 
 /**
+ * Runs a generated script that is expected to fail, returning its combined output.
+ *
+ * A guardrail that never fires is indistinguishable from an absent one, so a suite
+ * asserting that a generated lint rule holds must also assert that the same rule
+ * rejects a deliberate violation.
+ */
+export async function runFailingNpmScript(
+  cwd: string,
+  scriptName: string,
+  timeoutMs: number = npmBuildTimeoutMs,
+): Promise<{ readonly failed: boolean; readonly output: string }> {
+  const command = getNpmCommand(["run", scriptName]);
+  try {
+    const result = await execFileAsync(command.command, command.args, { cwd, timeout: timeoutMs, maxBuffer: 10 * 1024 * 1024, env: sanitizedNpmEnv() });
+    return { failed: false, output: `${result.stdout}
+${result.stderr}` };
+  } catch (error) {
+    const failure = error as { readonly stdout?: string; readonly stderr?: string; readonly killed?: boolean };
+    if (failure.killed === true) throw new Error(`Generated project npm run ${scriptName} exceeded the ${timeoutMs}ms timeout.`);
+    return { failed: true, output: `${failure.stdout ?? ""}
+${failure.stderr ?? ""}` };
+  }
+}
+
+/**
  * Removes the configuration the parent npm injects when this suite is invoked through
  * `npm run`, which would otherwise decide how the generated project installs. The
  * three demonstrated failure modes are `NODE_ENV=production` and `npm_config_omit`,

@@ -22,6 +22,18 @@ templates:
     module: build
     template: build/e2e-jest.json.njk
     output: test/jest-e2e.json
+  - id: build-gitignore
+    module: build
+    template: build/gitignore.njk
+    output: .gitignore
+  - id: build-readme
+    module: build
+    template: build/readme.md.njk
+    output: README.md
+  - id: build-eslint-config
+    module: build
+    template: build/eslint.config.mjs.njk
+    output: eslint.config.mjs
 
   - id: core-exception
     module: core

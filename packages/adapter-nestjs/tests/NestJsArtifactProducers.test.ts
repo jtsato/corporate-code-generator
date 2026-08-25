@@ -49,6 +49,9 @@ describe("NestJS clean architecture artifact producers", () => {
       "tsconfig-build-json",
       "nest-cli-json",
       "e2e-jest-config",
+      "build-gitignore",
+      "build-readme",
+      "build-eslint-config",
     ]);
   });
 

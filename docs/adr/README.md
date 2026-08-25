@@ -82,3 +82,5 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [082](ADR-082-nestjs-crud-integration.md) | NestJS CRUD Integration | Accepted; native generated-project gate passed | Milestone 7.17 | Not recorded | Not recorded |
 | [083](ADR-083-nestjs-sorting.md) | NestJS Collection Sorting | Accepted — milestone 7.18 release-complete; final native gates passed | Milestone 7.18 | Not recorded | Not recorded |
 | [084](ADR-084-nestjs-package-i18n-and-in-memory-uniqueness.md) | NestJS Package-Backed i18n and In-Memory Uniqueness | Accepted — milestone 7.19 release-complete | Milestone 7.19 | 079 (in part) | Not recorded |
+| [085](ADR-085-nestjs-generated-repository-hygiene.md) | NestJS Generated Repository Hygiene (`.gitignore` and `README.md`) | Accepted — milestone 7.20 release-complete | Milestone 7.20 | Not recorded | Not recorded |
+| [086](ADR-086-nestjs-module-boundary-validation.md) | NestJS Module Boundary Validation | Accepted — milestone 7.21 release-complete | Milestone 7.21 | 081 (in part) | Not recorded |
