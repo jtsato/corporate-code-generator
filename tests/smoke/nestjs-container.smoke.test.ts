@@ -40,8 +40,12 @@ let compose: string;
 let productionEnvironment: string;
 let workflow: string;
 
+async function readFrom(root: string, relativePath: string): Promise<string> {
+  return (await readFile(join(root, relativePath), "utf8")).replaceAll("\r\n", "\n");
+}
+
 async function read(relativePath: string): Promise<string> {
-  return (await readFile(join(projectRoot, relativePath), "utf8")).replaceAll("\r\n", "\n");
+  return readFrom(projectRoot, relativePath);
 }
 
 describe("NestJS container packaging smoke test", () => {
@@ -158,5 +162,86 @@ describe("NestJS container packaging smoke test", () => {
   it("names the image after the application and omits the obsolete version key", () => {
     expect(compose).toContain("image: wallet-service:latest");
     expect(compose).not.toContain("version:");
+  });
+});
+
+/**
+ * With an ORM the packaging has to start a database as well as the application,
+ * so Compose stops being an alternative to `docker run` and becomes the only way
+ * the image can serve. These cases assert the agreements that span files and that
+ * a byte-for-byte golden therefore cannot catch: credentials restated in two
+ * services, and a workflow naming commands the Compose file has to support.
+ */
+describe("NestJS container packaging with TypeORM persistence", () => {
+  let typeormRoot: string;
+  let typeormCompose: string;
+  let typeormWorkflow: string;
+
+  beforeAll(async () => {
+    typeormRoot = await mkdtemp(join(tmpdir(), "ccg-nest-container-typeorm-"));
+    await execFileAsync(
+      process.execPath,
+      [
+        cliEntryPoint, "generate", modelPath, "--profile", profileId,
+        "--option", "persistence=typeorm", "--output", typeormRoot,
+      ],
+      { cwd: repoRoot, maxBuffer: 10 * 1024 * 1024 },
+    );
+
+    typeormCompose = await readFrom(typeormRoot, "docker-compose.yml");
+    typeormWorkflow = await readFrom(typeormRoot, ".github/workflows/node-ci.yml");
+  }, 60_000);
+
+  afterAll(async () => {
+    await rm(typeormRoot, { recursive: true, force: true });
+  });
+
+  it("waits for the database to accept connections before starting the application", () => {
+    const parsed = parse(typeormCompose) as {
+      readonly services: Record<string, {
+        readonly depends_on?: Record<string, { readonly condition?: string }>;
+        readonly healthcheck?: unknown;
+      }>;
+    };
+
+    expect(Object.keys(parsed.services)).toContain("postgres");
+    // `service_started` would let the application race an unready database and
+    // fail its first connection, which is the failure this condition prevents.
+    expect(parsed.services["app"]?.depends_on?.["postgres"]?.condition).toBe("service_healthy");
+    expect(parsed.services["postgres"]?.healthcheck).toBeDefined();
+  });
+
+  it("gives the application the credentials the database service was created with", () => {
+    const parsed = parse(typeormCompose) as {
+      readonly services: Record<string, { readonly environment?: Record<string, string> }>;
+    };
+    const app = parsed.services["app"]?.environment ?? {};
+    const database = parsed.services["postgres"]?.environment ?? {};
+
+    // Restated in two services, so nothing but this makes them agree.
+    expect(app["DATABASE_USERNAME"]).toBe(database["POSTGRES_USER"]);
+    expect(app["DATABASE_PASSWORD"]).toBe(database["POSTGRES_PASSWORD"]);
+    expect(app["DATABASE_NAME"]).toBe(database["POSTGRES_DB"]);
+    expect(app["DATABASE_HOST"]).toBe("postgres");
+  });
+
+  it("verifies the stack through Compose rather than a lone container", () => {
+    expect(typeormWorkflow).toContain("docker compose up");
+    expect(typeormWorkflow).toContain("docker compose logs");
+    // A bare `docker run` would start the application with no database to reach.
+    expect(typeormWorkflow).not.toMatch(/run:\s*docker run/);
+  });
+
+  it("keeps the readiness probe pointed at the port and path the packaging declares", async () => {
+    const productionEnvironmentFile = await readFrom(typeormRoot, ".env.production");
+    const declaredPort = /^PORT=(\d+)$/m.exec(productionEnvironmentFile)?.[1];
+    const controller = await readFrom(typeormRoot, "src/web-api/health/health.controller.ts");
+    const healthPath = /curl -sf http:\/\/localhost:\d+(\S*)/.exec(typeormWorkflow)?.[1];
+
+    expect(declaredPort).toBeDefined();
+    expect(typeormCompose).toContain(`"${String(declaredPort)}:${String(declaredPort)}"`);
+    expect(typeormWorkflow).toContain(`http://localhost:${String(declaredPort)}`);
+    expect(healthPath, "the workflow must probe an explicit path").toBeDefined();
+    expect(controller).toContain(`'${String(healthPath)}'`);
   });
 });

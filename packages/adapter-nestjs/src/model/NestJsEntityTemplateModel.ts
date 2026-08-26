@@ -10,6 +10,10 @@ export interface NestJsPropertyTemplateModel {
   readonly testValue: string;
   readonly alternateTestValue: string;
   readonly invalidTestValue: string;
+  /** Relational column name; see `toSnakeCaseName`. */
+  readonly columnName: string;
+  /** Rendered `@Column`/`@PrimaryColumn` argument, always an object literal. */
+  readonly columnDecoratorArguments: string;
 }
 
 export interface NestJsUniqueAttributeModel {
@@ -42,6 +46,10 @@ export interface NestJsEntityTemplateModel {
   readonly requestValidationImports: readonly string[];
   readonly updateRequestValidationImports: readonly string[];
   readonly patchRequestValidationImports: readonly string[];
+  /** Relational table name; plural, snake_case. */
+  readonly tableName: string;
+  /** True when at least one column needs the string-to-number transformer. */
+  readonly usesNumericTransformer: boolean;
 }
 
 export interface NestJsApplicationTemplateModel {

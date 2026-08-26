@@ -1,0 +1,166 @@
+# wallet-service
+
+NestJS service generated from an application model with a clean-architecture
+Golden Path. Persistence is TypeORM over PostgreSQL; the
+generated suites run against an in-process SQLite database, so tests need
+nothing provisioned.
+
+## Layers
+
+| Layer | Responsibility | Depends on |
+| --- | --- | --- |
+| `src/core` | Domain models, use cases, commands, queries, gateway ports, paging, filtering and validation. Framework-free. | nothing |
+| `src/infra` | Persistence models, mappers, repositories and gateway-implementing providers. | `src/core` |
+| `src/web-api` | Controllers, request/response representations, presenters, exception filters and i18n. | `src/core` |
+| `src/main.ts`, `src/app.module.ts`, `src/modules`, `src/config` | Composition root: validates configuration and binds providers and controllers to the Core dependency-injection symbols. | `src/core`, `src/infra`, `src/web-api` |
+
+Dependencies point inward. `src/core` imports neither `@nestjs/*` nor
+`class-validator`, and `src/web-api` never imports `src/infra`. Only the
+composition root knows about every layer.
+
+## Requirements
+
+- Node.js 22 or newer
+- npm 10 or newer
+
+## Install, build and test
+
+```bash
+npm install
+npm run lint
+npm run build
+npm test
+npm run test:e2e
+```
+
+Unit tests are colocated with the code they cover as `*.spec.ts`. The
+end-to-end suite lives in `test/` and drives the whole application over HTTP.
+
+`npm run lint` enforces the layer boundaries above with ESLint
+`no-restricted-imports` zones declared in `eslint.config.mjs`. An import that
+crosses a boundary the wrong way fails the lint rather than being caught in
+review.
+
+## Run
+
+```bash
+npm run start:dev
+```
+
+The application listens on the port in `PORT`, defaulting to 3000. The OpenAPI
+specification is served by Swagger UI at `/swagger-ui`.
+
+## Container
+
+The `Dockerfile` is multi-stage: the build stage keeps the full toolchain — the
+Nest CLI and TypeScript are development dependencies — and the runtime stage
+receives only the compiled output and production dependencies.
+
+The application needs a database, so Compose is the way to run it: it starts
+PostgreSQL, waits until it accepts connections, and only then starts the
+application.
+
+```bash
+docker compose up --build
+```
+
+Compose runs the container in development mode on purpose. This project
+generates no migrations, so the schema comes from TypeORM synchronizing it
+against the entities — which production refuses, because synchronizing drops the
+column a renamed attribute used to occupy. A real deployment supplies its own
+`DATABASE_*` variables and needs a migration step this project does not generate.
+
+The container runs as the unprivileged `node` user that `node:alpine` already
+ships, never as root. It sets `NODE_ENV=production`, so it starts on
+`.env.production` — whose CORS origin list is empty, meaning an unconfigured
+container rejects cross-origin browser calls rather than accepting all of them.
+Its `HEALTHCHECK` polls `/health-check/ready`, so `docker ps` reports the
+container healthy only once the application is actually serving traffic.
+
+## Continuous integration
+
+`.github/workflows/node-ci.yml` runs on pushes to `main`, on pull requests, and
+on demand through `workflow_dispatch`. It installs, lints, builds, runs the unit
+and end-to-end suites, then builds the container image and starts the
+Compose stack to confirm
+the readiness endpoint answers — building an image proves less than serving from
+one.
+
+Actions are pinned by commit SHA with the tag in a trailing comment, so a moved
+tag cannot change what CI executes.
+
+## Configuration
+
+`NODE_ENV` selects one of three committed environment files — `.env.development`,
+`.env.test` or `.env.production` — and an uncommitted `.env` overrides whichever
+was selected. `.env.example` documents every variable the application reads,
+along with its default.
+
+The committed files hold no secrets. `.env` and `.env*.local` are ignored by
+version control; the per-environment files are not.
+
+Values are validated at startup by `src/config/environment.ts`, which reports
+every faulty variable at once and refuses to start. A value that is merely unset
+falls back to its documented default; a value that is present and wrong is an
+error.
+
+### CORS
+
+CORS is configured entirely from the environment and is **disabled whenever
+`CORS_ALLOWED_ORIGINS` is empty**, which is how `.env.production` ships: an
+unconfigured production deployment rejects cross-origin browser calls rather than
+accepting all of them. `.env.development` allows any origin, which is legal only
+because credentials are off — setting `CORS_ALLOW_CREDENTIALS=true` alongside a
+`*` origin fails validation, since browsers reject that combination anyway.
+
+## HTTP API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/health-check/live` | Liveness probe |
+| `GET` | `/health-check/ready` | Readiness probe |
+
+### Wallet
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/wallets` | List, filter, sort and page records |
+| `GET` | `/wallets/{id}` | Read one record |
+| `POST` | `/wallets` | Create a record |
+| `PUT` | `/wallets/{id}` | Replace a record |
+| `PATCH` | `/wallets/{id}` | Partially update a record |
+| `DELETE` | `/wallets/{id}` | Delete a record |
+
+## Collections
+
+Collection endpoints accept zero-based paging, filtering and sorting:
+
+```
+?page=0&size=20&filter=<property>:eq:<value>&sort=<property>:asc
+```
+
+`filter` supports the `eq` and `ne` operators. `sort` is repeatable and
+significant in order, so the first entry is the primary ordering; directions are
+exactly `asc` or `desc`. Both accept only properties the entity declares, and
+anything else is rejected with the error contract below rather than ignored.
+
+## Errors and language
+
+Errors use a single contract: a numeric `statusCode`, a localized `message`, and
+for validation failures a `violations` array listing every invalid field.
+
+Messages are localized from the JSON catalogs in `src/web-api/i18n`, which ship
+English and Portuguese. `Accept-Language` is the only language selector.
+
+Negotiation follows an explicit policy in `src/web-api/i18n/language-negotiation.ts`
+rather than framework defaults: quality weights are honoured over header order,
+`q=0` excludes a tag, regional tags collapse to their base language so `pt-BR` and
+`pt-PT` both select Portuguese, and a language with no catalog is served in English
+rather than rejected. The negotiated language is therefore always one the project
+actually ships.
+
+## Regenerating
+
+This project is generated. Prefer changing the application model and
+regenerating over editing generated files by hand, so that manual edits are not
+lost on the next generation.

@@ -1,0 +1,33 @@
+import { Column, Entity, PrimaryColumn } from 'typeorm';
+{% if usesNumericTransformer %}
+import { numericTransformer } from '../persistence/column.transformers';
+{% endif %}
+/**
+ * Persistence shape of {{ className }}. The Core model never sees this class;
+ * `{{ className }}Mapper` is the only thing that crosses between them.
+ *
+ * Most columns declare no `type`. That is deliberate rather than an omission:
+ * no single spelling of a date column is accepted by both PostgreSQL and
+ * SQLite, so the portable choice is to let each driver derive the column type
+ * from the reflected TypeScript type. It works only while `tsconfig.json` keeps
+ * `emitDecoratorMetadata` enabled.
+ *
+ * TypeORM does not call this constructor when it hydrates a row; it assigns the
+ * properties directly. The constructor exists for the mapper.
+ */
+@Entity({ name: '{{ tableName }}' })
+export class {{ className }}Entity {
+{%- for property in properties %}
+  @{% if property.identifier %}PrimaryColumn{% else %}Column{% endif %}({{ property.columnDecoratorArguments }})
+  public readonly {{ property.name }}: {{ property.type }};
+{% endfor %}
+  public constructor(
+{%- for property in properties %}
+    {{ property.name }}: {{ property.type }},
+{%- endfor %}
+  ) {
+{%- for property in properties %}
+    this.{{ property.name }} = {{ property.name }};
+{%- endfor %}
+  }
+}

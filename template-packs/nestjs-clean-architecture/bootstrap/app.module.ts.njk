@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+{%- if persistence == 'typeorm' %}
+import { TypeOrmModule } from '@nestjs/typeorm';
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
+{%- endif %}
 
 {% for entity in entities -%}
 import { {{ entity.className }}Module } from './modules/{{ entity.fileName }}.module';
@@ -24,6 +28,36 @@ import type { Environment } from './config/environment';
       cache: true,
       envFilePath: ['.env', `.env.${process.env.NODE_ENV ?? 'development'}`],
     }),
+{%- if persistence == 'typeorm' %}
+    // The factory calls `validateEnvironment` again instead of injecting the
+    // provider declared below: `forRootAsync` resolves its factory inside
+    // TypeOrmModule's own context, where an AppModule provider is not visible.
+    // The function is pure, and ConfigModule.forRoot has already loaded the
+    // environment files by the time this runs.
+    TypeOrmModule.forRootAsync({
+      useFactory: (): TypeOrmModuleOptions => {
+        const { database } = validateEnvironment();
+
+        // The in-process engine starts with an empty database every time, so it
+        // synchronizes unconditionally; there is no schema to preserve and no
+        // migration that could have created one.
+        if (database.driver === 'sqljs') {
+          return { type: 'sqljs', autoLoadEntities: true, synchronize: true };
+        }
+
+        return {
+          type: 'postgres',
+          host: database.host,
+          port: database.port,
+          username: database.username,
+          password: database.password,
+          database: database.name,
+          autoLoadEntities: true,
+          synchronize: database.synchronize,
+        };
+      },
+    }),
+{%- endif %}
     I18nModule,
 {%- for entity in entities %}
     {{ entity.className }}Module,

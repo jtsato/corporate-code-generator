@@ -11,3 +11,10 @@ CORS_ALLOWED_HEADERS=Content-Type,Accept,Accept-Language
 CORS_EXPOSED_HEADERS=Location
 CORS_ALLOW_CREDENTIALS=false
 CORS_MAX_AGE=0
+{%- if persistence == 'typeorm' %}
+
+# In-process SQLite: the generated suites need no database to be provisioned and
+# no container runtime, and each run starts from an empty schema.
+DATABASE_DRIVER=sqljs
+DATABASE_SYNCHRONIZE=true
+{%- endif %}

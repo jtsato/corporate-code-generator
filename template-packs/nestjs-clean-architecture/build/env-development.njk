@@ -11,3 +11,18 @@ CORS_ALLOWED_HEADERS=Content-Type,Accept,Accept-Language
 CORS_EXPOSED_HEADERS=Location
 CORS_ALLOW_CREDENTIALS=false
 CORS_MAX_AGE=3600
+{%- if persistence == 'typeorm' %}
+
+# Matches the PostgreSQL service in `docker-compose.yml`. Committed credentials
+# are acceptable only because they reach nothing but a local container.
+DATABASE_DRIVER=postgres
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USERNAME={{ applicationName }}
+DATABASE_PASSWORD={{ applicationName }}
+DATABASE_NAME={{ applicationName }}
+
+# The project generates no migrations, so development relies on TypeORM building
+# the schema from the entities.
+DATABASE_SYNCHRONIZE=true
+{%- endif %}

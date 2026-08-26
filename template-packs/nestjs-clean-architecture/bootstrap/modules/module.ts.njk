@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+{%- if persistence == 'typeorm' %}
+import { TypeOrmModule } from '@nestjs/typeorm';
+{%- endif %}
 
 import {
   ICreate{{ className }}Gateway,
@@ -37,10 +40,19 @@ import { Get{{ className }}ByIdProvider } from '../infra/providers/get-{{ fileNa
 import { Update{{ className }}Provider } from '../infra/providers/update-{{ fileName }}.provider';
 import { Delete{{ className }}Provider } from '../infra/providers/delete-{{ fileName }}.provider';
 import { Page{{ className }}Provider } from '../infra/providers/page-{{ pluralFileName }}.provider';
+{% if persistence == 'typeorm' -%}
+import { {{ className }}Entity } from '../infra/models/{{ fileName }}-entity.model';
+{% endif -%}
 import { {{ className }}Repository } from '../infra/repositories/{{ fileName }}.repository';
 import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller';
 
 @Module({
+{%- if persistence == 'typeorm' %}
+  // Registers the entity's TypeORM repository so `@InjectRepository` can resolve
+  // it, and lets `autoLoadEntities` discover the entity without AppModule having
+  // to list every one of them.
+  imports: [TypeOrmModule.forFeature([{{ className }}Entity])],
+{%- endif %}
   controllers: [{{ className }}Controller],
   providers: [
     {{ className }}Repository,

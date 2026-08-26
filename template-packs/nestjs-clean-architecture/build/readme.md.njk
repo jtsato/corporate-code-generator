@@ -1,8 +1,13 @@
 # {{ applicationName }}
 
 NestJS service generated from an application model with a clean-architecture
-Golden Path. Persistence is in memory, so the application needs no external
+Golden Path.
+{%- if persistence == 'typeorm' %} Persistence is TypeORM over PostgreSQL; the
+generated suites run against an in-process SQLite database, so tests need
+nothing provisioned.
+{%- else %} Persistence is in memory, so the application needs no external
 services to run.
+{%- endif %}
 
 ## Layers
 
@@ -55,6 +60,21 @@ The `Dockerfile` is multi-stage: the build stage keeps the full toolchain — th
 Nest CLI and TypeScript are development dependencies — and the runtime stage
 receives only the compiled output and production dependencies.
 
+{% if persistence == 'typeorm' -%}
+The application needs a database, so Compose is the way to run it: it starts
+PostgreSQL, waits until it accepts connections, and only then starts the
+application.
+
+```bash
+docker compose up --build
+```
+
+Compose runs the container in development mode on purpose. This project
+generates no migrations, so the schema comes from TypeORM synchronizing it
+against the entities — which production refuses, because synchronizing drops the
+column a renamed attribute used to occupy. A real deployment supplies its own
+`DATABASE_*` variables and needs a migration step this project does not generate.
+{%- else -%}
 ```bash
 docker build -t {{ applicationName }}:latest .
 docker run --rm -p 3000:3000 {{ applicationName }}:latest
@@ -65,6 +85,7 @@ Or through Compose, which builds the same image:
 ```bash
 docker compose up --build
 ```
+{%- endif %}
 
 The container runs as the unprivileged `node` user that `node:alpine` already
 ships, never as root. It sets `NODE_ENV=production`, so it starts on
@@ -77,7 +98,8 @@ container healthy only once the application is actually serving traffic.
 
 `.github/workflows/node-ci.yml` runs on pushes to `main`, on pull requests, and
 on demand through `workflow_dispatch`. It installs, lints, builds, runs the unit
-and end-to-end suites, then builds the container image and starts it to confirm
+and end-to-end suites, then builds the container image and starts{% if persistence == 'typeorm' %} the
+Compose stack{% else %} it{% endif %} to confirm
 the readiness endpoint answers — building an image proves less than serving from
 one.
 

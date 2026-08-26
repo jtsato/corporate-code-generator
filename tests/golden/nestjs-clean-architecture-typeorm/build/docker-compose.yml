@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wallet-service:latest
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      # This file orchestrates the image for local work and for the CI check, not
+      # for a deployment. It runs the container in development mode on purpose:
+      # the project generates no migrations, so the schema has to come from
+      # TypeORM synchronizing it against the entities, which production refuses.
+      # A real deployment supplies its own coordinates and needs a migration step
+      # this project does not yet generate.
+      NODE_ENV: development
+      DATABASE_DRIVER: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USERNAME: wallet-service
+      DATABASE_PASSWORD: wallet-service
+      DATABASE_NAME: wallet-service
+      DATABASE_SYNCHRONIZE: "true"
+    depends_on:
+      postgres:
+        # Waits for the database to accept connections rather than merely to
+        # exist, so the application does not start against a port that is open
+        # but not yet serving.
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: wallet-service
+      POSTGRES_PASSWORD: wallet-service
+      POSTGRES_DB: wallet-service
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet-service -d wallet-service"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

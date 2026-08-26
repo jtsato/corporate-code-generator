@@ -1,0 +1,26 @@
+id: test-profile
+version: 1.0.0
+
+technology:
+  language: java
+  languageVersion: "25"
+  framework: spring-boot
+
+architecture:
+  style: clean-architecture
+
+templatePack:
+  id: java-spring-clean
+  version: 0.1.0
+
+modules:
+  - id: domain
+    requires: []
+
+options:
+  - id: persistence
+    values: []
+    default: memory
+  - values:
+      - memory
+    default: memory

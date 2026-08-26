@@ -1,4 +1,5 @@
 import type { Module } from "./Module.js";
+import type { ProfileOption } from "./ProfileOption.js";
 
 export interface ProfileTechnology {
   readonly language: string;
@@ -21,5 +22,6 @@ export interface Profile {
   readonly technology: ProfileTechnology;
   readonly architecture: ProfileArchitecture;
   readonly modules: readonly Module[];
+  readonly options: readonly ProfileOption[];
   readonly templatePack: ProfileTemplatePackReference;
 }

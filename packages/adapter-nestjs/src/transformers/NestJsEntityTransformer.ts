@@ -11,9 +11,11 @@ import {
   toKebabCaseName,
   toPluralKebabCaseName,
   toRestCollectionPath,
+  toSnakeCaseName,
   toTypeScriptPropertyName,
   toTypeScriptTypeName,
 } from "../naming/TypeScriptNames.js";
+import { TypeOrmColumnResolver, type TypeOrmColumn } from "../types/TypeOrmColumnResolver.js";
 import { TypeScriptTypeResolver } from "../types/TypeScriptTypeResolver.js";
 
 function quoted(value: string): string {
@@ -139,11 +141,17 @@ function createCoreValidationStatements(
 export class NestJsEntityTransformer {
   public constructor(
     private readonly typeResolver: TypeScriptTypeResolver = new TypeScriptTypeResolver(),
+    private readonly columnResolver: TypeOrmColumnResolver = new TypeOrmColumnResolver(),
   ) {}
 
   public transform(entity: Entity): NestJsEntityTemplateModel {
-    const properties = entity.attributes.map((attribute) => {
+    const columns = entity.attributes.map((attribute) =>
+      this.columnResolver.resolve(attribute.type, attribute.required));
+
+    const properties = entity.attributes.map((attribute, attributeIndex) => {
       const resolved = this.typeResolver.resolve(attribute.type);
+      const columnName = toSnakeCaseName(attribute.name);
+      const column = columns[attributeIndex] as TypeOrmColumn;
 
       return {
         name: toTypeScriptPropertyName(attribute.name),
@@ -161,6 +169,8 @@ export class NestJsEntityTransformer {
         testValue: testValue(attribute.type),
         alternateTestValue: alternateTestValue(attribute.type),
         invalidTestValue: invalidTestValue(attribute.type),
+        columnName,
+        columnDecoratorArguments: `{ ${["name: '" + columnName + "'", ...column.options].join(", ")} }`,
       } satisfies NestJsPropertyTemplateModel;
     });
 
@@ -241,6 +251,8 @@ export class NestJsEntityTransformer {
       requestValidationImports,
       updateRequestValidationImports,
       patchRequestValidationImports,
+      tableName: toPluralKebabCaseName(entity.name).replaceAll("-", "_"),
+      usesNumericTransformer: columns.some((column) => column.usesNumericTransformer),
     };
   }
 

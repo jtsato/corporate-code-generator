@@ -10,7 +10,9 @@ describe("GenerateCommand", () => {
         modelPath: "examples/wallet-service/model.yaml",
         profileId: "java-spring-clean",
         moduleIds: ["domain"],
-        outputDirectory: undefined,
+        optionAssignments: new Map(),
+        optionAssignments: new Map(),
+      outputDirectory: undefined,
         dryRun: true,
       });
       expect(exitCode).toBe(0);
@@ -25,6 +27,7 @@ describe("GenerateCommand", () => {
       modelPath: "examples/wallet-service/model.yaml",
       profileId: "java-spring-clean",
       moduleIds: ["domain"],
+      optionAssignments: new Map(),
       outputDirectory: "generated",
       dryRun: false,
     });
@@ -41,6 +44,7 @@ describe("GenerateCommand", () => {
       modelPath: "examples/wallet-service/model.yaml",
       profileId: "java-spring-clean",
       moduleIds: ["application"],
+      optionAssignments: new Map(),
       outputDirectory: "generated",
       dryRun: false,
     });
@@ -58,7 +62,9 @@ describe("GenerateCommand", () => {
         modelPath: "examples/wallet-service/model.yaml",
         profileId: "java-spring-clean",
         moduleIds: ["domain"],
-        outputDirectory: undefined,
+        optionAssignments: new Map(),
+        optionAssignments: new Map(),
+      outputDirectory: undefined,
         dryRun: false,
       });
       expect(exitCode).toBe(1);
@@ -80,6 +86,7 @@ describe("GenerateCommand", () => {
           modelPath: "examples/wallet-service/model.yaml",
           profileId: "java-spring-clean-multimodule",
           moduleIds: [],
+          optionAssignments: new Map(),
           outputDirectory,
           dryRun,
         });
@@ -107,6 +114,7 @@ describe("GenerateCommand", () => {
       modelPath: "examples/wallet-service/model.yaml",
       profileId: "java-spring-clean-multimodule",
       moduleIds: ["build"],
+      optionAssignments: new Map(),
       outputDirectory: "generated",
       dryRun: false,
     });
@@ -137,7 +145,7 @@ describe("GenerateCommand", () => {
     });
     const exitCode = await new GenerateCommand(writer).execute({
       modelPath: "examples/wallet-service/model.yaml", profileId: "java-spring-clean-multimodule",
-      moduleIds: ["core"], outputDirectory: "generated", dryRun: false,
+      moduleIds: ["core"], optionAssignments: new Map(), outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
     expect(targetPaths).toEqual([
@@ -216,7 +224,7 @@ describe("GenerateCommand", () => {
     });
     const exitCode = await new GenerateCommand(writer).execute({
       modelPath: "examples/wallet-service/model.yaml", profileId: "java-spring-clean-multimodule",
-      moduleIds: ["build", "core"], outputDirectory: "generated", dryRun: false,
+      moduleIds: ["build", "core"], optionAssignments: new Map(), outputDirectory: "generated", dryRun: false,
     });
     expect(exitCode).toBe(0);
     expect(targetPaths).toHaveLength(79);
@@ -254,7 +262,9 @@ describe("GenerateCommand", () => {
           modelPath: "examples/wallet-service/model.yaml",
           profileId: "java-spring-clean-multimodule",
           moduleIds,
-          outputDirectory: "generated",
+          optionAssignments: new Map(),
+        optionAssignments: new Map(),
+      outputDirectory: "generated",
           dryRun: false,
         });
 

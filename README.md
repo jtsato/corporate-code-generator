@@ -125,6 +125,25 @@ node packages/cli/dist/index.js generate examples/wallet-service/model.yaml \
   --output generated
 ```
 
+## Select a profile option
+
+A profile may declare technology options: implementation choices inside a
+capability, in the sense [ADR-017](docs/adr/ADR-017-capability-taxonomy-and-profile-options.md)
+gave the term. The NestJS profile declares `persistence`, which selects between
+the in-memory adapter and TypeORM over PostgreSQL:
+
+```bash
+mkdir generated
+node packages/cli/dist/index.js generate examples/nestjs-wallet-service/model.yaml \
+  --profile nestjs-clean-architecture \
+  --option persistence=typeorm \
+  --output generated
+```
+
+Omitting `--option` uses the value the profile declares as its default, which
+for `persistence` is `memory`. An unknown option or an unaccepted value fails
+the run and names what the profile allows.
+
 ## Repository structure
 
 ```text

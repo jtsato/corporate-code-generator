@@ -30,3 +30,22 @@ CORS_ALLOW_CREDENTIALS=false
 
 # Preflight cache lifetime in seconds. Non-negative integer.
 CORS_MAX_AGE=3600
+{%- if persistence == 'typeorm' %}
+
+# One of: postgres, sqljs. `sqljs` keeps the database inside the process and
+# needs none of the coordinates below; it is what the tests run against.
+DATABASE_DRIVER=postgres
+
+# Required whenever the driver is `postgres`. Left empty here so that an
+# unconfigured deployment fails at boot rather than at the first query.
+DATABASE_HOST=
+DATABASE_PORT=5432
+DATABASE_USERNAME=
+DATABASE_PASSWORD=
+DATABASE_NAME=
+
+# Exactly `true` or `false`. Lets TypeORM alter the schema to match the entities
+# at start-up, which is how a renamed attribute drops the column that held its
+# data. Refused outright when NODE_ENV is production.
+DATABASE_SYNCHRONIZE=false
+{%- endif %}

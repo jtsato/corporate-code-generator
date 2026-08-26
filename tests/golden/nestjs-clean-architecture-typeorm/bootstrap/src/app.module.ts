@@ -1,0 +1,85 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
+
+import { WalletModule } from './modules/wallet.module';
+
+import { ConflictExceptionFilter } from './web-api/commons/filters/conflict.exception.filter';
+import { HealthController } from './web-api/health/health.controller';
+import { I18nModule } from './web-api/i18n/i18n.module';
+import { NotFoundExceptionFilter } from './web-api/commons/filters/not-found.exception.filter';
+import { ValidationExceptionFilter } from './web-api/commons/filters/validation.exception.filter';
+import { APP_FILTER } from '@nestjs/core';
+import { Scope } from '@nestjs/common';
+
+import { EnvironmentSymbol, validateEnvironment } from './config/environment';
+import type { Environment } from './config/environment';
+
+@Module({
+  imports: [
+    // `.env` is listed first because @nestjs/config gives precedence to the
+    // earlier file, so an uncommitted local override beats the committed default.
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      envFilePath: ['.env', `.env.${process.env.NODE_ENV ?? 'development'}`],
+    }),
+    // The factory calls `validateEnvironment` again instead of injecting the
+    // provider declared below: `forRootAsync` resolves its factory inside
+    // TypeOrmModule's own context, where an AppModule provider is not visible.
+    // The function is pure, and ConfigModule.forRoot has already loaded the
+    // environment files by the time this runs.
+    TypeOrmModule.forRootAsync({
+      useFactory: (): TypeOrmModuleOptions => {
+        const { database } = validateEnvironment();
+
+        // The in-process engine starts with an empty database every time, so it
+        // synchronizes unconditionally; there is no schema to preserve and no
+        // migration that could have created one.
+        if (database.driver === 'sqljs') {
+          return { type: 'sqljs', autoLoadEntities: true, synchronize: true };
+        }
+
+        return {
+          type: 'postgres',
+          host: database.host,
+          port: database.port,
+          username: database.username,
+          password: database.password,
+          database: database.name,
+          autoLoadEntities: true,
+          synchronize: database.synchronize,
+        };
+      },
+    }),
+    I18nModule,
+    WalletModule,
+  ],
+  controllers: [HealthController],
+  providers: [
+    {
+      // Eagerly instantiated during application start, so invalid configuration
+      // fails the boot rather than the first request that needs a value. It runs
+      // after ConfigModule has loaded the environment files.
+      provide: EnvironmentSymbol,
+      useFactory: (): Environment => validateEnvironment(),
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ConflictExceptionFilter,
+      scope: Scope.REQUEST,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: NotFoundExceptionFilter,
+      scope: Scope.REQUEST,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ValidationExceptionFilter,
+      scope: Scope.REQUEST,
+    },
+  ],
+})
+export class AppModule {}

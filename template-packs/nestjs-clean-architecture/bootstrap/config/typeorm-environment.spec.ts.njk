@@ -1,0 +1,160 @@
+import { EnvironmentValidationError, validateEnvironment } from './environment';
+
+/**
+ * The in-process driver stands in for "the database part of the configuration is
+ * fine": it is the one driver that needs no coordinates, so cases about ports and
+ * CORS can say nothing about the database without leaving it unconfigured.
+ */
+const inProcessDatabase = { DATABASE_DRIVER: 'sqljs' };
+
+describe('validateEnvironment', () => {
+  it('applies documented defaults when only the database is named', () => {
+    const environment = validateEnvironment({ ...inProcessDatabase });
+
+    expect(environment.name).toBe('development');
+    expect(environment.port).toBe(3000);
+    expect(environment.cors.enabled).toBe(false);
+    expect(environment.cors.allowCredentials).toBe(false);
+    expect(environment.cors.maxAge).toBe(3600);
+    expect(environment.database.driver).toBe('sqljs');
+    expect(environment.database.synchronize).toBe(false);
+  });
+
+  it('reads a complete configuration', () => {
+    const environment = validateEnvironment({
+      NODE_ENV: 'production',
+      PORT: '8080',
+      CORS_ALLOWED_ORIGINS: 'https://a.example, https://b.example',
+      CORS_ALLOWED_METHODS: 'GET,POST',
+      CORS_ALLOWED_HEADERS: 'Content-Type',
+      CORS_EXPOSED_HEADERS: 'Location',
+      CORS_ALLOW_CREDENTIALS: 'true',
+      CORS_MAX_AGE: '600',
+      DATABASE_DRIVER: 'postgres',
+      DATABASE_HOST: 'db.internal',
+      DATABASE_PORT: '6432',
+      DATABASE_USERNAME: 'service',
+      DATABASE_PASSWORD: 'secret',
+      DATABASE_NAME: '{{ applicationName }}',
+    });
+
+    expect(environment.name).toBe('production');
+    expect(environment.port).toBe(8080);
+    expect(environment.cors).toEqual({
+      enabled: true,
+      allowedOrigins: ['https://a.example', 'https://b.example'],
+      allowedMethods: ['GET', 'POST'],
+      allowedHeaders: ['Content-Type'],
+      exposedHeaders: ['Location'],
+      allowCredentials: true,
+      maxAge: 600,
+    });
+    expect(environment.database).toEqual({
+      driver: 'postgres',
+      host: 'db.internal',
+      port: 6432,
+      username: 'service',
+      password: 'secret',
+      name: '{{ applicationName }}',
+      synchronize: false,
+    });
+  });
+
+  it('treats an empty origin list as CORS disabled', () => {
+    expect(validateEnvironment({ ...inProcessDatabase, CORS_ALLOWED_ORIGINS: '  ,  ' }).cors.enabled).toBe(false);
+  });
+
+  it('accepts port zero as a request for an ephemeral port', () => {
+    expect(validateEnvironment({ ...inProcessDatabase, PORT: '0' }).port).toBe(0);
+  });
+
+  it('requires the coordinates a server-backed driver needs', () => {
+    // The default driver is `postgres`, so an unconfigured deployment must fail
+    // here rather than at the first query.
+    expect.assertions(1);
+    try {
+      validateEnvironment({});
+    } catch (error) {
+      expect((error as EnvironmentValidationError).problems).toEqual([
+        'DATABASE_HOST is required.',
+        'DATABASE_USERNAME is required.',
+        'DATABASE_PASSWORD is required.',
+        'DATABASE_NAME is required.',
+      ]);
+    }
+  });
+
+  it('asks the in-process driver for no coordinates at all', () => {
+    const database = validateEnvironment({ DATABASE_DRIVER: 'sqljs' }).database;
+
+    expect(database).toEqual({
+      driver: 'sqljs',
+      host: '',
+      port: 0,
+      username: '',
+      password: '',
+      name: '',
+      synchronize: false,
+    });
+  });
+
+  it('refuses to synchronize a production schema', () => {
+    // Synchronizing drops the column a renamed attribute used to occupy. The
+    // in-process driver is used here so the failure can only be about NODE_ENV.
+    expect(() =>
+      validateEnvironment({ ...inProcessDatabase, NODE_ENV: 'production', DATABASE_SYNCHRONIZE: 'true' }),
+    ).toThrow(/DATABASE_SYNCHRONIZE cannot be true/);
+
+    expect(
+      validateEnvironment({ ...inProcessDatabase, NODE_ENV: 'test', DATABASE_SYNCHRONIZE: 'true' }).database.synchronize,
+    ).toBe(true);
+  });
+
+  it.each([
+    ['NODE_ENV', { NODE_ENV: 'staging' }],
+    ['PORT', { PORT: 'eighty' }],
+    ['PORT', { PORT: '70000' }],
+    ['CORS_ALLOW_CREDENTIALS', { CORS_ALLOW_CREDENTIALS: 'yes' }],
+    ['CORS_MAX_AGE', { CORS_MAX_AGE: '-1' }],
+    ['DATABASE_DRIVER', { DATABASE_DRIVER: 'mysql' }],
+    // The in-process driver never reads a port, so this case has to name a
+    // server-backed one for the port to be validated at all.
+    ['DATABASE_PORT', {
+      DATABASE_DRIVER: 'postgres',
+      DATABASE_HOST: 'db.internal',
+      DATABASE_USERNAME: 'service',
+      DATABASE_PASSWORD: 'secret',
+      DATABASE_NAME: '{{ applicationName }}',
+      DATABASE_PORT: '0',
+    }],
+    ['DATABASE_SYNCHRONIZE', { DATABASE_SYNCHRONIZE: 'yes' }],
+  ])('rejects an invalid %s', (variable, source) => {
+    const complete = { ...inProcessDatabase, ...source };
+
+    expect(() => validateEnvironment(complete)).toThrow(EnvironmentValidationError);
+    expect(() => validateEnvironment(complete)).toThrow(new RegExp(variable));
+  });
+
+  it('rejects credentials together with a wildcard origin', () => {
+    expect(() =>
+      validateEnvironment({ ...inProcessDatabase, CORS_ALLOWED_ORIGINS: '*', CORS_ALLOW_CREDENTIALS: 'true' }),
+    ).toThrow(/cannot be true/);
+  });
+
+  it('reports every problem at once', () => {
+    // `expect.assertions` rather than a `fail()` call: jest-circus removed that
+    // Jasmine global, and a try/catch with no assertion count would pass silently
+    // if validation stopped throwing.
+    expect.assertions(1);
+    try {
+      validateEnvironment({
+        ...inProcessDatabase,
+        NODE_ENV: 'staging',
+        PORT: 'eighty',
+        CORS_ALLOW_CREDENTIALS: 'yes',
+      });
+    } catch (error) {
+      expect((error as EnvironmentValidationError).problems).toHaveLength(3);
+    }
+  });
+});

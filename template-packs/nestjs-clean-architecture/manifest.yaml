@@ -264,10 +264,21 @@ templates:
     template: core/usecases/page/page.usecase.ts.njk
     output: src/core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.usecase.ts
 
+  # The `persistence` option selects between the two entity, repository and
+  # repository-test templates below. Both members of each pair render to the same
+  # path, and the producer emits exactly one of them.
   - id: infra-persistence-entity-model
     module: infra-persistence
     template: infra-persistence/models/entity.model.ts.njk
     output: src/infra/models/{{ fileName }}-entity.model.ts
+  - id: infra-persistence-typeorm-entity-model
+    module: infra-persistence
+    template: infra-persistence/models/typeorm-entity.model.ts.njk
+    output: src/infra/models/{{ fileName }}-entity.model.ts
+  - id: infra-persistence-column-transformers
+    module: infra-persistence
+    template: infra-persistence/persistence/column.transformers.ts.njk
+    output: src/infra/persistence/column.transformers.ts
   - id: infra-persistence-mapper
     module: infra-persistence
     template: infra-persistence/mappers/mapper.ts.njk
@@ -276,9 +287,17 @@ templates:
     module: infra-persistence
     template: infra-persistence/repositories/repository.ts.njk
     output: src/infra/repositories/{{ fileName }}.repository.ts
+  - id: infra-persistence-typeorm-repository
+    module: infra-persistence
+    template: infra-persistence/repositories/typeorm-repository.ts.njk
+    output: src/infra/repositories/{{ fileName }}.repository.ts
   - id: infra-persistence-repository-test
     module: infra-persistence
     template: infra-persistence/repositories/repository.spec.ts.njk
+    output: src/infra/repositories/{{ fileName }}.repository.spec.ts
+  - id: infra-persistence-typeorm-repository-test
+    module: infra-persistence
+    template: infra-persistence/repositories/typeorm-repository.spec.ts.njk
     output: src/infra/repositories/{{ fileName }}.repository.spec.ts
   - id: infra-persistence-create-provider
     module: infra-persistence
@@ -422,10 +441,18 @@ templates:
     module: bootstrap
     template: bootstrap/config/environment.spec.ts.njk
     output: src/config/environment.spec.ts
+  - id: bootstrap-typeorm-environment-config-test
+    module: bootstrap
+    template: bootstrap/config/typeorm-environment.spec.ts.njk
+    output: src/config/environment.spec.ts
   - id: bootstrap-e2e-test
     module: bootstrap
     template: bootstrap/e2e-test.ts.njk
     output: test/app.e2e-spec.ts
+  - id: bootstrap-e2e-environment-setup
+    module: bootstrap
+    template: bootstrap/setup-e2e-environment.ts.njk
+    output: test/setup-e2e-environment.ts
   - id: bootstrap-entity-module
     module: bootstrap
     template: bootstrap/modules/module.ts.njk

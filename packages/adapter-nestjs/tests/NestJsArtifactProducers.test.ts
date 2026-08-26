@@ -14,21 +14,27 @@ import { NestJsCleanArchitectureWebApiArtifactProducer } from "../src/generation
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
-const request = {
-  application: {
-    schemaVersion: "1.0",
-    name: "wallet-service",
-    entities: [
-      {
-        name: "Wallet",
-        attributes: [
-          { name: "id", type: "uuid", required: true, identifier: true },
-          { name: "balance", type: "decimal", required: true, identifier: false },
-        ],
-      },
-    ],
-  },
-} as GenerationRequest;
+function requestWith(persistence: string): GenerationRequest {
+  return {
+    application: {
+      schemaVersion: "1.0",
+      name: "wallet-service",
+      entities: [
+        {
+          name: "Wallet",
+          attributes: [
+            { name: "id", type: "uuid", required: true, identifier: true },
+            { name: "balance", type: "decimal", required: true, identifier: false },
+          ],
+        },
+      ],
+    },
+    options: new Map([["persistence", persistence]]),
+  } as GenerationRequest;
+}
+
+const request = requestWith("memory");
+const typeormRequest = requestWith("typeorm");
 
 describe("NestJS clean architecture artifact producers", () => {
   it("declares the expected profile and module identifiers", () => {
@@ -199,6 +205,47 @@ describe("NestJS clean architecture artifact producers", () => {
     ]);
   });
 
+  it("swaps only the entity, repository and repository test when persistence is TypeORM", () => {
+    const invocations = new NestJsCleanArchitectureInfraPersistenceArtifactProducer().produce(typeormRequest);
+
+    expect(invocations.map((invocation) => invocation.templateId)).toEqual([
+      // Emitted once per project rather than once per entity, so it leads.
+      "infra-persistence-column-transformers",
+      "infra-persistence-typeorm-entity-model",
+      "infra-persistence-mapper",
+      "infra-persistence-typeorm-repository",
+      "infra-persistence-typeorm-repository-test",
+      "infra-persistence-create-provider",
+      "infra-persistence-get-by-id-provider",
+      "infra-persistence-page-provider",
+      "infra-persistence-update-provider",
+      "infra-persistence-delete-provider",
+    ]);
+  });
+
+  it("refuses to produce when the persistence option was never resolved", () => {
+    // A producer that defaulted here could emit TypeORM artifacts while another
+    // emitted the in-memory wiring for the same run.
+    const unresolved = { ...request, options: new Map() } as GenerationRequest;
+
+    expect(() => new NestJsCleanArchitectureInfraPersistenceArtifactProducer().produce(unresolved))
+      .toThrow(/resolved 'persistence' option/);
+    expect(() => new NestJsCleanArchitectureBuildArtifactProducer().produce(unresolved))
+      .toThrow(/resolved 'persistence' option/);
+    expect(() => new NestJsCleanArchitectureBootstrapArtifactProducer().produce(unresolved))
+      .toThrow(/resolved 'persistence' option/);
+  });
+
+  it("carries the resolved persistence option into every model that branches on it", () => {
+    const build = new NestJsCleanArchitectureBuildArtifactProducer().produce(typeormRequest);
+    const bootstrap = new NestJsCleanArchitectureBootstrapArtifactProducer().produce(typeormRequest);
+
+    for (const invocation of [...build, ...bootstrap]) {
+      expect((invocation.model as { readonly persistence?: string }).persistence, invocation.templateId)
+        .toBe("typeorm");
+    }
+  });
+
   it("declares repository update, delete, and uniqueness contracts", async () => {
     const repositoryTemplate = await readFile(
       join(repoRoot, "template-packs", "nestjs-clean-architecture", "infra-persistence", "repositories", "repository.ts.njk"),
@@ -249,6 +296,20 @@ describe("NestJS clean architecture artifact producers", () => {
       "bootstrap-entity-module",
     ]);
     expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
+  });
+
+  it("selects the ORM environment test and adds the end-to-end environment setup", () => {
+    const invocations = new NestJsCleanArchitectureBootstrapArtifactProducer().produce(typeormRequest);
+
+    expect(invocations.map((invocation) => invocation.templateId)).toEqual([
+      "bootstrap-main",
+      "bootstrap-app-module",
+      "bootstrap-environment-config",
+      "bootstrap-typeorm-environment-config-test",
+      "bootstrap-e2e-test",
+      "bootstrap-e2e-environment-setup",
+      "bootstrap-entity-module",
+    ]);
   });
 
   it("wires CRUD providers and use cases in the generated entity module", async () => {

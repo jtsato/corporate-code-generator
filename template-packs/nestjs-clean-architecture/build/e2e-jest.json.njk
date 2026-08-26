@@ -2,6 +2,9 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": "..",
   "testRegex": "test/.*\\.e2e-spec\\.ts$",
+{%- if persistence == 'typeorm' %}
+  "setupFiles": ["<rootDir>/test/setup-e2e-environment.ts"],
+{%- endif %}
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },

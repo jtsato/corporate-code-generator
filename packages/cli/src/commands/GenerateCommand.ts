@@ -5,6 +5,7 @@ import {
   ModelParser,
   ModelSchemaRegistry,
   ModuleResolver,
+  OptionResolver,
   ProfileResolver,
   SchemaValidator,
   SchemaVersionDetector,
@@ -81,11 +82,12 @@ export class GenerateCommand {
       const modules = options.moduleIds.length === 0
         ? new ModuleResolver().resolveAll(profile.modules)
         : new ModuleResolver().resolveSelected(profile.modules, options.moduleIds);
+      const resolvedOptions = new OptionResolver().resolve(profile.options, options.optionAssignments);
       const producers = this.createProducers(profile.id, modules);
       const resolvedPack = await new TemplatePackResolver(
         resolve(process.cwd(), "template-packs"),
       ).resolve(profile.templatePack);
-      const request = { application, profile, modules } satisfies GenerationRequest;
+      const request = { application, profile, modules, options: resolvedOptions } satisfies GenerationRequest;
       const operations = [];
       for (const producer of producers) {
         const planner = new GenerationPlanner(

@@ -34,6 +34,16 @@ const modelPath = "examples/nestjs-wallet-service/model.yaml";
 const MODULE_IDS = ["build", "core", "infra-persistence", "web-api", "bootstrap"] as const;
 
 /**
+ * Both persistence options, because the option swaps artifacts inside
+ * `infra-persistence` and adds imports to `bootstrap`. Checking only the default
+ * would leave the variant's boundaries enforced by nothing.
+ */
+const PERSISTENCE_OPTIONS = ["memory", "typeorm"] as const;
+
+const SELECTIONS = PERSISTENCE_OPTIONS.flatMap((persistence) =>
+  MODULE_IDS.map((moduleId) => ({ persistence, moduleId })));
+
+/**
  * Layers that must never appear in an import from the keyed layer. The composition
  * root is absent on purpose: seeing every layer is precisely its role.
  */
@@ -43,9 +53,12 @@ const FORBIDDEN_LAYER_IMPORTS = new Map<string, readonly string[]>([
   ["src/web-api/", ["/infra/", "/modules/", "/app.module"]],
 ]);
 
-async function generate(moduleId: string | undefined): Promise<string> {
+async function generate(moduleId: string | undefined, persistence: string): Promise<string> {
   const outputRoot = await mkdtemp(join(tmpdir(), "ccg-nest-boundary-"));
-  const args = [cliEntryPoint, "generate", modelPath, "--profile", profileId, "--output", outputRoot];
+  const args = [
+    cliEntryPoint, "generate", modelPath, "--profile", profileId,
+    "--option", `persistence=${persistence}`, "--output", outputRoot,
+  ];
   if (moduleId !== undefined) args.push("--module", moduleId);
   await execFileAsync(process.execPath, args, { cwd: repoRoot, maxBuffer: 10 * 1024 * 1024 });
   return outputRoot;
@@ -89,8 +102,10 @@ async function resolvesWithin(root: string, importingFile: string, specifier: st
 }
 
 describe("NestJS module boundary smoke test", () => {
-  it.each(MODULE_IDS)("resolves every relative import inside the %s selection", async (moduleId) => {
-    const outputRoot = await generate(moduleId);
+  it.each(SELECTIONS)(
+    "resolves every relative import inside the $moduleId selection with $persistence persistence",
+    async ({ moduleId, persistence }) => {
+    const outputRoot = await generate(moduleId, persistence);
     try {
       const files = (await listFiles(outputRoot)).filter((file) => file.endsWith(".ts"));
 
@@ -102,14 +117,14 @@ describe("NestJS module boundary smoke test", () => {
         }
       }
 
-      expect(unresolved, `Unresolved imports in the '${moduleId}' selection`).toEqual([]);
+      expect(unresolved, `Unresolved imports in the '${moduleId}' selection (${persistence})`).toEqual([]);
     } finally {
       await rm(outputRoot, { recursive: true, force: true });
     }
   }, 60_000);
 
-  it("keeps the full profile's dependency direction pointing inward", async () => {
-    const outputRoot = await generate(undefined);
+  it.each(PERSISTENCE_OPTIONS)("keeps the full profile's dependency direction pointing inward with %s persistence", async (persistence) => {
+    const outputRoot = await generate(undefined, persistence);
     try {
       const files = (await listFiles(outputRoot)).filter((file) => file.endsWith(".ts"));
       const violations: string[] = [];
@@ -135,8 +150,13 @@ describe("NestJS module boundary smoke test", () => {
 
   it("covers every module the profile declares", async () => {
     const profile = await readFile(join(repoRoot, "profiles", profileId, "profile.yaml"), "utf8");
-    const declared = [...profile.matchAll(/^\s{2}-\sid:\s(\S+)$/gm)].map((match) => match[1]);
+    // Scoped to the `modules:` block rather than matched across the whole file:
+    // `options:` entries have the same shape, and counting one as a module would
+    // make this suite claim coverage it does not have.
+    const modulesBlock = /^modules:$([\s\S]*?)(?=^\S|\Z)/m.exec(profile)?.[1] ?? "";
+    const declared = [...modulesBlock.matchAll(/^\s{2}-\sid:\s(\S+)$/gm)].map((match) => match[1]);
 
+    expect(declared.length).toBeGreaterThan(0);
     expect(new Set(declared)).toEqual(new Set(MODULE_IDS));
   });
 });

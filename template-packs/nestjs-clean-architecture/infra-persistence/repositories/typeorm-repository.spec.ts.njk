@@ -1,0 +1,208 @@
+/**
+ * Runs the repository against a real SQL engine rather than a mock.
+ *
+ * SQLite runs inside this process, so the suite needs no database to be
+ * provisioned and no container runtime. What it cannot do is prove PostgreSQL
+ * behaves the same; the entity and the repository are written to the subset both
+ * engines agree on precisely because this gate cannot see the difference.
+ */
+import 'reflect-metadata';
+import { DataSource } from 'typeorm';
+import type { Repository } from 'typeorm';
+
+import { FilterCondition } from '../../core/common/filter/filter-condition';
+import { FilterExpression } from '../../core/common/filter/filter-expression';
+import { PageRequest } from '../../core/common/paging/page-request';
+import { SortDirection } from '../../core/common/paging/sort-direction';
+import { SortOrder } from '../../core/common/paging/sort-order';
+import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
+import { {{ className }}Repository } from './{{ fileName }}.repository';
+
+describe('{{ className }}Repository', () => {
+  let dataSource: DataSource;
+  let repository: {{ className }}Repository;
+
+  function createEntity(overrides: Record<string, unknown> = {}): {{ className }}Entity {
+    return new {{ className }}Entity(
+{%- for property in properties %}
+      Object.prototype.hasOwnProperty.call(overrides, '{{ property.name }}')
+        ? overrides['{{ property.name }}'] as unknown as {{ property.type }}
+        : {{ property.testValue }},
+{%- endfor %}
+    );
+  }
+
+  async function page(
+    sortProperty: string,
+    direction: SortDirection,
+    size = 20,
+    index = 0,
+  ): Promise<readonly {{ className }}Entity[]> {
+    const result = await repository.findPage(
+      new PageRequest(index, size, [new SortOrder(sortProperty, direction)]),
+      new FilterExpression(),
+    );
+    return result.items;
+  }
+
+  beforeEach(async () => {
+    dataSource = new DataSource({
+      type: 'sqljs',
+      entities: [{{ className }}Entity],
+      synchronize: true,
+      dropSchema: true,
+    });
+    await dataSource.initialize();
+    repository = new {{ className }}Repository(
+      dataSource.getRepository({{ className }}Entity) as Repository<{{ className }}Entity>,
+    );
+  });
+
+  afterEach(async () => {
+    await dataSource.destroy();
+  });
+
+  it('reads back every column with the type it was written with', async () => {
+    const saved = await repository.save(createEntity());
+
+    const found = await repository.findById(saved.{{ identifier.name }});
+
+    expect(found).toBeDefined();
+{%- for property in properties %}
+    expect((found as {{ className }}Entity).{{ property.name }}).toStrictEqual({{ property.testValue }});
+{%- endfor %}
+  });
+
+  it('reports a row that was never stored as undefined', async () => {
+    await repository.save(createEntity());
+
+    await expect(repository.findById({{ identifier.alternateTestValue }})).resolves.toBeUndefined();
+    await expect(repository.existsById({{ identifier.testValue }})).resolves.toBe(true);
+    await expect(repository.existsById({{ identifier.alternateTestValue }})).resolves.toBe(false);
+  });
+
+  it('does not insert a row when updating one that is not there', async () => {
+    // `save` upserts on the primary key, so an update that skipped the existence
+    // check would silently create the row it was asked to modify.
+    const absent = createEntity({ {{ identifier.name }}: {{ identifier.alternateTestValue }} });
+
+    await expect(repository.updateById({{ identifier.alternateTestValue }}, absent)).resolves.toBeUndefined();
+    await expect(repository.existsById({{ identifier.alternateTestValue }})).resolves.toBe(false);
+  });
+
+  it('reports whether a delete removed anything', async () => {
+    await repository.save(createEntity());
+
+    await expect(repository.deleteById({{ identifier.testValue }})).resolves.toBe(true);
+    await expect(repository.deleteById({{ identifier.testValue }})).resolves.toBe(false);
+  });
+
+  it('reverses the page order when the direction is reversed', async () => {
+    await repository.save(createEntity());
+    await repository.save(createEntity({ {{ identifier.name }}: {{ identifier.alternateTestValue }} }));
+
+    const ascending = await page('{{ identifier.name }}', SortDirection.Asc);
+    const descending = await page('{{ identifier.name }}', SortDirection.Desc);
+
+    expect(ascending).toHaveLength(2);
+    expect(descending.map((entity) => entity.{{ identifier.name }})).toEqual(
+      [...ascending].reverse().map((entity) => entity.{{ identifier.name }}),
+    );
+  });
+
+  it('splits tied rows across pages without repeating one', async () => {
+{%- if mutableProperties.length > 0 %}
+    // Both rows carry the same sort key, so only the identifier tiebreaker makes
+    // the order total. Without it one row can land on both pages.
+    await repository.save(createEntity());
+    await repository.save(createEntity({ {{ identifier.name }}: {{ identifier.alternateTestValue }} }));
+
+    const first = await page('{{ mutableProperties[0].name }}', SortDirection.Asc, 1, 0);
+    const second = await page('{{ mutableProperties[0].name }}', SortDirection.Asc, 1, 1);
+{%- else %}
+    await repository.save(createEntity());
+    await repository.save(createEntity({ {{ identifier.name }}: {{ identifier.alternateTestValue }} }));
+
+    const first = await page('{{ identifier.name }}', SortDirection.Asc, 1, 0);
+    const second = await page('{{ identifier.name }}', SortDirection.Asc, 1, 1);
+{%- endif %}
+
+    expect(first).toHaveLength(1);
+    expect(second).toHaveLength(1);
+    expect(new Set([
+      String((first[0] as {{ className }}Entity).{{ identifier.name }}),
+      String((second[0] as {{ className }}Entity).{{ identifier.name }}),
+    ]).size).toBe(2);
+  });
+
+  it('filters on a value the caller supplied as text', async () => {
+    await repository.save(createEntity());
+    await repository.save(createEntity({ {{ identifier.name }}: {{ identifier.alternateTestValue }} }));
+
+    const matching = await repository.findPage(
+      new PageRequest(0, 20, []),
+      new FilterExpression([
+        new FilterCondition('{{ identifier.name }}', 'eq', String({{ identifier.testValue }})),
+      ]),
+    );
+    const excluded = await repository.findPage(
+      new PageRequest(0, 20, []),
+      new FilterExpression([
+        new FilterCondition('{{ identifier.name }}', 'ne', String({{ identifier.testValue }})),
+      ]),
+    );
+
+    expect(matching.totalItems).toBe(1);
+    expect((matching.items[0] as {{ className }}Entity).{{ identifier.name }}).toStrictEqual({{ identifier.testValue }});
+    expect(excluded.totalItems).toBe(1);
+    expect((excluded.items[0] as {{ className }}Entity).{{ identifier.name }}).toStrictEqual({{ identifier.alternateTestValue }});
+  });
+
+  it('refuses to query by a property it does not map', async () => {
+    // The generated parsers reject unknown names first, so this is reachable only
+    // from code. A name reaching SQL is an identifier, not a parameter, so the
+    // allowlist has to hold on its own.
+    await expect(
+      repository.findPage(
+        new PageRequest(0, 20, []),
+        new FilterExpression([new FilterCondition('{{ identifier.name }}) OR 1=1 --', 'eq', 'x')]),
+      ),
+    ).rejects.toThrow('cannot query by');
+  });
+{%- if hasUniqueAttributes %}
+
+  it('reports no unique conflict against an empty table', async () => {
+    await expect(repository.hasUniqueConflict(createEntity())).resolves.toEqual([]);
+  });
+{%- for attribute in uniqueAttributes %}
+
+  it('reports a conflict for a duplicate {{ attribute.name }}', async () => {
+    await repository.save(createEntity({ {{ attribute.name }}: {{ attribute.testValue }} }));
+
+    const candidate = createEntity({
+      {{ identifier.name }}: {{ identifier.alternateTestValue }},
+      {{ attribute.name }}: {{ attribute.testValue }},
+    });
+
+    await expect(repository.hasUniqueConflict(candidate)).resolves.toContain('{{ attribute.name }}');
+    await expect(repository.hasUniqueConflict(candidate, {{ identifier.testValue }})).resolves.not.toContain('{{ attribute.name }}');
+  });
+{%- endfor %}
+{%- for group in uniqueGroupChecks %}
+
+  it('reports a conflict only when every member of unique group {{ loop.index }} matches', async () => {
+    await repository.save(createEntity({ {% for attribute in group.attributes %}{{ attribute.name }}: {{ attribute.testValue }}{% if not loop.last %}, {% endif %}{% endfor %} }));
+
+    const duplicate = createEntity({ {{ identifier.name }}: {{ identifier.alternateTestValue }}, {% for attribute in group.attributes %}{{ attribute.name }}: {{ attribute.testValue }}{% if not loop.last %}, {% endif %}{% endfor %} });
+    const partial = createEntity({ {{ identifier.name }}: {{ identifier.alternateTestValue }}, {% for attribute in group.attributes %}{% if loop.first %}{{ attribute.name }}: {{ attribute.alternateTestValue }}{% else %}{{ attribute.name }}: {{ attribute.testValue }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %} });
+
+    await expect(repository.hasUniqueConflict(duplicate)).resolves.toEqual(expect.arrayContaining([
+{%- for attribute in group.attributes %}
+      '{{ attribute.name }}'{% if not loop.last %},{% endif %}
+{%- endfor %}
+    ]));
+    await expect(repository.hasUniqueConflict(partial)).resolves.toEqual([]);
+  });
+{%- endfor %}
+{%- endif %}
+});

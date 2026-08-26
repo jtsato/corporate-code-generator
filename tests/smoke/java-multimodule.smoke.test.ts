@@ -163,7 +163,10 @@ describe("Java multi-module CLI smoke test", () => {
     } finally {
       await rm(outputRoot, { recursive: true, force: true });
     }
-  });
+    // Explicit, like every other smoke suite here: this spawns the CLI and
+    // compares 130 files, which the 5-second default was never sized for. It
+    // only ever passed because the suite was small enough to run unopposed.
+  }, 60_000);
 });
 
 function normalizeLineEndings(content: string): string {

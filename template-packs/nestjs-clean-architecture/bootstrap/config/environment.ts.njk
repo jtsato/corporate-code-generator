@@ -23,11 +23,35 @@ export interface CorsPolicy {
   readonly maxAge: number;
 }
 
+{% if persistence == 'typeorm' -%}
+export const DATABASE_DRIVERS = ['postgres', 'sqljs'] as const;
+
+export type DatabaseDriver = (typeof DATABASE_DRIVERS)[number];
+
+export interface DatabaseConfiguration {
+  readonly driver: DatabaseDriver;
+  /** Ignored by the in-process `sqljs` driver, which has no server to reach. */
+  readonly host: string;
+  readonly port: number;
+  readonly username: string;
+  readonly password: string;
+  readonly name: string;
+  /**
+   * Lets TypeORM create and alter tables to match the entities at start-up.
+   * Rejected in production, where it can drop a column that still holds data.
+   */
+  readonly synchronize: boolean;
+}
+
+{% endif -%}
 export interface Environment {
   readonly name: EnvironmentName;
   /** Zero asks the operating system for an ephemeral port. */
   readonly port: number;
   readonly cors: CorsPolicy;
+{%- if persistence == 'typeorm' %}
+  readonly database: DatabaseConfiguration;
+{%- endif %}
 }
 
 /**
@@ -97,6 +121,58 @@ function readBoolean(source: Record<string, unknown>, key: string, problems: str
   return raw === 'true';
 }
 
+{% if persistence == 'typeorm' -%}
+function readRequired(
+  source: Record<string, unknown>,
+  key: string,
+  problems: string[],
+): string {
+  const value = readString(source, key);
+  if (value === undefined) {
+    problems.push(`${key} is required.`);
+    return '';
+  }
+  return value;
+}
+
+function readDatabase(
+  source: Record<string, unknown>,
+  environmentName: EnvironmentName,
+  problems: string[],
+): DatabaseConfiguration {
+  const rawDriver = readString(source, 'DATABASE_DRIVER') ?? 'postgres';
+  const isKnownDriver = (DATABASE_DRIVERS as readonly string[]).includes(rawDriver);
+  if (!isKnownDriver) {
+    problems.push(`DATABASE_DRIVER must be one of ${DATABASE_DRIVERS.join(', ')}, but was '${rawDriver}'.`);
+  }
+  const driver = (isKnownDriver ? rawDriver : 'postgres') as DatabaseDriver;
+
+  const synchronize = readBoolean(source, 'DATABASE_SYNCHRONIZE', problems);
+  // A schema synchronized against the entities is how a renamed attribute drops
+  // the column that still holds the data. Convenient in development, unsurvivable
+  // in production, so it is refused there rather than documented as risky.
+  if (synchronize && environmentName === 'production') {
+    problems.push('DATABASE_SYNCHRONIZE cannot be true when NODE_ENV is production.');
+  }
+
+  // `sqljs` keeps the database inside the process, so it needs no coordinates and
+  // asking for them would only invite a deployment to supply meaningless ones.
+  if (driver === 'sqljs') {
+    return { driver, host: '', port: 0, username: '', password: '', name: '', synchronize };
+  }
+
+  return {
+    driver,
+    host: readRequired(source, 'DATABASE_HOST', problems),
+    port: readInteger(source, 'DATABASE_PORT', 5432, 1, 65535, problems),
+    username: readRequired(source, 'DATABASE_USERNAME', problems),
+    password: readRequired(source, 'DATABASE_PASSWORD', problems),
+    name: readRequired(source, 'DATABASE_NAME', problems),
+    synchronize,
+  };
+}
+
+{% endif -%}
 function readEnvironmentName(source: Record<string, unknown>, problems: string[]): EnvironmentName {
   const raw = readString(source, 'NODE_ENV');
   if (raw === undefined) return 'development';
@@ -139,7 +215,12 @@ export function validateEnvironment(source: Record<string, unknown> = process.en
     maxAge: readInteger(source, 'CORS_MAX_AGE', 3600, 0, 86400, problems),
   };
 
+{%- if persistence == 'typeorm' %}
+
+  const database = readDatabase(source, name, problems);
+{%- endif %}
+
   if (problems.length > 0) throw new EnvironmentValidationError(problems);
 
-  return { name, port, cors };
+  return { name, port, cors{% if persistence == 'typeorm' %}, database{% endif %} };
 }

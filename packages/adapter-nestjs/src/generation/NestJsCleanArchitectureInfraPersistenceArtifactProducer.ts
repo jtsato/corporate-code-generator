@@ -4,13 +4,46 @@ import type {
   TemplateInvocation,
 } from "@corporate-code-generator/core";
 
+import { persistenceOf, type PersistenceOption } from "../options/PersistenceOption.js";
 import { NestJsEntityTransformer } from "../transformers/NestJsEntityTransformer.js";
 
-const PER_ENTITY_TEMPLATE_IDS = [
-  "infra-persistence-entity-model",
-  "infra-persistence-mapper",
-  "infra-persistence-repository",
-  "infra-persistence-repository-test",
+/**
+ * The three per-entity templates the `persistence` option selects between, and
+ * the module-level ones only some options need.
+ *
+ * The mapper and the five providers are not here, because the option does not
+ * change them. That is the point of the mapper boundary ADR-057 mandated:
+ * swapping the storage technology touches the entity and the repository, and
+ * nothing that sits between them and the Core.
+ */
+interface PersistenceTemplates {
+  readonly entityModel: string;
+  readonly repository: string;
+  readonly repositoryTest: string;
+  /** Emitted once per project rather than once per entity. */
+  readonly moduleTemplates: readonly string[];
+}
+
+const TEMPLATES_BY_OPTION: Readonly<Record<PersistenceOption, PersistenceTemplates>> = {
+  memory: {
+    entityModel: "infra-persistence-entity-model",
+    repository: "infra-persistence-repository",
+    repositoryTest: "infra-persistence-repository-test",
+    moduleTemplates: [],
+  },
+  typeorm: {
+    entityModel: "infra-persistence-typeorm-entity-model",
+    repository: "infra-persistence-typeorm-repository",
+    repositoryTest: "infra-persistence-typeorm-repository-test",
+    // Emitted whether or not this model has a column that needs it. Making it
+    // conditional would tie the generated file list to which primitive types a
+    // model happens to use, so adding one decimal attribute later would add a
+    // file rather than an import.
+    moduleTemplates: ["infra-persistence-column-transformers"],
+  },
+};
+
+const PROVIDER_TEMPLATE_IDS = [
   "infra-persistence-create-provider",
   "infra-persistence-get-by-id-provider",
   "infra-persistence-page-provider",
@@ -32,10 +65,25 @@ export class NestJsCleanArchitectureInfraPersistenceArtifactProducer
   public produce(
     request: GenerationRequest,
   ): readonly TemplateInvocation[] {
-    return request.application.entities.flatMap((entity) => {
+    const templates = TEMPLATES_BY_OPTION[persistenceOf(request)];
+    const perEntityTemplateIds = [
+      templates.entityModel,
+      "infra-persistence-mapper",
+      templates.repository,
+      templates.repositoryTest,
+      ...PROVIDER_TEMPLATE_IDS,
+    ];
+
+    const moduleInvocations = templates.moduleTemplates.map((templateId) => ({
+      templateId,
+      model: this.transformer.transformApplication(request.application),
+      outputVariables: {},
+    }));
+
+    const entityInvocations = request.application.entities.flatMap((entity) => {
       const model = this.transformer.transform(entity);
 
-      return PER_ENTITY_TEMPLATE_IDS.map((templateId) => ({
+      return perEntityTemplateIds.map((templateId) => ({
         templateId,
         model,
         outputVariables: {
@@ -44,5 +92,7 @@ export class NestJsCleanArchitectureInfraPersistenceArtifactProducer
         },
       }));
     });
+
+    return [...moduleInvocations, ...entityInvocations];
   }
 }

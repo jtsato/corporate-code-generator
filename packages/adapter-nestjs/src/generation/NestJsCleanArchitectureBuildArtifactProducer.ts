@@ -4,6 +4,7 @@ import type {
   TemplateInvocation,
 } from "@corporate-code-generator/core";
 
+import { persistenceOf } from "../options/PersistenceOption.js";
 import { NestJsEntityTransformer } from "../transformers/NestJsEntityTransformer.js";
 
 const BUILD_TEMPLATE_IDS = [
@@ -67,7 +68,14 @@ export class NestJsCleanArchitectureBuildArtifactProducer
   public produce(
     request: GenerationRequest,
   ): readonly TemplateInvocation[] {
-    const model = this.transformer.transformApplication(request.application);
+    // Every build artifact restates something about persistence: the manifest
+    // names the driver packages, the environment files name the database, and
+    // Compose has to start one. So the option reaches all of them rather than
+    // only the packaging subset.
+    const model = {
+      ...this.transformer.transformApplication(request.application),
+      persistence: persistenceOf(request),
+    };
     const packagingModel = {
       ...model,
       containerPort,

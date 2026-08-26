@@ -76,23 +76,40 @@ function parseGenerateOptions(args: readonly string[]): GenerateOptions {
   let profileId: string | undefined;
   let outputDirectory: string | undefined;
   const moduleIds: string[] = [];
+  const optionAssignments = new Map<string, string>();
   let dryRun = false;
   for (let index = 1; index < args.length; index += 1) {
     const option = args[index];
     if (option === "--dry-run") { dryRun = true; continue; }
-    if (option === "--profile" || option === "--output" || option === "--module") {
+    if (option === "--profile" || option === "--output" || option === "--module" || option === "--option") {
       const value = args[index + 1];
       if (value === undefined || value.startsWith("-")) throw new Error(`Option '${option}' requires a value.`);
       index += 1;
       if (option === "--profile") profileId = value;
       else if (option === "--output") outputDirectory = value;
-      else moduleIds.push(value);
+      else if (option === "--module") moduleIds.push(value);
+      else assignOption(optionAssignments, value);
       continue;
     }
     throw new Error(`Unknown option '${option}'.`);
   }
   if (profileId === undefined) throw new Error("Option '--profile' is required.");
-  return { modelPath: resolve(process.cwd(), modelPath), profileId, moduleIds, outputDirectory, dryRun };
+  return { modelPath: resolve(process.cwd(), modelPath), profileId, moduleIds, optionAssignments, outputDirectory, dryRun };
+}
+
+/**
+ * Assignments are `id=value`. Which ids and values exist is the profile's to
+ * say, so this only rejects the shapes no profile could accept; `OptionResolver`
+ * rejects the rest with the allowed values in the message.
+ */
+function assignOption(assignments: Map<string, string>, assignment: string): void {
+  const separatorIndex = assignment.indexOf("=");
+  if (separatorIndex <= 0) throw new Error(`Option '--option' expects 'id=value', received '${assignment}'.`);
+  const id = assignment.slice(0, separatorIndex);
+  const value = assignment.slice(separatorIndex + 1);
+  if (value === "") throw new Error(`Option '--option' expects 'id=value', received '${assignment}'.`);
+  if (assignments.has(id)) throw new Error(`Option '${id}' is assigned more than once.`);
+  assignments.set(id, value);
 }
 
 function printUsage(): void {
@@ -101,13 +118,14 @@ Corporate Code Generator
 
 Usage:
   codegen validate <model>
-  codegen generate <model> --profile <profile-id> [--module <module-id> ...] [--output <directory>] [--dry-run]
+  codegen generate <model> --profile <profile-id> [--module <module-id> ...] [--option <id>=<value> ...] [--output <directory>] [--dry-run]
 
 Commands:
   validate <model>    Validate an application model
   generate <model>    Generate files or print a dry-run plan
 
 Options:
+  --option <id>=<v>   Select a profile technology option
   -h, --help          Show help
 `);
 }

@@ -24,6 +24,15 @@ export function toPluralKebabCaseName(value: string): string {
   return `${toKebabCaseName(value)}s`;
 }
 
+/**
+ * Relational identifiers are snake_case by convention on PostgreSQL, where an
+ * unquoted mixed-case identifier is folded to lower case anyway. Deriving the
+ * column name here keeps the generated entity from depending on that folding.
+ */
+export function toSnakeCaseName(value: string): string {
+  return toKebabCaseName(value).replaceAll("-", "_");
+}
+
 export function toRestCollectionPath(entityName: string): string {
   return `/${toPluralKebabCaseName(entityName)}`;
 }

@@ -29,3 +29,14 @@ modules:
       - core
       - infra-persistence
       - web-api
+
+# Technology options in the ADR-017 sense: implementation choices inside a
+# capability. The default keeps `npm test` and the generated-project smoke
+# runnable with no database and no container runtime, which is why flipping it
+# is its own decision rather than a consequence of adding the ORM.
+options:
+  - id: persistence
+    values:
+      - memory
+      - typeorm
+    default: memory

@@ -1,0 +1,70 @@
+name: Node CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      # `npm install` rather than `npm ci`, and no dependency cache: this project
+      # ships no lockfile, so `npm ci` fails outright and `cache: npm` has nothing
+      # to key on. Caching against package.json alone would key ranges rather than
+      # resolutions and could serve a stale tree.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Build container image
+        run: docker compose build
+
+      # Proves the image actually serves, not merely that it builds, and that it
+      # reaches its database: the stack is brought up through Compose so the
+      # application starts against the PostgreSQL the deployment shape assumes.
+      # A container that starts and never becomes ready is the failure this step
+      # exists for, so the logs are printed before the run is failed.
+      - name: Verify the stack serves its readiness endpoint
+        run: |
+          docker compose up -d
+          for attempt in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health-check/ready > /dev/null; then
+              echo "Stack ready after ${attempt} attempt(s)."
+              docker compose down -v
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Stack did not become ready within 60 seconds."
+          docker compose logs || true
+          docker compose down -v || true
+          exit 1

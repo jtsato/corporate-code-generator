@@ -11,6 +11,7 @@ import type {
   ProfileTechnology,
   ProfileTemplatePackReference,
 } from "./Profile.js";
+import type { ProfileOption } from "./ProfileOption.js";
 import {
   ProfileValidationError,
   type ProfileValidationIssue,
@@ -33,6 +34,7 @@ function parseProfile(document: unknown): Profile {
   const technology = parseTechnology(profile, issues);
   const architecture = parseArchitecture(profile, issues);
   const modules = parseModules(profile, issues);
+  const options = parseOptions(profile, issues);
   const templatePack = parseTemplatePack(profile, issues);
 
   if (issues.length > 0) {
@@ -45,6 +47,7 @@ function parseProfile(document: unknown): Profile {
     technology: technology as ProfileTechnology,
     architecture: architecture as ProfileArchitecture,
     modules: modules as readonly Module[],
+    options: options as readonly ProfileOption[],
     templatePack: templatePack as ProfileTemplatePackReference,
   };
 }
@@ -151,6 +154,48 @@ function parseModules(
   });
 
   return modules;
+}
+
+/**
+ * `options` is absent from every profile that predates the option mechanism, so
+ * a missing key means "declares no options" rather than an invalid profile. A
+ * present but malformed key is still an error.
+ */
+function parseOptions(
+  profile: Record<string, unknown> | undefined,
+  issues: ProfileValidationIssue[],
+): readonly ProfileOption[] | undefined {
+  const value = profile?.options;
+
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    issues.push({ path: "options", message: "must be an array." });
+    return undefined;
+  }
+
+  const options: ProfileOption[] = [];
+
+  value.forEach((entry, index) => {
+    const path = `options[${index}]`;
+    const option = recordAt(entry, path, issues);
+    const id = stringAt(option, "id", `${path}.id`, issues);
+    const values = stringArrayAt(option, "values", `${path}.values`, issues);
+    const defaultValue = stringAt(option, "default", `${path}.default`, issues);
+
+    if (values !== undefined && values.length === 0) {
+      issues.push({ path: `${path}.values`, message: "must not be empty." });
+      return;
+    }
+
+    if (id !== undefined && values !== undefined && defaultValue !== undefined) {
+      options.push({ id, values, defaultValue });
+    }
+  });
+
+  return options;
 }
 
 function recordAt(

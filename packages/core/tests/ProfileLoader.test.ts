@@ -37,10 +37,10 @@ describe("ProfileLoader", () => {
           requires: [],
         },
       ],
-      templatePack: {
-        id: "java-spring-clean",
-        version: "0.1.0",
-      },
+      // A profile that declares no options loads as declaring none, rather than
+      // failing: every profile written before the option mechanism existed is
+      // still valid.
+      options: [],
     });
   });
 
@@ -65,6 +65,21 @@ describe("ProfileLoader", () => {
           path: "modules[0].requires[0]",
           message: "must be a non-empty string.",
         },
+      ]);
+    }
+  });
+
+  it("should reject malformed option declarations", async () => {
+    // `options` may be absent, but a present one is validated like everything
+    // else: a profile that declares an option nobody could satisfy is a defect
+    // in the profile, not a run-time surprise for whoever generates from it.
+    try {
+      await new ProfileLoader().load(fixturePath("invalid-options-profile.yaml"));
+      expect.fail("Expected profile validation to fail.");
+    } catch (error) {
+      expect((error as ProfileValidationError).issues).toEqual([
+        { path: "options[0].values", message: "must not be empty." },
+        { path: "options[1].id", message: "must be a non-empty string." },
       ]);
     }
   });

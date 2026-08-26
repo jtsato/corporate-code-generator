@@ -225,6 +225,16 @@ export interface GeneratedServerOptions {
   readonly cwd: string;
   readonly entryPoint: string;
   readonly port: number;
+  /**
+   * Extra environment for the server process, applied after the sanitized set.
+   *
+   * `NODE_ENV` is one of the names the sanitizer strips, because letting the
+   * invoking `npm run` decide it is how a generated install loses its
+   * development dependencies. A caller that needs the generated application to
+   * select a particular environment file therefore has to say so here rather
+   * than relying on inheritance.
+   */
+  readonly env?: Readonly<Record<string, string>>;
 }
 
 export interface ServerReadinessOptions {
@@ -247,7 +257,7 @@ export function spawnGeneratedNodeServer(options: GeneratedServerOptions): Gener
 
   const child = spawn(process.execPath, [options.entryPoint], {
     cwd: options.cwd,
-    env: { ...sanitizedNpmEnv(), PORT: String(options.port) },
+    env: { ...sanitizedNpmEnv(), PORT: String(options.port), ...(options.env ?? {}) },
     stdio: ["ignore", "pipe", "pipe"],
     detached: process.platform !== "win32",
   });

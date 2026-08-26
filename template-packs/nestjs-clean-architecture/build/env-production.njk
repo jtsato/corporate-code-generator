@@ -13,3 +13,19 @@ CORS_ALLOWED_HEADERS=Content-Type,Accept,Accept-Language
 CORS_EXPOSED_HEADERS=Location
 CORS_ALLOW_CREDENTIALS=false
 CORS_MAX_AGE=3600
+{%- if persistence == 'typeorm' %}
+
+# Deliberately empty: the deployment supplies these as real environment
+# variables, and an empty value fails the boot rather than reaching a default
+# database nobody meant to use. dotenv never overwrites a variable that is
+# already set, so a supplied value wins over the blank below.
+DATABASE_DRIVER=postgres
+DATABASE_HOST=
+DATABASE_PORT=5432
+DATABASE_USERNAME=
+DATABASE_PASSWORD=
+DATABASE_NAME=
+
+# Refused in production anyway; stated here so the value is never a surprise.
+DATABASE_SYNCHRONIZE=false
+{%- endif %}

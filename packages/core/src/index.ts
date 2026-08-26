@@ -74,6 +74,10 @@ export type {
 } from "./profiles/Module.js";
 
 export type {
+  ProfileOption,
+} from "./profiles/ProfileOption.js";
+
+export type {
   Profile,
   ProfileArchitecture,
   ProfileTechnology,
@@ -83,6 +87,7 @@ export type {
 export { ProfileLoader } from "./profiles/ProfileLoader.js";
 export { ProfileResolver } from "./profiles/ProfileResolver.js";
 export { ModuleResolver } from "./profiles/ModuleResolver.js";
+export { OptionResolver } from "./profiles/OptionResolver.js";
 
 export {
   ProfileNotFoundError,
@@ -107,6 +112,14 @@ export {
 export type {
   ModuleResolutionIssue,
 } from "./profiles/ModuleResolutionError.js";
+
+export {
+  OptionResolutionError,
+} from "./profiles/OptionResolutionError.js";
+
+export type {
+  OptionResolutionIssue,
+} from "./profiles/OptionResolutionError.js";
 
 export type {
   GenerationRequest,
