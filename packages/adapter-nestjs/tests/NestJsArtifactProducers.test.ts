@@ -56,6 +56,9 @@ describe("NestJS clean architecture artifact producers", () => {
       "build-env-development",
       "build-env-test",
       "build-env-production",
+      "build-dockerfile",
+      "build-dockerignore",
+      "build-docker-compose",
     ]);
   });
 

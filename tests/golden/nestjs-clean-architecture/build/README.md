@@ -49,6 +49,30 @@ npm run start:dev
 The application listens on the port in `PORT`, defaulting to 3000. The OpenAPI
 specification is served by Swagger UI at `/swagger-ui`.
 
+## Container
+
+The `Dockerfile` is multi-stage: the build stage keeps the full toolchain — the
+Nest CLI and TypeScript are development dependencies — and the runtime stage
+receives only the compiled output and production dependencies.
+
+```bash
+docker build -t wallet-service:latest .
+docker run --rm -p 3000:3000 wallet-service:latest
+```
+
+Or through Compose, which builds the same image:
+
+```bash
+docker compose up --build
+```
+
+The container runs as the unprivileged `node` user that `node:alpine` already
+ships, never as root. It sets `NODE_ENV=production`, so it starts on
+`.env.production` — whose CORS origin list is empty, meaning an unconfigured
+container rejects cross-origin browser calls rather than accepting all of them.
+Its `HEALTHCHECK` polls `/health-check/ready`, so `docker ps` reports the
+container healthy only once the application is actually serving traffic.
+
 ## Configuration
 
 `NODE_ENV` selects one of three committed environment files — `.env.development`,

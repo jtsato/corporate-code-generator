@@ -26,6 +26,9 @@ const GENERATED_PATHS = [
   ".env.development",
   ".env.test",
   ".env.production",
+  "Dockerfile",
+  ".dockerignore",
+  "docker-compose.yml",
   "src/core/exceptions/core.exception.ts",
   "src/core/exceptions/field-violation.ts",
   "src/core/exceptions/not-found.exception.ts",
@@ -145,6 +148,7 @@ const dotlessGoldenPaths = new Map([
   [".env.development", "env.development"],
   [".env.test", "env.test"],
   [".env.production", "env.production"],
+  [".dockerignore", "dockerignore"],
 ]);
 
 function goldenPath(targetPath: string): string {

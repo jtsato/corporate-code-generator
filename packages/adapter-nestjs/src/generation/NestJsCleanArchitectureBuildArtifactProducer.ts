@@ -19,6 +19,9 @@ const BUILD_TEMPLATE_IDS = [
   "build-env-development",
   "build-env-test",
   "build-env-production",
+  "build-dockerfile",
+  "build-dockerignore",
+  "build-docker-compose",
 ] as const;
 
 export class NestJsCleanArchitectureBuildArtifactProducer

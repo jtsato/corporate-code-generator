@@ -1,0 +1,39 @@
+### Node ###
+node_modules/
+npm-debug.log*
+
+### Build output ###
+dist/
+*.tsbuildinfo
+
+### Test and coverage output ###
+coverage/
+.nyc_output/
+
+### Version control ###
+.git/
+.gitignore
+
+### Container files ###
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+### CI ###
+.github/
+
+### Local environment overrides ###
+# `.env.production` is deliberately NOT ignored: the runtime stage copies it, and
+# without it the container would fall back to development defaults, including a
+# wildcard CORS origin.
+.env
+.env*.local
+
+### IDE ###
+.idea/
+*.iml
+.vscode/
+
+### Operating system ###
+.DS_Store
+Thumbs.db

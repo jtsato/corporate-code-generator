@@ -50,6 +50,18 @@ templates:
     module: build
     template: build/env-production.njk
     output: .env.production
+  - id: build-dockerfile
+    module: build
+    template: build/dockerfile.njk
+    output: Dockerfile
+  - id: build-dockerignore
+    module: build
+    template: build/dockerignore.njk
+    output: .dockerignore
+  - id: build-docker-compose
+    module: build
+    template: build/docker-compose.yml.njk
+    output: docker-compose.yml
 
   - id: core-exception
     module: core
