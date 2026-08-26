@@ -9,9 +9,10 @@
  * fail here rather than drift unreviewed.
  *
  * That assertion is also the evidence for ADR-057's mapper boundary. The mapper
- * and the five gateway providers are not on the list, which is the claim that
+ * and every gateway provider are absent from the list, which is the claim that
  * swapping the storage technology does not reach the code between the repository
- * and the Core.
+ * and the Core. Milestone 7.27 added three providers and a whole tombstone model
+ * without changing that list, which is the strongest form the claim has taken.
  */
 import { execFile } from "node:child_process";
 import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
@@ -162,6 +163,12 @@ describe("NestJS persistence option smoke test", () => {
       "src/infra/providers/page-wallets.provider.ts",
       "src/infra/providers/update-wallet.provider.ts",
       "src/infra/providers/delete-wallet.provider.ts",
+      // Added by the soft-delete capability, and identical between the options
+      // for the same reason the original five are: they speak to the repository,
+      // not to the storage technology behind it.
+      "src/infra/providers/restore-wallet.provider.ts",
+      "src/infra/providers/get-deleted-wallet-by-id.provider.ts",
+      "src/infra/providers/page-deleted-wallets.provider.ts",
     ];
 
     for (const path of unaffected) {

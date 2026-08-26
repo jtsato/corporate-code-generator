@@ -1,0 +1,16 @@
+/**
+ * A soft-deleted {{ className }}, as the deleted-only routes expose it.
+ *
+ * This is a separate model rather than a nullable field on {{ className }}: the
+ * ordinary contract is active-only, and adding a deletion timestamp there would
+ * put a value on every response that is always null for every caller who is not
+ * asking about tombstones.
+ */
+export class {{ className }}Tombstone {
+  public constructor(
+{%- for property in properties %}
+    public readonly {{ property.name }}: {{ property.type }},
+{%- endfor %}
+    public readonly deletedAt: Date,
+  ) {}
+}

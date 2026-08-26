@@ -1,0 +1,21 @@
+import { Injectable } from '@nestjs/common';
+
+import { {{ className }}Tombstone } from '../../core/models/{{ fileName }}-tombstone.model';
+import { IGetDeleted{{ className }}ByIdGateway } from '../../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.gateway';
+import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
+import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
+
+@Injectable()
+export class GetDeleted{{ className }}ByIdProvider implements IGetDeleted{{ className }}ByIdGateway {
+  public constructor(private readonly repository: {{ className }}Repository) {}
+
+  public async execute({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Tombstone | undefined> {
+    const entity = await this.repository.findDeletedById({{ identifier.name }});
+
+    if (entity === undefined) {
+      return undefined;
+    }
+
+    return {{ className }}Mapper.toTombstone(entity);
+  }
+}

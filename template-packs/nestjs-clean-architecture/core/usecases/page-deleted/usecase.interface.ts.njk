@@ -1,0 +1,9 @@
+import { PageDeleted{{ className }}Query } from './page-deleted-{{ pluralFileName }}.query';
+import { PageResult } from '../../common/paging/page-result';
+import { {{ className }}Tombstone } from '../../models/{{ fileName }}-tombstone.model';
+
+export interface IPageDeleted{{ className }}UseCase {
+  execute(query: PageDeleted{{ className }}Query): Promise<PageResult<{{ className }}Tombstone>>;
+}
+
+export const IPageDeleted{{ className }}UseCaseSymbol = Symbol('IPageDeleted{{ className }}UseCase');

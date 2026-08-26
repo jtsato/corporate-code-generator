@@ -8,6 +8,7 @@ import { NestJsEntityTransformer } from "../transformers/NestJsEntityTransformer
 
 const PER_ENTITY_TEMPLATE_IDS = [
   "core-domain-model",
+  "core-tombstone-model",
   "core-create-command",
   "core-create-command-validator",
   "core-create-gateway",
@@ -41,6 +42,20 @@ const PER_ENTITY_TEMPLATE_IDS = [
   "core-page-usecase-interface",
   "core-page-usecase",
   "core-get-by-id-usecase-test",
+  "core-restore-command",
+  "core-restore-gateway",
+  "core-restore-usecase-interface",
+  "core-restore-usecase",
+  "core-restore-usecase-test",
+  "core-get-deleted-by-id-query",
+  "core-get-deleted-by-id-gateway",
+  "core-get-deleted-by-id-usecase-interface",
+  "core-get-deleted-by-id-usecase",
+  "core-get-deleted-by-id-usecase-test",
+  "core-page-deleted-query",
+  "core-page-deleted-gateway",
+  "core-page-deleted-usecase-interface",
+  "core-page-deleted-usecase",
 ] as const;
 
 const APPLICATION_TEMPLATES = [

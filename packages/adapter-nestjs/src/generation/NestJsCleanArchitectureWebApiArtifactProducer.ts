@@ -30,11 +30,14 @@ const PER_ENTITY_TEMPLATE_IDS = [
   "web-api-patch-request",
   "web-api-response",
   "web-api-presenter",
+  "web-api-tombstone-response",
+  "web-api-tombstone-presenter",
   "web-api-page-request",
   "web-api-filter-parser",
   "web-api-sort-parser",
   "web-api-sort-parser-test",
   "web-api-page-response",
+  "web-api-tombstone-page-response",
   "web-api-controller",
 ] as const;
 

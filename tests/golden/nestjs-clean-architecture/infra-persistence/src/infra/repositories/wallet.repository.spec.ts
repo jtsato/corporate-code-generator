@@ -35,6 +35,60 @@ describe('WalletRepository', () => {
     await expect(repository.existsById("00000000-0000-4000-8000-000000000002")).resolves.toBe(false);
   });
 
+  it('retains a soft-deleted row and hides it from every active read', async () => {
+    const repository = new WalletRepository();
+    const deletedAt = new Date('2025-06-01T00:00:00.000Z');
+    await repository.save(createEntity('id', "00000000-0000-4000-8000-000000000001"));
+
+    await expect(repository.softDeleteById("00000000-0000-4000-8000-000000000001", deletedAt)).resolves.toBe(true);
+
+    await expect(repository.findById("00000000-0000-4000-8000-000000000001")).resolves.toBeUndefined();
+    await expect(repository.existsById("00000000-0000-4000-8000-000000000001")).resolves.toBe(false);
+    await expect(repository.findPage(new PageRequest(0, 20, []), new FilterExpression()))
+      .resolves.toMatchObject({ totalItems: 0 });
+
+    // Retained, not removed: that is the whole difference from a hard delete.
+    const tombstone = await repository.findDeletedById("00000000-0000-4000-8000-000000000001");
+    expect(tombstone).toBeDefined();
+    expect((tombstone as WalletEntity).deletedAt).toEqual(deletedAt);
+    await expect(repository.findDeletedPage(new PageRequest(0, 20, []), new FilterExpression()))
+      .resolves.toMatchObject({ totalItems: 1 });
+  });
+
+  it('reports a repeated soft delete as nothing to delete', async () => {
+    // What makes a second DELETE answer 404 instead of 204.
+    const repository = new WalletRepository();
+    await repository.save(createEntity('id', "00000000-0000-4000-8000-000000000001"));
+
+    await expect(repository.softDeleteById("00000000-0000-4000-8000-000000000001", new Date())).resolves.toBe(true);
+    await expect(repository.softDeleteById("00000000-0000-4000-8000-000000000001", new Date())).resolves.toBe(false);
+  });
+
+  it('restores a tombstone back into the active reads', async () => {
+    const repository = new WalletRepository();
+    await repository.save(createEntity('id', "00000000-0000-4000-8000-000000000001"));
+    await repository.softDeleteById("00000000-0000-4000-8000-000000000001", new Date());
+
+    await expect(repository.restoreById("00000000-0000-4000-8000-000000000001")).resolves.toBe(true);
+
+    await expect(repository.findById("00000000-0000-4000-8000-000000000001")).resolves.toBeDefined();
+    await expect(repository.findDeletedById("00000000-0000-4000-8000-000000000001")).resolves.toBeUndefined();
+    // Restoring one that is already active is nothing to restore, which the
+    // provider turns into a conflict rather than a silent success.
+    await expect(repository.restoreById("00000000-0000-4000-8000-000000000001")).resolves.toBe(false);
+  });
+
+  it('resolves a row by identifier whether it is active or deleted', async () => {
+    // Restore needs this to tell "no such row" from "already active".
+    const repository = new WalletRepository();
+    await repository.save(createEntity('id', "00000000-0000-4000-8000-000000000001"));
+
+    await expect(repository.findAnyById("00000000-0000-4000-8000-000000000001")).resolves.toBeDefined();
+    await repository.softDeleteById("00000000-0000-4000-8000-000000000001", new Date());
+    await expect(repository.findAnyById("00000000-0000-4000-8000-000000000001")).resolves.toBeDefined();
+    await expect(repository.findAnyById("00000000-0000-4000-8000-000000000002")).resolves.toBeUndefined();
+  });
+
   it('keeps nullish values after present values for descending sort', async () => {
     const repository = new WalletRepository();
     const present = createEntity('id', "00000000-0000-4000-8000-000000000001");

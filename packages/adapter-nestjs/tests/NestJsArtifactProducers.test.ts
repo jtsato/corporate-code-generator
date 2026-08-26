@@ -202,6 +202,9 @@ describe("NestJS clean architecture artifact producers", () => {
       "infra-persistence-page-provider",
       "infra-persistence-update-provider",
       "infra-persistence-delete-provider",
+      "infra-persistence-restore-provider",
+      "infra-persistence-get-deleted-by-id-provider",
+      "infra-persistence-page-deleted-provider",
     ]);
   });
 
@@ -220,6 +223,9 @@ describe("NestJS clean architecture artifact producers", () => {
       "infra-persistence-page-provider",
       "infra-persistence-update-provider",
       "infra-persistence-delete-provider",
+      "infra-persistence-restore-provider",
+      "infra-persistence-get-deleted-by-id-provider",
+      "infra-persistence-page-deleted-provider",
     ]);
   });
 
@@ -246,7 +252,7 @@ describe("NestJS clean architecture artifact producers", () => {
     }
   });
 
-  it("declares repository update, delete, and uniqueness contracts", async () => {
+  it("declares repository update, soft-delete, restore, and uniqueness contracts", async () => {
     const repositoryTemplate = await readFile(
       join(repoRoot, "template-packs", "nestjs-clean-architecture", "infra-persistence", "repositories", "repository.ts.njk"),
       "utf8",
@@ -255,24 +261,34 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(repositoryTemplate).toContain(
       "public async updateById({{ identifier.name }}: {{ identifier.type }}, entity: {{ className }}Entity): Promise<{{ className }}Entity | undefined>",
     );
-    expect(repositoryTemplate).toContain(
-      "const index = this.{{ propertyName }}s.findIndex((current) => current.{{ identifier.name }} === {{ identifier.name }});",
-    );
     expect(repositoryTemplate).toContain("if (index < 0) return undefined;");
     expect(repositoryTemplate).toContain("this.{{ propertyName }}s[index] = entity;");
     expect(repositoryTemplate).toContain("return entity;");
+    // Soft delete, not removal: the row is marked and kept, and every active read
+    // filters on the marker.
     expect(repositoryTemplate).toContain(
-      "public async deleteById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
+      "public async softDeleteById({{ identifier.name }}: {{ identifier.type }}, deletedAt: Date): Promise<boolean>",
+    );
+    expect(repositoryTemplate).not.toContain("this.{{ propertyName }}s.splice(");
+    expect(repositoryTemplate).toContain("entity.deletedAt = deletedAt;");
+    expect(repositoryTemplate).toContain(
+      "public async restoreById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
+    );
+    expect(repositoryTemplate).toContain("entity.deletedAt = null;");
+    expect(repositoryTemplate).toContain(
+      "public async findAnyById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined>",
+    );
+    expect(repositoryTemplate).toContain(
+      "public async findDeletedById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined>",
     );
     expect(repositoryTemplate).toContain(
       "public async existsById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
     );
-    expect(repositoryTemplate).toContain("if (index < 0) return false;");
-    expect(repositoryTemplate).toContain("this.{{ propertyName }}s.splice(index, 1);");
-    expect(repositoryTemplate).toContain("return true;");
     expect(repositoryTemplate).toContain("public async hasUniqueConflict(");
     expect(repositoryTemplate).toContain("ignoredIdentifier?: {{ identifier.type }}");
-    expect(repositoryTemplate).toContain("if (ignoredIdentifier !== undefined && compareValues(current.{{ identifier.name }}, ignoredIdentifier) === 0) continue;");
+    // Uniqueness is scoped to active rows, which is what releases a unique value
+    // once the row holding it is deleted.
+    expect(repositoryTemplate).toContain("if (!isActive(current)) continue;");
     expect(repositoryTemplate).toContain("!isNullish(candidate.{{ attribute.name }})");
 
     const createProviderTemplate = await readFile(
@@ -282,6 +298,19 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(createProviderTemplate).toContain("import { ConflictException } from '../../core/exceptions/conflict.exception';");
     expect(createProviderTemplate).toContain("const identifierConflict = await this.repository.existsById(entity.{{ identifier.name }});");
     expect(createProviderTemplate).toContain("if (identifierConflict");
+
+    const restoreProviderTemplate = await readFile(
+      join(repoRoot, "template-packs", "nestjs-clean-architecture", "infra-persistence", "providers", "restore.provider.ts.njk"),
+      "utf8",
+    );
+    // Restore has to tell three cases apart, and the REST contract gives each a
+    // different answer: absent is 404, already active is 409, and a taken unique
+    // value is 409.
+    expect(restoreProviderTemplate).toContain("const entity = await this.repository.findAnyById({{ identifier.name }});");
+    expect(restoreProviderTemplate).toContain("if (entity === undefined) {\n      return false;");
+    expect(restoreProviderTemplate).toContain("if (entity.deletedAt === null || entity.deletedAt === undefined) {");
+    expect(restoreProviderTemplate).toContain("throw new ConflictException('{{ propertyName }}.already-exists'");
+    expect(restoreProviderTemplate).toContain("await this.repository.hasUniqueConflict(entity, {{ identifier.name }});");
   });
 
   it("produces a single bootstrap composition root plus one wiring module per entity", () => {

@@ -1,0 +1,13 @@
+import { PageResult } from '../../common/paging/page-result';
+import { {{ className }}Tombstone } from '../../models/{{ fileName }}-tombstone.model';
+import { PageDeleted{{ className }}Query } from './page-deleted-{{ pluralFileName }}.query';
+import { IPageDeleted{{ className }}Gateway } from './page-deleted-{{ pluralFileName }}.gateway';
+import { IPageDeleted{{ className }}UseCase } from './page-deleted-{{ pluralFileName }}-usecase.interface';
+
+export class PageDeleted{{ className }}UseCase implements IPageDeleted{{ className }}UseCase {
+  public constructor(private readonly gateway: IPageDeleted{{ className }}Gateway) {}
+
+  public async execute(query: PageDeleted{{ className }}Query): Promise<PageResult<{{ className }}Tombstone>> {
+    return this.gateway.execute(query.pageRequest, query.filterExpression);
+  }
+}

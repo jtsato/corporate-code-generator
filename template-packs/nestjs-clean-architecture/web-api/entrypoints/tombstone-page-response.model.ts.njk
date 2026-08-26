@@ -1,0 +1,29 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+import { PageResult } from '../../../core/common/paging/page-result';
+import { {{ className }}TombstoneResponse } from './{{ fileName }}-tombstone-response.model';
+
+export class {{ className }}TombstonePageResponse {
+  @ApiProperty({ type: [{{ className }}TombstoneResponse] })
+  public readonly items: readonly {{ className }}TombstoneResponse[];
+
+  @ApiProperty()
+  public readonly page: number;
+
+  @ApiProperty()
+  public readonly size: number;
+
+  @ApiProperty()
+  public readonly totalItems: number;
+
+  @ApiProperty()
+  public readonly totalPages: number;
+
+  public constructor(page: PageResult<{{ className }}TombstoneResponse>) {
+    this.items = page.items;
+    this.page = page.page;
+    this.size = page.size;
+    this.totalItems = page.totalItems;
+    this.totalPages = page.totalPages;
+  }
+}

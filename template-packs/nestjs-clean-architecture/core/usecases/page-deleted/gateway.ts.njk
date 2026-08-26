@@ -1,0 +1,11 @@
+import { FilterExpression } from '../../common/filter/filter-expression';
+import { PageRequest } from '../../common/paging/page-request';
+import { PageResult } from '../../common/paging/page-result';
+import { {{ className }}Tombstone } from '../../models/{{ fileName }}-tombstone.model';
+
+export interface IPageDeleted{{ className }}Gateway {
+  /** Pages soft-deleted rows only; the active collection is the ordinary route. */
+  execute(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}Tombstone>>;
+}
+
+export const IPageDeleted{{ className }}GatewaySymbol = Symbol('IPageDeleted{{ className }}Gateway');

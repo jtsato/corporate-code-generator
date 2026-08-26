@@ -24,6 +24,10 @@ function compareValues(left: unknown, right: unknown): number {
   return compareStrings(String(left), String(right));
 }
 
+function isActive(entity: WalletEntity): boolean {
+  return isNullish(entity.deletedAt);
+}
+
 @Injectable()
 export class WalletRepository {
   private readonly wallets: WalletEntity[] = [];
@@ -35,32 +39,75 @@ export class WalletRepository {
 
   public async findById(id: string): Promise<WalletEntity | undefined> {
     return Promise.resolve(
+      this.wallets.find((entity) => isActive(entity) && entity.id === id),
+    );
+  }
+
+  /**
+   * Resolves a row whether it is active or soft-deleted.
+   *
+   * Restore needs this: it has to tell "no such row" from "already active", and
+   * an active-only lookup collapses those two into the same absence.
+   */
+  public async findAnyById(id: string): Promise<WalletEntity | undefined> {
+    return Promise.resolve(
       this.wallets.find((entity) => entity.id === id),
     );
   }
 
+  public async findDeletedById(id: string): Promise<WalletEntity | undefined> {
+    return Promise.resolve(
+      this.wallets.find((entity) => !isActive(entity) && entity.id === id),
+    );
+  }
+
   public async updateById(id: string, entity: WalletEntity): Promise<WalletEntity | undefined> {
-    const index = this.wallets.findIndex((current) => current.id === id);
+    const index = this.wallets.findIndex((current) => isActive(current) && current.id === id);
     if (index < 0) return undefined;
     this.wallets[index] = entity;
     return entity;
   }
 
-  public async deleteById(id: string): Promise<boolean> {
-    const index = this.wallets.findIndex((current) => current.id === id);
-    if (index < 0) return false;
-    this.wallets.splice(index, 1);
+  /**
+   * Marks the row deleted and keeps it. Returns false when no *active* row
+   * carries the identifier, which is what makes a repeated delete a 404 rather
+   * than a second success.
+   */
+  public async softDeleteById(id: string, deletedAt: Date): Promise<boolean> {
+    const entity = this.wallets.find((current) => isActive(current) && current.id === id);
+    if (entity === undefined) return false;
+    entity.deletedAt = deletedAt;
+    return true;
+  }
+
+  /** Clears the marker. The caller has already decided the row may be restored. */
+  public async restoreById(id: string): Promise<boolean> {
+    const entity = this.wallets.find((current) => !isActive(current) && current.id === id);
+    if (entity === undefined) return false;
+    entity.deletedAt = null;
     return true;
   }
 
   public async existsById(id: string): Promise<boolean> {
     return Promise.resolve(this.wallets.some((current) =>
-      compareValues(current.id, id) === 0,
+      isActive(current) && compareValues(current.id, id) === 0,
     ));
   }
 
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
-    const filtered = this.wallets.filter((entity) => filterExpression.conditions.every((condition) => {
+    return this.page(this.wallets.filter(isActive), pageRequest, filterExpression);
+  }
+
+  public async findDeletedPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
+    return this.page(this.wallets.filter((entity) => !isActive(entity)), pageRequest, filterExpression);
+  }
+
+  private async page(
+    source: readonly WalletEntity[],
+    pageRequest: PageRequest,
+    filterExpression: FilterExpression,
+  ): Promise<PageResult<WalletEntity>> {
+    const filtered = source.filter((entity) => filterExpression.conditions.every((condition) => {
       const actual = entity[condition.field as keyof WalletEntity];
       const matches = String(actual) === condition.value;
       return condition.operator === 'eq' ? matches : !matches;

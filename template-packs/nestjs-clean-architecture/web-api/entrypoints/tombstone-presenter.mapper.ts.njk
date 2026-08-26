@@ -1,0 +1,13 @@
+import { {{ className }}Tombstone } from '../../../core/models/{{ fileName }}-tombstone.model';
+import { {{ className }}TombstoneResponse } from './{{ fileName }}-tombstone-response.model';
+
+export class {{ className }}TombstonePresenter {
+  public static of({{ propertyName }}Tombstone: {{ className }}Tombstone): {{ className }}TombstoneResponse {
+    const response = new {{ className }}TombstoneResponse();
+{%- for property in properties %}
+    response.{{ property.name }} = {{ propertyName }}Tombstone.{{ property.name }};
+{%- endfor %}
+    response.deletedAt = {{ propertyName }}Tombstone.deletedAt;
+    return response;
+  }
+}

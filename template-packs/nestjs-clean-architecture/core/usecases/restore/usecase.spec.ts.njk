@@ -1,0 +1,39 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { Restore{{ className }}Command } from './restore-{{ fileName }}.command';
+import { Restore{{ className }}UseCase } from './restore-{{ fileName }}.usecase';
+
+describe('Restore{{ className }}UseCase', () => {
+  it('delegates restoration and returns no body value', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<boolean> => true),
+    };
+    const useCase = new Restore{{ className }}UseCase(gateway);
+
+    const result = await useCase.execute(new Restore{{ className }}Command({{ identifier.testValue }}));
+
+    expect(result).toBeUndefined();
+    expect(gateway.execute).toHaveBeenCalledWith({{ identifier.testValue }});
+  });
+
+  it('raises NotFoundException when no row carries the identifier', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<boolean> => false),
+    };
+    const useCase = new Restore{{ className }}UseCase(gateway);
+
+    await expect(useCase.execute(new Restore{{ className }}Command({{ identifier.testValue }})))
+      .rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('rejects an invalid identifier before reaching the gateway', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<boolean> => true),
+    };
+    const useCase = new Restore{{ className }}UseCase(gateway);
+
+    await expect(useCase.execute(new Restore{{ className }}Command({{ identifier.invalidTestValue }})))
+      .rejects.toBeInstanceOf(ValidationException);
+    expect(gateway.execute).not.toHaveBeenCalled();
+  });
+});

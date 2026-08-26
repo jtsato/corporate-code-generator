@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import type { FindOptionsWhere } from 'typeorm';
+import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 import { FilterExpression } from '../../core/common/filter/filter-expression';
 import { PageRequest } from '../../core/common/paging/page-request';
@@ -62,12 +63,67 @@ export class {{ className }}Repository {
     return this.entities.save(entity);
   }
 
-  public async deleteById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
-    const result = await this.entities.delete({
-      {{ identifier.name }},
-    } as FindOptionsWhere<{{ className }}Entity>);
+  /**
+   * Marks the row deleted and keeps it.
+   *
+   * The timestamp is supplied by the caller rather than taken from `softDelete`,
+   * so both persistence options stamp a tombstone from the same place and a
+   * later clock port has one seam to replace instead of two.
+   *
+   * The existence check is not redundant: `update` does not apply the
+   * soft-delete filter, so without it a repeated delete would report a row
+   * affected and answer 204 where the contract says 404.
+   */
+  public async softDeleteById({{ identifier.name }}: {{ identifier.type }}, deletedAt: Date): Promise<boolean> {
+    if (!(await this.existsById({{ identifier.name }}))) {
+      return false;
+    }
 
-    return (result.affected ?? 0) > 0;
+    await this.entities.update(
+      { {{ identifier.name }} } as FindOptionsWhere<{{ className }}Entity>,
+      { deletedAt } as QueryDeepPartialEntity<{{ className }}Entity>,
+    );
+
+    return true;
+  }
+
+  /** Clears the marker. The caller has already decided the row may be restored. */
+  public async restoreById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
+    if (await this.findDeletedById({{ identifier.name }}) === undefined) {
+      return false;
+    }
+
+    await this.entities.update(
+      { {{ identifier.name }} } as FindOptionsWhere<{{ className }}Entity>,
+      { deletedAt: null } as QueryDeepPartialEntity<{{ className }}Entity>,
+    );
+
+    return true;
+  }
+
+  /**
+   * Resolves a row whether it is active or soft-deleted.
+   *
+   * Restore needs this: it has to tell "no such row" from "already active", and
+   * an active-only lookup collapses those two into the same absence.
+   */
+  public async findAnyById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined> {
+    const found = await this.entities.findOne({
+      where: { {{ identifier.name }} } as FindOptionsWhere<{{ className }}Entity>,
+      withDeleted: true,
+    });
+
+    return found ?? undefined;
+  }
+
+  public async findDeletedById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined> {
+    const found = await this.entities.createQueryBuilder('entity')
+      .withDeleted()
+      .where(`entity.{{ identifier.name }} = :{{ identifier.name }}`, { {{ identifier.name }} })
+      .andWhere('entity.deletedAt IS NOT NULL')
+      .getOne();
+
+    return found ?? undefined;
   }
 
   public async existsById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
@@ -76,6 +132,12 @@ export class {{ className }}Repository {
 
 {%- if hasUniqueAttributes %}
 
+  /**
+   * Considers active rows only, which is what lets a unique value be reused
+   * after the row holding it was soft-deleted. Nothing here says so: the query
+   * builder applies the `@DeleteDateColumn` filter unless `withDeleted()` asks
+   * it not to.
+   */
   public async hasUniqueConflict(
     candidate: {{ className }}Entity,
     ignoredIdentifier?: {{ identifier.type }},
@@ -129,7 +191,24 @@ export class {{ className }}Repository {
 {%- endif %}
 
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}Entity>> {
-    const query = this.entities.createQueryBuilder('entity');
+    // Active-only without saying so: `@DeleteDateColumn` makes the query builder
+    // exclude tombstones unless `withDeleted()` opts out.
+    return this.page(this.entities.createQueryBuilder('entity'), pageRequest, filterExpression);
+  }
+
+  public async findDeletedPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}Entity>> {
+    return this.page(
+      this.entities.createQueryBuilder('entity').withDeleted().andWhere('entity.deletedAt IS NOT NULL'),
+      pageRequest,
+      filterExpression,
+    );
+  }
+
+  private async page(
+    query: SelectQueryBuilder<{{ className }}Entity>,
+    pageRequest: PageRequest,
+    filterExpression: FilterExpression,
+  ): Promise<PageResult<{{ className }}Entity>> {
 
     filterExpression.conditions.forEach((condition, index) => {
       const property = queryableProperty(condition.field);

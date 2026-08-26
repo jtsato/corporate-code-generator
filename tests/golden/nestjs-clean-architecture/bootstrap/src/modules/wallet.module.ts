@@ -30,6 +30,24 @@ import {
   IPageWalletGateway,
   IPageWalletGatewaySymbol,
 } from '../core/usecases/page-wallets/page-wallets.gateway';
+import {
+  IGetDeletedWalletByIdGateway,
+  IGetDeletedWalletByIdGatewaySymbol,
+} from '../core/usecases/get-deleted-wallet-by-id/get-deleted-wallet-by-id.gateway';
+import { IGetDeletedWalletByIdUseCaseSymbol } from '../core/usecases/get-deleted-wallet-by-id/get-deleted-wallet-by-id-usecase.interface';
+import { GetDeletedWalletByIdUseCase } from '../core/usecases/get-deleted-wallet-by-id/get-deleted-wallet-by-id.usecase';
+import {
+  IPageDeletedWalletGateway,
+  IPageDeletedWalletGatewaySymbol,
+} from '../core/usecases/page-deleted-wallets/page-deleted-wallets.gateway';
+import { IPageDeletedWalletUseCaseSymbol } from '../core/usecases/page-deleted-wallets/page-deleted-wallets-usecase.interface';
+import { PageDeletedWalletUseCase } from '../core/usecases/page-deleted-wallets/page-deleted-wallets.usecase';
+import {
+  IRestoreWalletGateway,
+  IRestoreWalletGatewaySymbol,
+} from '../core/usecases/restore-wallet/restore-wallet.gateway';
+import { IRestoreWalletUseCaseSymbol } from '../core/usecases/restore-wallet/restore-wallet-usecase.interface';
+import { RestoreWalletUseCase } from '../core/usecases/restore-wallet/restore-wallet.usecase';
 import { IPageWalletUseCaseSymbol } from '../core/usecases/page-wallets/page-wallets-usecase.interface';
 import { PageWalletUseCase } from '../core/usecases/page-wallets/page-wallets.usecase';
 import { CreateWalletProvider } from '../infra/providers/create-wallet.provider';
@@ -37,6 +55,9 @@ import { GetWalletByIdProvider } from '../infra/providers/get-wallet-by-id.provi
 import { UpdateWalletProvider } from '../infra/providers/update-wallet.provider';
 import { DeleteWalletProvider } from '../infra/providers/delete-wallet.provider';
 import { PageWalletProvider } from '../infra/providers/page-wallets.provider';
+import { GetDeletedWalletByIdProvider } from '../infra/providers/get-deleted-wallet-by-id.provider';
+import { PageDeletedWalletProvider } from '../infra/providers/page-deleted-wallets.provider';
+import { RestoreWalletProvider } from '../infra/providers/restore-wallet.provider';
 import { WalletRepository } from '../infra/repositories/wallet.repository';
 import { WalletController } from '../web-api/entrypoints/wallets/wallet.controller';
 
@@ -99,6 +120,36 @@ import { WalletController } from '../web-api/entrypoints/wallets/wallet.controll
       useFactory: (gateway: IPageWalletGateway): PageWalletUseCase =>
         new PageWalletUseCase(gateway),
       inject: [IPageWalletGatewaySymbol],
+    },
+    {
+      provide: IGetDeletedWalletByIdGatewaySymbol,
+      useClass: GetDeletedWalletByIdProvider,
+    },
+    {
+      provide: IGetDeletedWalletByIdUseCaseSymbol,
+      useFactory: (gateway: IGetDeletedWalletByIdGateway): GetDeletedWalletByIdUseCase =>
+        new GetDeletedWalletByIdUseCase(gateway),
+      inject: [IGetDeletedWalletByIdGatewaySymbol],
+    },
+    {
+      provide: IPageDeletedWalletGatewaySymbol,
+      useClass: PageDeletedWalletProvider,
+    },
+    {
+      provide: IPageDeletedWalletUseCaseSymbol,
+      useFactory: (gateway: IPageDeletedWalletGateway): PageDeletedWalletUseCase =>
+        new PageDeletedWalletUseCase(gateway),
+      inject: [IPageDeletedWalletGatewaySymbol],
+    },
+    {
+      provide: IRestoreWalletGatewaySymbol,
+      useClass: RestoreWalletProvider,
+    },
+    {
+      provide: IRestoreWalletUseCaseSymbol,
+      useFactory: (gateway: IRestoreWalletGateway): RestoreWalletUseCase =>
+        new RestoreWalletUseCase(gateway),
+      inject: [IRestoreWalletGatewaySymbol],
     },
   ],
 })

@@ -1,0 +1,30 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { {{ className }}Tombstone } from '../../models/{{ fileName }}-tombstone.model';
+import { Get{{ className }}ByIdQueryValidator } from '../get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-query.validator';
+import { GetDeleted{{ className }}ByIdQuery } from './get-deleted-{{ fileName }}-by-id.query';
+import { IGetDeleted{{ className }}ByIdGateway } from './get-deleted-{{ fileName }}-by-id.gateway';
+import { IGetDeleted{{ className }}ByIdUseCase } from './get-deleted-{{ fileName }}-by-id-usecase.interface';
+
+export class GetDeleted{{ className }}ByIdUseCase implements IGetDeleted{{ className }}ByIdUseCase {
+  public constructor(
+    private readonly gateway: IGetDeleted{{ className }}ByIdGateway,
+    // Same identifier, same rules as the ordinary read; a second validator would
+    // be the existing one under another name.
+    private readonly validator: Get{{ className }}ByIdQueryValidator = new Get{{ className }}ByIdQueryValidator(),
+  ) {}
+
+  public async execute(query: GetDeleted{{ className }}ByIdQuery): Promise<{{ className }}Tombstone> {
+    this.validator.validate(query);
+
+    const tombstone = await this.gateway.execute(query.{{ identifier.name }});
+
+    // An active {{ propertyName }} is absent from this route by design, and answers
+    // 404 here just as an unknown identifier does: the two routes partition the
+    // rows, so neither leaks the existence of the other's.
+    if (tombstone === undefined) {
+      throw new NotFoundException(`Deleted {{ className }} not found: ${query.{{ identifier.name }}}`);
+    }
+
+    return tombstone;
+  }
+}

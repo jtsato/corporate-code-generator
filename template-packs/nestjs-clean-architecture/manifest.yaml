@@ -131,6 +131,10 @@ templates:
     module: core
     template: core/models/model.ts.njk
     output: src/core/models/{{ fileName }}.model.ts
+  - id: core-tombstone-model
+    module: core
+    template: core/models/tombstone.model.ts.njk
+    output: src/core/models/{{ fileName }}-tombstone.model.ts
   - id: core-create-command
     module: core
     template: core/usecases/create/create.command.ts.njk
@@ -319,6 +323,75 @@ templates:
     module: infra-persistence
     template: infra-persistence/providers/delete.provider.ts.njk
     output: src/infra/providers/delete-{{ fileName }}.provider.ts
+  - id: infra-persistence-restore-provider
+    module: infra-persistence
+    template: infra-persistence/providers/restore.provider.ts.njk
+    output: src/infra/providers/restore-{{ fileName }}.provider.ts
+  - id: infra-persistence-get-deleted-by-id-provider
+    module: infra-persistence
+    template: infra-persistence/providers/get-deleted-by-id.provider.ts.njk
+    output: src/infra/providers/get-deleted-{{ fileName }}-by-id.provider.ts
+  - id: infra-persistence-page-deleted-provider
+    module: infra-persistence
+    template: infra-persistence/providers/page-deleted.provider.ts.njk
+    output: src/infra/providers/page-deleted-{{ pluralFileName }}.provider.ts
+
+  - id: core-restore-command
+    module: core
+    template: core/usecases/restore/command.ts.njk
+    output: src/core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.command.ts
+  - id: core-restore-gateway
+    module: core
+    template: core/usecases/restore/gateway.ts.njk
+    output: src/core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway.ts
+  - id: core-restore-usecase-interface
+    module: core
+    template: core/usecases/restore/usecase.interface.ts.njk
+    output: src/core/usecases/restore-{{ fileName }}/restore-{{ fileName }}-usecase.interface.ts
+  - id: core-restore-usecase
+    module: core
+    template: core/usecases/restore/usecase.ts.njk
+    output: src/core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.usecase.ts
+  - id: core-restore-usecase-test
+    module: core
+    template: core/usecases/restore/usecase.spec.ts.njk
+    output: src/core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.usecase.spec.ts
+  - id: core-get-deleted-by-id-query
+    module: core
+    template: core/usecases/get-deleted-by-id/query.ts.njk
+    output: src/core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.query.ts
+  - id: core-get-deleted-by-id-gateway
+    module: core
+    template: core/usecases/get-deleted-by-id/gateway.ts.njk
+    output: src/core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.gateway.ts
+  - id: core-get-deleted-by-id-usecase-interface
+    module: core
+    template: core/usecases/get-deleted-by-id/usecase.interface.ts.njk
+    output: src/core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id-usecase.interface.ts
+  - id: core-get-deleted-by-id-usecase
+    module: core
+    template: core/usecases/get-deleted-by-id/usecase.ts.njk
+    output: src/core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.usecase.ts
+  - id: core-get-deleted-by-id-usecase-test
+    module: core
+    template: core/usecases/get-deleted-by-id/usecase.spec.ts.njk
+    output: src/core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.usecase.spec.ts
+  - id: core-page-deleted-query
+    module: core
+    template: core/usecases/page-deleted/query.ts.njk
+    output: src/core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.query.ts
+  - id: core-page-deleted-gateway
+    module: core
+    template: core/usecases/page-deleted/gateway.ts.njk
+    output: src/core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.gateway.ts
+  - id: core-page-deleted-usecase-interface
+    module: core
+    template: core/usecases/page-deleted/usecase.interface.ts.njk
+    output: src/core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}-usecase.interface.ts
+  - id: core-page-deleted-usecase
+    module: core
+    template: core/usecases/page-deleted/usecase.ts.njk
+    output: src/core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.usecase.ts
 
   - id: web-api-not-found-exception-filter
     module: web-api
@@ -400,6 +473,14 @@ templates:
     module: web-api
     template: web-api/entrypoints/presenter.mapper.ts.njk
     output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-presenter.mapper.ts
+  - id: web-api-tombstone-response
+    module: web-api
+    template: web-api/entrypoints/tombstone-response.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-tombstone-response.model.ts
+  - id: web-api-tombstone-presenter
+    module: web-api
+    template: web-api/entrypoints/tombstone-presenter.mapper.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-tombstone-presenter.mapper.ts
   - id: web-api-page-request
     module: web-api
     template: web-api/entrypoints/page-request.model.ts.njk
@@ -420,6 +501,10 @@ templates:
     module: web-api
     template: web-api/entrypoints/page-response.model.ts.njk
     output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-page-response.model.ts
+  - id: web-api-tombstone-page-response
+    module: web-api
+    template: web-api/entrypoints/tombstone-page-response.model.ts.njk
+    output: src/web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}-tombstone-page-response.model.ts
   - id: web-api-controller
     module: web-api
     template: web-api/entrypoints/controller.ts.njk

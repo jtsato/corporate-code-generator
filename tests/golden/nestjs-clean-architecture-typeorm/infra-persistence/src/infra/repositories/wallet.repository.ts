@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import type { FindOptionsWhere } from 'typeorm';
+import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 import { FilterExpression } from '../../core/common/filter/filter-expression';
 import { PageRequest } from '../../core/common/paging/page-request';
@@ -61,12 +62,67 @@ export class WalletRepository {
     return this.entities.save(entity);
   }
 
-  public async deleteById(id: string): Promise<boolean> {
-    const result = await this.entities.delete({
-      id,
-    } as FindOptionsWhere<WalletEntity>);
+  /**
+   * Marks the row deleted and keeps it.
+   *
+   * The timestamp is supplied by the caller rather than taken from `softDelete`,
+   * so both persistence options stamp a tombstone from the same place and a
+   * later clock port has one seam to replace instead of two.
+   *
+   * The existence check is not redundant: `update` does not apply the
+   * soft-delete filter, so without it a repeated delete would report a row
+   * affected and answer 204 where the contract says 404.
+   */
+  public async softDeleteById(id: string, deletedAt: Date): Promise<boolean> {
+    if (!(await this.existsById(id))) {
+      return false;
+    }
 
-    return (result.affected ?? 0) > 0;
+    await this.entities.update(
+      { id } as FindOptionsWhere<WalletEntity>,
+      { deletedAt } as QueryDeepPartialEntity<WalletEntity>,
+    );
+
+    return true;
+  }
+
+  /** Clears the marker. The caller has already decided the row may be restored. */
+  public async restoreById(id: string): Promise<boolean> {
+    if (await this.findDeletedById(id) === undefined) {
+      return false;
+    }
+
+    await this.entities.update(
+      { id } as FindOptionsWhere<WalletEntity>,
+      { deletedAt: null } as QueryDeepPartialEntity<WalletEntity>,
+    );
+
+    return true;
+  }
+
+  /**
+   * Resolves a row whether it is active or soft-deleted.
+   *
+   * Restore needs this: it has to tell "no such row" from "already active", and
+   * an active-only lookup collapses those two into the same absence.
+   */
+  public async findAnyById(id: string): Promise<WalletEntity | undefined> {
+    const found = await this.entities.findOne({
+      where: { id } as FindOptionsWhere<WalletEntity>,
+      withDeleted: true,
+    });
+
+    return found ?? undefined;
+  }
+
+  public async findDeletedById(id: string): Promise<WalletEntity | undefined> {
+    const found = await this.entities.createQueryBuilder('entity')
+      .withDeleted()
+      .where(`entity.id = :id`, { id })
+      .andWhere('entity.deletedAt IS NOT NULL')
+      .getOne();
+
+    return found ?? undefined;
   }
 
   public async existsById(id: string): Promise<boolean> {
@@ -74,7 +130,24 @@ export class WalletRepository {
   }
 
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
-    const query = this.entities.createQueryBuilder('entity');
+    // Active-only without saying so: `@DeleteDateColumn` makes the query builder
+    // exclude tombstones unless `withDeleted()` opts out.
+    return this.page(this.entities.createQueryBuilder('entity'), pageRequest, filterExpression);
+  }
+
+  public async findDeletedPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
+    return this.page(
+      this.entities.createQueryBuilder('entity').withDeleted().andWhere('entity.deletedAt IS NOT NULL'),
+      pageRequest,
+      filterExpression,
+    );
+  }
+
+  private async page(
+    query: SelectQueryBuilder<WalletEntity>,
+    pageRequest: PageRequest,
+    filterExpression: FilterExpression,
+  ): Promise<PageResult<WalletEntity>> {
 
     filterExpression.conditions.forEach((condition, index) => {
       const property = queryableProperty(condition.field);

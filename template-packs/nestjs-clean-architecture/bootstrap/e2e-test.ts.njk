@@ -137,6 +137,70 @@ describe('generated NestJS HTTP API', () => {
       .expect(404);
   });
 
+  it('retains a deleted record and restores it', async () => {
+    const identifier = {{ entities[0].identifier.alternateTestValue }};
+    const representation = {
+      {{ entities[0].identifier.name }}: identifier,
+{%- for property in entities[0].mutableProperties %}
+      {{ property.name }}: {{ property.testValue }},
+{%- endfor %}
+    };
+
+    await request(app.getHttpServer())
+      .post('/{{ entities[0].pluralFileName }}')
+      .send(representation)
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(204);
+
+    // Deleting hides the row from the active routes; it does not remove it.
+    await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(404);
+
+    const tombstone = await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}/deleted/' + identifier)
+      .expect(200);
+    expect(tombstone.body).toMatchObject(representation);
+    expect(typeof tombstone.body.deletedAt).toBe('string');
+
+    // `/deleted` is declared before `/:id`, so it is a route rather than an
+    // identifier. Were the order reversed this would be a 400 for a malformed
+    // identifier instead of a page. Earlier cases leave tombstones of their own,
+    // so this asserts membership rather than a total.
+    const deletedPage = await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}/deleted?page=0&size=20')
+      .expect(200);
+    expect(deletedPage.body.items.some(
+      (item: { {{ entities[0].identifier.name }}: {{ entities[0].identifier.type }} }) => item.{{ entities[0].identifier.name }} === identifier,
+    )).toBe(true);
+
+    const restored = await request(app.getHttpServer())
+      .post('/{{ entities[0].pluralFileName }}/' + identifier + '/restore')
+      .expect(204);
+    expect(restored.text).toBe('');
+
+    await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(200)
+      .expect(representation);
+
+    // Restoring an active record is a refusal, not an absence.
+    await request(app.getHttpServer())
+      .post('/{{ entities[0].pluralFileName }}/' + identifier + '/restore')
+      .expect(409);
+
+    await request(app.getHttpServer())
+      .get('/{{ entities[0].pluralFileName }}/deleted/' + identifier)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .delete('/{{ entities[0].pluralFileName }}/' + identifier)
+      .expect(204);
+  });
+
   it('negotiates the response language from Accept-Language', async () => {
     const invalidIdentifier = '/{{ entities[0].pluralFileName }}/not-a-uuid';
 

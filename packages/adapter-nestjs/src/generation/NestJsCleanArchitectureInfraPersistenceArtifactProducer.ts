@@ -49,6 +49,9 @@ const PROVIDER_TEMPLATE_IDS = [
   "infra-persistence-page-provider",
   "infra-persistence-update-provider",
   "infra-persistence-delete-provider",
+  "infra-persistence-restore-provider",
+  "infra-persistence-get-deleted-by-id-provider",
+  "infra-persistence-page-deleted-provider",
 ] as const;
 
 export class NestJsCleanArchitectureInfraPersistenceArtifactProducer

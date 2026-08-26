@@ -1,4 +1,5 @@
 import { {{ className }} } from '../../core/models/{{ fileName }}.model';
+import { {{ className }}Tombstone } from '../../core/models/{{ fileName }}-tombstone.model';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 
 export class {{ className }}Mapper {
@@ -15,6 +16,22 @@ export class {{ className }}Mapper {
 {%- for property in properties %}
       entity.{{ property.name }},
 {%- endfor %}
+    );
+  }
+
+  public static toTombstone(entity: {{ className }}Entity): {{ className }}Tombstone {
+    // Loud rather than lenient. Only the deleted-only queries reach this, so a
+    // null timestamp here means the query stopped filtering by deletion, and a
+    // fabricated date would hide that behind a plausible response.
+    if (entity.deletedAt === null || entity.deletedAt === undefined) {
+      throw new Error('{{ className }}Mapper.toTombstone requires a soft-deleted row.');
+    }
+
+    return new {{ className }}Tombstone(
+{%- for property in properties %}
+      entity.{{ property.name }},
+{%- endfor %}
+      entity.deletedAt,
     );
   }
 }

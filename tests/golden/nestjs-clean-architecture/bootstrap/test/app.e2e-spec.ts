@@ -109,6 +109,68 @@ describe('generated NestJS HTTP API', () => {
       .expect(404);
   });
 
+  it('retains a deleted record and restores it', async () => {
+    const identifier = "00000000-0000-4000-8000-000000000002";
+    const representation = {
+      id: identifier,
+      balance: 1.5,
+    };
+
+    await request(app.getHttpServer())
+      .post('/wallets')
+      .send(representation)
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete('/wallets/' + identifier)
+      .expect(204);
+
+    // Deleting hides the row from the active routes; it does not remove it.
+    await request(app.getHttpServer())
+      .get('/wallets/' + identifier)
+      .expect(404);
+
+    const tombstone = await request(app.getHttpServer())
+      .get('/wallets/deleted/' + identifier)
+      .expect(200);
+    expect(tombstone.body).toMatchObject(representation);
+    expect(typeof tombstone.body.deletedAt).toBe('string');
+
+    // `/deleted` is declared before `/:id`, so it is a route rather than an
+    // identifier. Were the order reversed this would be a 400 for a malformed
+    // identifier instead of a page. Earlier cases leave tombstones of their own,
+    // so this asserts membership rather than a total.
+    const deletedPage = await request(app.getHttpServer())
+      .get('/wallets/deleted?page=0&size=20')
+      .expect(200);
+    expect(deletedPage.body.items.some(
+      (item: { id: string }) => item.id === identifier,
+    )).toBe(true);
+
+    const restored = await request(app.getHttpServer())
+      .post('/wallets/' + identifier + '/restore')
+      .expect(204);
+    expect(restored.text).toBe('');
+
+    await request(app.getHttpServer())
+      .get('/wallets/' + identifier)
+      .expect(200)
+      .expect(representation);
+
+    // Restoring an active record is a refusal, not an absence.
+    await request(app.getHttpServer())
+      .post('/wallets/' + identifier + '/restore')
+      .expect(409);
+
+    await request(app.getHttpServer())
+      .get('/wallets/deleted/' + identifier)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .delete('/wallets/' + identifier)
+      .expect(204);
+  });
+
   it('negotiates the response language from Accept-Language', async () => {
     const invalidIdentifier = '/wallets/not-a-uuid';
 

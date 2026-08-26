@@ -24,6 +24,10 @@ function compareValues(left: unknown, right: unknown): number {
   return compareStrings(String(left), String(right));
 }
 
+function isActive(entity: {{ className }}Entity): boolean {
+  return isNullish(entity.deletedAt);
+}
+
 @Injectable()
 export class {{ className }}Repository {
   private readonly {{ propertyName }}s: {{ className }}Entity[] = [];
@@ -35,31 +39,67 @@ export class {{ className }}Repository {
 
   public async findById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined> {
     return Promise.resolve(
+      this.{{ propertyName }}s.find((entity) => isActive(entity) && entity.{{ identifier.name }} === {{ identifier.name }}),
+    );
+  }
+
+  /**
+   * Resolves a row whether it is active or soft-deleted.
+   *
+   * Restore needs this: it has to tell "no such row" from "already active", and
+   * an active-only lookup collapses those two into the same absence.
+   */
+  public async findAnyById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined> {
+    return Promise.resolve(
       this.{{ propertyName }}s.find((entity) => entity.{{ identifier.name }} === {{ identifier.name }}),
     );
   }
 
+  public async findDeletedById({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Entity | undefined> {
+    return Promise.resolve(
+      this.{{ propertyName }}s.find((entity) => !isActive(entity) && entity.{{ identifier.name }} === {{ identifier.name }}),
+    );
+  }
+
   public async updateById({{ identifier.name }}: {{ identifier.type }}, entity: {{ className }}Entity): Promise<{{ className }}Entity | undefined> {
-    const index = this.{{ propertyName }}s.findIndex((current) => current.{{ identifier.name }} === {{ identifier.name }});
+    const index = this.{{ propertyName }}s.findIndex((current) => isActive(current) && current.{{ identifier.name }} === {{ identifier.name }});
     if (index < 0) return undefined;
     this.{{ propertyName }}s[index] = entity;
     return entity;
   }
 
-  public async deleteById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
-    const index = this.{{ propertyName }}s.findIndex((current) => current.{{ identifier.name }} === {{ identifier.name }});
-    if (index < 0) return false;
-    this.{{ propertyName }}s.splice(index, 1);
+  /**
+   * Marks the row deleted and keeps it. Returns false when no *active* row
+   * carries the identifier, which is what makes a repeated delete a 404 rather
+   * than a second success.
+   */
+  public async softDeleteById({{ identifier.name }}: {{ identifier.type }}, deletedAt: Date): Promise<boolean> {
+    const entity = this.{{ propertyName }}s.find((current) => isActive(current) && current.{{ identifier.name }} === {{ identifier.name }});
+    if (entity === undefined) return false;
+    entity.deletedAt = deletedAt;
+    return true;
+  }
+
+  /** Clears the marker. The caller has already decided the row may be restored. */
+  public async restoreById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
+    const entity = this.{{ propertyName }}s.find((current) => !isActive(current) && current.{{ identifier.name }} === {{ identifier.name }});
+    if (entity === undefined) return false;
+    entity.deletedAt = null;
     return true;
   }
 
   public async existsById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
     return Promise.resolve(this.{{ propertyName }}s.some((current) =>
-      compareValues(current.{{ identifier.name }}, {{ identifier.name }}) === 0,
+      isActive(current) && compareValues(current.{{ identifier.name }}, {{ identifier.name }}) === 0,
     ));
   }
 
 {%- if hasUniqueAttributes %}
+  /**
+   * Considers active rows only, which is what lets a unique value be reused
+   * after the row holding it was soft-deleted. A restored row has to pass this
+   * check again, because the value may have been taken meanwhile.
+   */
   public async hasUniqueConflict(
     candidate: {{ className }}Entity,
     ignoredIdentifier?: {{ identifier.type }},
@@ -67,6 +107,7 @@ export class {{ className }}Repository {
     const conflicts = new Set<string>();
 
     for (const current of this.{{ propertyName }}s) {
+      if (!isActive(current)) continue;
       if (ignoredIdentifier !== undefined && compareValues(current.{{ identifier.name }}, ignoredIdentifier) === 0) continue;
 {%- for attribute in uniqueAttributes %}
       if (!isNullish(candidate.{{ attribute.name }}) && compareValues(current.{{ attribute.name }}, candidate.{{ attribute.name }}) === 0) {
@@ -92,7 +133,19 @@ export class {{ className }}Repository {
 {%- endif %}
 
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}Entity>> {
-    const filtered = this.{{ propertyName }}s.filter((entity) => filterExpression.conditions.every((condition) => {
+    return this.page(this.{{ propertyName }}s.filter(isActive), pageRequest, filterExpression);
+  }
+
+  public async findDeletedPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<{{ className }}Entity>> {
+    return this.page(this.{{ propertyName }}s.filter((entity) => !isActive(entity)), pageRequest, filterExpression);
+  }
+
+  private async page(
+    source: readonly {{ className }}Entity[],
+    pageRequest: PageRequest,
+    filterExpression: FilterExpression,
+  ): Promise<PageResult<{{ className }}Entity>> {
+    const filtered = source.filter((entity) => filterExpression.conditions.every((condition) => {
       const actual = entity[condition.field as keyof {{ className }}Entity];
       const matches = String(actual) === condition.value;
       return condition.operator === 'eq' ? matches : !matches;

@@ -33,6 +33,24 @@ import {
   IPage{{ className }}Gateway,
   IPage{{ className }}GatewaySymbol,
 } from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.gateway';
+import {
+  IGetDeleted{{ className }}ByIdGateway,
+  IGetDeleted{{ className }}ByIdGatewaySymbol,
+} from '../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.gateway';
+import { IGetDeleted{{ className }}ByIdUseCaseSymbol } from '../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id-usecase.interface';
+import { GetDeleted{{ className }}ByIdUseCase } from '../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.usecase';
+import {
+  IPageDeleted{{ className }}Gateway,
+  IPageDeleted{{ className }}GatewaySymbol,
+} from '../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.gateway';
+import { IPageDeleted{{ className }}UseCaseSymbol } from '../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}-usecase.interface';
+import { PageDeleted{{ className }}UseCase } from '../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.usecase';
+import {
+  IRestore{{ className }}Gateway,
+  IRestore{{ className }}GatewaySymbol,
+} from '../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway';
+import { IRestore{{ className }}UseCaseSymbol } from '../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}-usecase.interface';
+import { Restore{{ className }}UseCase } from '../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.usecase';
 import { IPage{{ className }}UseCaseSymbol } from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface';
 import { Page{{ className }}UseCase } from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.usecase';
 import { Create{{ className }}Provider } from '../infra/providers/create-{{ fileName }}.provider';
@@ -40,6 +58,9 @@ import { Get{{ className }}ByIdProvider } from '../infra/providers/get-{{ fileNa
 import { Update{{ className }}Provider } from '../infra/providers/update-{{ fileName }}.provider';
 import { Delete{{ className }}Provider } from '../infra/providers/delete-{{ fileName }}.provider';
 import { Page{{ className }}Provider } from '../infra/providers/page-{{ pluralFileName }}.provider';
+import { GetDeleted{{ className }}ByIdProvider } from '../infra/providers/get-deleted-{{ fileName }}-by-id.provider';
+import { PageDeleted{{ className }}Provider } from '../infra/providers/page-deleted-{{ pluralFileName }}.provider';
+import { Restore{{ className }}Provider } from '../infra/providers/restore-{{ fileName }}.provider';
 {% if persistence == 'typeorm' -%}
 import { {{ className }}Entity } from '../infra/models/{{ fileName }}-entity.model';
 {% endif -%}
@@ -111,6 +132,36 @@ import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileN
       useFactory: (gateway: IPage{{ className }}Gateway): Page{{ className }}UseCase =>
         new Page{{ className }}UseCase(gateway),
       inject: [IPage{{ className }}GatewaySymbol],
+    },
+    {
+      provide: IGetDeleted{{ className }}ByIdGatewaySymbol,
+      useClass: GetDeleted{{ className }}ByIdProvider,
+    },
+    {
+      provide: IGetDeleted{{ className }}ByIdUseCaseSymbol,
+      useFactory: (gateway: IGetDeleted{{ className }}ByIdGateway): GetDeleted{{ className }}ByIdUseCase =>
+        new GetDeleted{{ className }}ByIdUseCase(gateway),
+      inject: [IGetDeleted{{ className }}ByIdGatewaySymbol],
+    },
+    {
+      provide: IPageDeleted{{ className }}GatewaySymbol,
+      useClass: PageDeleted{{ className }}Provider,
+    },
+    {
+      provide: IPageDeleted{{ className }}UseCaseSymbol,
+      useFactory: (gateway: IPageDeleted{{ className }}Gateway): PageDeleted{{ className }}UseCase =>
+        new PageDeleted{{ className }}UseCase(gateway),
+      inject: [IPageDeleted{{ className }}GatewaySymbol],
+    },
+    {
+      provide: IRestore{{ className }}GatewaySymbol,
+      useClass: Restore{{ className }}Provider,
+    },
+    {
+      provide: IRestore{{ className }}UseCaseSymbol,
+      useFactory: (gateway: IRestore{{ className }}Gateway): Restore{{ className }}UseCase =>
+        new Restore{{ className }}UseCase(gateway),
+      inject: [IRestore{{ className }}GatewaySymbol],
     },
   ],
 })

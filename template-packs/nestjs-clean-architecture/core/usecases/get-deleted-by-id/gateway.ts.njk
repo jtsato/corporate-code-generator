@@ -1,0 +1,8 @@
+import { {{ className }}Tombstone } from '../../models/{{ fileName }}-tombstone.model';
+
+export interface IGetDeleted{{ className }}ByIdGateway {
+  /** Resolves only soft-deleted rows; an active {{ propertyName }} reads as absent here. */
+  execute({{ identifier.name }}: {{ identifier.type }}): Promise<{{ className }}Tombstone | undefined>;
+}
+
+export const IGetDeleted{{ className }}ByIdGatewaySymbol = Symbol('IGetDeleted{{ className }}ByIdGateway');

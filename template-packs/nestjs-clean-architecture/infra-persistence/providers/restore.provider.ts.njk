@@ -1,0 +1,38 @@
+import { Injectable } from '@nestjs/common';
+
+import { ConflictException } from '../../core/exceptions/conflict.exception';
+import { IRestore{{ className }}Gateway } from '../../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway';
+import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
+
+@Injectable()
+export class Restore{{ className }}Provider implements IRestore{{ className }}Gateway {
+  public constructor(private readonly repository: {{ className }}Repository) {}
+
+  public async execute({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
+    const entity = await this.repository.findAnyById({{ identifier.name }});
+
+    // Absent means no row at all. The use case turns that into 404.
+    if (entity === undefined) {
+      return false;
+    }
+
+    // Already active is a refusal, not an absence: the caller asked for a state
+    // the row is already in, and answering 404 would claim it does not exist.
+    if (entity.deletedAt === null || entity.deletedAt === undefined) {
+      throw new ConflictException('{{ propertyName }}.already-exists', '{{ className }} already exists.');
+    }
+{%- if hasUniqueAttributes %}
+
+    // The unique value this row held may have been taken by a new active row
+    // while it was deleted. Restoring anyway would put two active rows on the
+    // same value, which is exactly what soft delete released it for.
+    const conflicts = await this.repository.hasUniqueConflict(entity, {{ identifier.name }});
+
+    if (conflicts.length > 0) {
+      throw new ConflictException('{{ propertyName }}.already-exists', '{{ className }} already exists.');
+    }
+{%- endif %}
+
+    return this.repository.restoreById({{ identifier.name }});
+  }
+}

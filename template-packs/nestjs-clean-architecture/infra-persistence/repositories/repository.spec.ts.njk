@@ -48,6 +48,60 @@ describe('{{ className }}Repository', () => {
     await expect(repository.existsById({{ identifier.alternateTestValue }})).resolves.toBe(false);
   });
 
+  it('retains a soft-deleted row and hides it from every active read', async () => {
+    const repository = new {{ className }}Repository();
+    const deletedAt = new Date('2025-06-01T00:00:00.000Z');
+    await repository.save(createEntity('{{ identifier.name }}', {{ identifier.testValue }}));
+
+    await expect(repository.softDeleteById({{ identifier.testValue }}, deletedAt)).resolves.toBe(true);
+
+    await expect(repository.findById({{ identifier.testValue }})).resolves.toBeUndefined();
+    await expect(repository.existsById({{ identifier.testValue }})).resolves.toBe(false);
+    await expect(repository.findPage(new PageRequest(0, 20, []), new FilterExpression()))
+      .resolves.toMatchObject({ totalItems: 0 });
+
+    // Retained, not removed: that is the whole difference from a hard delete.
+    const tombstone = await repository.findDeletedById({{ identifier.testValue }});
+    expect(tombstone).toBeDefined();
+    expect((tombstone as {{ className }}Entity).deletedAt).toEqual(deletedAt);
+    await expect(repository.findDeletedPage(new PageRequest(0, 20, []), new FilterExpression()))
+      .resolves.toMatchObject({ totalItems: 1 });
+  });
+
+  it('reports a repeated soft delete as nothing to delete', async () => {
+    // What makes a second DELETE answer 404 instead of 204.
+    const repository = new {{ className }}Repository();
+    await repository.save(createEntity('{{ identifier.name }}', {{ identifier.testValue }}));
+
+    await expect(repository.softDeleteById({{ identifier.testValue }}, new Date())).resolves.toBe(true);
+    await expect(repository.softDeleteById({{ identifier.testValue }}, new Date())).resolves.toBe(false);
+  });
+
+  it('restores a tombstone back into the active reads', async () => {
+    const repository = new {{ className }}Repository();
+    await repository.save(createEntity('{{ identifier.name }}', {{ identifier.testValue }}));
+    await repository.softDeleteById({{ identifier.testValue }}, new Date());
+
+    await expect(repository.restoreById({{ identifier.testValue }})).resolves.toBe(true);
+
+    await expect(repository.findById({{ identifier.testValue }})).resolves.toBeDefined();
+    await expect(repository.findDeletedById({{ identifier.testValue }})).resolves.toBeUndefined();
+    // Restoring one that is already active is nothing to restore, which the
+    // provider turns into a conflict rather than a silent success.
+    await expect(repository.restoreById({{ identifier.testValue }})).resolves.toBe(false);
+  });
+
+  it('resolves a row by identifier whether it is active or deleted', async () => {
+    // Restore needs this to tell "no such row" from "already active".
+    const repository = new {{ className }}Repository();
+    await repository.save(createEntity('{{ identifier.name }}', {{ identifier.testValue }}));
+
+    await expect(repository.findAnyById({{ identifier.testValue }})).resolves.toBeDefined();
+    await repository.softDeleteById({{ identifier.testValue }}, new Date());
+    await expect(repository.findAnyById({{ identifier.testValue }})).resolves.toBeDefined();
+    await expect(repository.findAnyById({{ identifier.alternateTestValue }})).resolves.toBeUndefined();
+  });
+
   it('keeps nullish values after present values for descending sort', async () => {
     const repository = new {{ className }}Repository();
     const present = createEntity('{{ identifier.name }}', {{ identifier.testValue }});
@@ -150,6 +204,21 @@ describe('{{ className }}Repository', () => {
     const repository = new {{ className }}Repository();
 
     await expect(repository.hasUniqueConflict(createEntity('{{ identifier.name }}', {{ identifier.testValue }}))).resolves.toEqual([]);
+  });
+
+  it('releases a unique value while the row holding it is deleted', async () => {
+    // The point of soft delete rather than a reserved-forever tombstone: the
+    // value returns to circulation, and the restore path has to cope with the
+    // possibility that something else took it.
+    const repository = new {{ className }}Repository();
+    await repository.save(createEntityWith({ {{ identifier.name }}: {{ identifier.testValue }} }));
+    const candidate = createEntityWith({ {{ identifier.name }}: {{ identifier.alternateTestValue }} });
+
+    await expect(repository.hasUniqueConflict(candidate)).resolves.not.toEqual([]);
+
+    await repository.softDeleteById({{ identifier.testValue }}, new Date());
+
+    await expect(repository.hasUniqueConflict(candidate)).resolves.toEqual([]);
   });
 {%- for attribute in uniqueAttributes %}
 

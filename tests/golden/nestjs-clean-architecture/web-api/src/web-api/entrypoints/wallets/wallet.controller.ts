@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Inject, Param, Patch, Post, Put, Query } from '@nestjs/common';
-import { ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiConflictResponse, ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { CreateWalletCommand } from '../../../core/usecases/create-wallet/create-wallet.command';
 import { DeleteWalletCommand } from '../../../core/usecases/delete-wallet/delete-wallet.command';
@@ -24,6 +24,21 @@ import {
   IPatchWalletUseCase,
   IPatchWalletUseCaseSymbol,
 } from '../../../core/usecases/patch-wallet/patch-wallet-usecase.interface';
+import { GetDeletedWalletByIdQuery } from '../../../core/usecases/get-deleted-wallet-by-id/get-deleted-wallet-by-id.query';
+import {
+  IGetDeletedWalletByIdUseCase,
+  IGetDeletedWalletByIdUseCaseSymbol,
+} from '../../../core/usecases/get-deleted-wallet-by-id/get-deleted-wallet-by-id-usecase.interface';
+import { PageDeletedWalletQuery } from '../../../core/usecases/page-deleted-wallets/page-deleted-wallets.query';
+import {
+  IPageDeletedWalletUseCase,
+  IPageDeletedWalletUseCaseSymbol,
+} from '../../../core/usecases/page-deleted-wallets/page-deleted-wallets-usecase.interface';
+import { RestoreWalletCommand } from '../../../core/usecases/restore-wallet/restore-wallet.command';
+import {
+  IRestoreWalletUseCase,
+  IRestoreWalletUseCaseSymbol,
+} from '../../../core/usecases/restore-wallet/restore-wallet-usecase.interface';
 import { GetWalletByIdQuery } from '../../../core/usecases/get-wallet-by-id/get-wallet-by-id.query';
 import {
   IGetWalletByIdUseCase,
@@ -45,6 +60,9 @@ import { HttpResponseBuilder } from '../../commons/models/http-response.builder'
 import { HttpResponse } from '../../commons/models/http-response.model';
 import { WalletPresenter } from './wallet-presenter.mapper';
 import { WalletResponse } from './wallet-response.model';
+import { WalletTombstonePageResponse } from './wallet-tombstone-page-response.model';
+import { WalletTombstonePresenter } from './wallet-tombstone-presenter.mapper';
+import { WalletTombstoneResponse } from './wallet-tombstone-response.model';
 
 @ApiTags('wallets')
 @Controller('/wallets')
@@ -62,6 +80,12 @@ export class WalletController {
     private readonly patchWalletUseCase: IPatchWalletUseCase,
     @Inject(IDeleteWalletUseCaseSymbol)
     private readonly deleteWalletUseCase: IDeleteWalletUseCase,
+    @Inject(IPageDeletedWalletUseCaseSymbol)
+    private readonly pageDeletedWalletUseCase: IPageDeletedWalletUseCase,
+    @Inject(IGetDeletedWalletByIdUseCaseSymbol)
+    private readonly getDeletedWalletByIdUseCase: IGetDeletedWalletByIdUseCase,
+    @Inject(IRestoreWalletUseCaseSymbol)
+    private readonly restoreWalletUseCase: IRestoreWalletUseCase,
   ) {}
 
   @Post()
@@ -100,6 +124,45 @@ export class WalletController {
     return new HttpResponseBuilder<WalletPageResponse>()
       .withStatus(HttpStatus.OK)
       .withBody(new WalletPageResponse(responsePage))
+      .build();
+  }
+
+  // Declared before `/:id`. Nest matches routes in declaration order, so a later
+  // `/deleted` would never be reached: `/:id` would claim it and the identifier
+  // validator would answer 400 for the literal string 'deleted'.
+  @Get('/deleted')
+  @ApiOkResponse({ type: WalletTombstonePageResponse })
+  public async pageDeleted(@Query() request: WalletPageRequest): Promise<HttpResponse<WalletTombstonePageResponse>> {
+    const page = await this.pageDeletedWalletUseCase.execute(
+      new PageDeletedWalletQuery(
+        new PageRequest(request.page ?? 0, request.size ?? 20, WalletSortParser.parse(request.sort)),
+        WalletFilterParser.parse(request.filter),
+      ),
+    );
+    const responsePage = new PageResult(
+      page.items.map(WalletTombstonePresenter.of),
+      page.page,
+      page.size,
+      page.totalItems,
+    );
+
+    return new HttpResponseBuilder<WalletTombstonePageResponse>()
+      .withStatus(HttpStatus.OK)
+      .withBody(new WalletTombstonePageResponse(responsePage))
+      .build();
+  }
+
+  @Get('/deleted/:id')
+  @ApiOkResponse({ type: WalletTombstoneResponse })
+  @ApiNotFoundResponse()
+  public async getDeletedById(@Param('id') id: string): Promise<HttpResponse<WalletTombstoneResponse>> {
+    const tombstone = await this.getDeletedWalletByIdUseCase.execute(
+      new GetDeletedWalletByIdQuery(id),
+    );
+
+    return new HttpResponseBuilder<WalletTombstoneResponse>()
+      .withStatus(HttpStatus.OK)
+      .withBody(WalletTombstonePresenter.of(tombstone))
       .build();
   }
 
@@ -160,6 +223,22 @@ export class WalletController {
       .build();
   }
 
+  @Post('/:id/restore')
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse()
+  @ApiConflictResponse()
+  public async restore(@Param('id') id: string): Promise<HttpResponse<void>> {
+    await this.restoreWalletUseCase.execute(
+      new RestoreWalletCommand(id),
+    );
+
+    return new HttpResponseBuilder<void>()
+      .withStatus(HttpStatus.NO_CONTENT)
+      .build();
+  }
+
+  // Soft delete: the row is retained and hidden from every active-only route.
+  // `GET /deleted` and `POST /:id/restore` are how it is reached afterwards.
   @Delete('/:id')
   @ApiNoContentResponse()
   @ApiNotFoundResponse()

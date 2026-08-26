@@ -1,0 +1,15 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+/**
+ * The deleted-only routes answer with this rather than with {{ className }}Response.
+ * Adding `deletedAt` to the ordinary response would put a value on every reply
+ * that is always null for every caller not asking about tombstones.
+ */
+export class {{ className }}TombstoneResponse {
+{%- for property in properties %}
+  @ApiProperty()
+  public {{ property.name }}: {{ property.type }};
+{% endfor %}
+  @ApiProperty()
+  public deletedAt: Date;
+}

@@ -1,0 +1,25 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { Get{{ className }}ByIdQueryValidator } from '../get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-query.validator';
+import { Restore{{ className }}Command } from './restore-{{ fileName }}.command';
+import { IRestore{{ className }}Gateway } from './restore-{{ fileName }}.gateway';
+import { IRestore{{ className }}UseCase } from './restore-{{ fileName }}-usecase.interface';
+
+export class Restore{{ className }}UseCase implements IRestore{{ className }}UseCase {
+  public constructor(
+    private readonly gateway: IRestore{{ className }}Gateway,
+    // The identifier reaches this use case straight from the request path, so it
+    // needs the same rejection the ordinary read applies. A second validator
+    // would be the existing one under another name.
+    private readonly validator: Get{{ className }}ByIdQueryValidator = new Get{{ className }}ByIdQueryValidator(),
+  ) {}
+
+  public async execute(command: Restore{{ className }}Command): Promise<void> {
+    this.validator.validate(command);
+
+    const restored = await this.gateway.execute(command.{{ identifier.name }});
+
+    if (!restored) {
+      throw new NotFoundException(`{{ className }} not found: ${command.{{ identifier.name }}}`);
+    }
+  }
+}

@@ -392,4 +392,81 @@ ${original}`,
     expect(ready.status, running.output()).toBe(200);
     await expect(ready.json()).resolves.toEqual({ status: "UP" });
   }, 60_000);
+
+  it("retains a deleted record, exposes it through the deleted routes, and restores it", async ({ skip }) => {
+    if (skipReason !== undefined) { skip(skipReason); return; }
+    const running = server as GeneratedServer;
+    const identifier = randomUUID();
+    const balance = 917.25;
+
+    const created = await fetch(`${running.baseUrl}/wallets`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: identifier, balance }),
+    });
+    expect(created.status, running.output()).toBe(201);
+    await created.json();
+
+    const deleted = await fetch(`${running.baseUrl}/wallets/${identifier}`, { method: "DELETE" });
+    expect(deleted.status, running.output()).toBe(204);
+
+    // Hidden from the active routes, not gone from the store.
+    const active = await fetch(`${running.baseUrl}/wallets/${identifier}`);
+    expect(active.status, running.output()).toBe(404);
+    await active.json();
+
+    const tombstone = await fetch(`${running.baseUrl}/wallets/deleted/${identifier}`);
+    expect(tombstone.status, running.output()).toBe(200);
+    const tombstoneBody = (await tombstone.json()) as { readonly id: string; readonly balance: number; readonly deletedAt: string };
+    expect(tombstoneBody.id).toBe(identifier);
+    expect(tombstoneBody.balance).toBe(balance);
+    expect(Number.isNaN(Date.parse(tombstoneBody.deletedAt)), tombstoneBody.deletedAt).toBe(false);
+
+    // `/deleted` is declared before `/:id`. Were the order reversed this would be
+    // a 400 for an identifier that does not parse, not a page.
+    const deletedPage = await fetch(`${running.baseUrl}/wallets/deleted?page=0&size=50`);
+    expect(deletedPage.status, running.output()).toBe(200);
+    const deletedPageBody = (await deletedPage.json()) as { readonly items: readonly { readonly id: string }[] };
+    expect(deletedPageBody.items.some((item) => item.id === identifier)).toBe(true);
+
+    // A unique value is released while its row is deleted, which is the whole
+    // reason a tombstone is not simply a reserved identifier.
+    const reuse = await fetch(`${running.baseUrl}/wallets`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: randomUUID(), balance }),
+    });
+    expect(reuse.status, running.output()).toBe(201);
+    const reused = (await reuse.json()) as { readonly id: string };
+
+    // And restoring is then refused, because the value it held is taken.
+    const blockedRestore = await fetch(`${running.baseUrl}/wallets/${identifier}/restore`, { method: "POST" });
+    expect(blockedRestore.status, running.output()).toBe(409);
+    await blockedRestore.json();
+
+    // Free the value again and the same restore succeeds.
+    const removedReuse = await fetch(`${running.baseUrl}/wallets/${reused.id}`, { method: "DELETE" });
+    expect(removedReuse.status, running.output()).toBe(204);
+
+    const restored = await fetch(`${running.baseUrl}/wallets/${identifier}/restore`, { method: "POST" });
+    expect(restored.status, running.output()).toBe(204);
+    await expect(restored.text()).resolves.toBe("");
+
+    const readBack = await fetch(`${running.baseUrl}/wallets/${identifier}`);
+    expect(readBack.status, running.output()).toBe(200);
+    await expect(readBack.json()).resolves.toEqual({ id: identifier, balance });
+
+    // Restoring an active record is a refusal, not an absence.
+    const repeatedRestore = await fetch(`${running.baseUrl}/wallets/${identifier}/restore`, { method: "POST" });
+    expect(repeatedRestore.status, running.output()).toBe(409);
+    await repeatedRestore.json();
+
+    const unknownRestore = await fetch(`${running.baseUrl}/wallets/${randomUUID()}/restore`, { method: "POST" });
+    expect(unknownRestore.status, running.output()).toBe(404);
+    await unknownRestore.json();
+
+    // Clean up so later cases see the collection they expect.
+    await fetch(`${running.baseUrl}/wallets/${identifier}`, { method: "DELETE" });
+  }, 120_000);
+
 });

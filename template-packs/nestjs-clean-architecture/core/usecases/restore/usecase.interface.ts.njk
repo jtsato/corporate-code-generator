@@ -1,0 +1,7 @@
+import { Restore{{ className }}Command } from './restore-{{ fileName }}.command';
+
+export interface IRestore{{ className }}UseCase {
+  execute(command: Restore{{ className }}Command): Promise<void>;
+}
+
+export const IRestore{{ className }}UseCaseSymbol = Symbol('IRestore{{ className }}UseCase');

@@ -1,0 +1,50 @@
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { {{ className }}Tombstone } from '../../models/{{ fileName }}-tombstone.model';
+import { GetDeleted{{ className }}ByIdQuery } from './get-deleted-{{ fileName }}-by-id.query';
+import { GetDeleted{{ className }}ByIdUseCase } from './get-deleted-{{ fileName }}-by-id.usecase';
+
+describe('GetDeleted{{ className }}ByIdUseCase', () => {
+  const deletedAt = new Date('2025-06-01T00:00:00.000Z');
+  const tombstone = new {{ className }}Tombstone(
+{%- for property in properties %}
+    {{ property.testValue }},
+{%- endfor %}
+    deletedAt,
+  );
+
+  it('returns the tombstone the gateway resolves', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }}Tombstone | undefined> => tombstone),
+    };
+    const useCase = new GetDeleted{{ className }}ByIdUseCase(gateway);
+
+    const result = await useCase.execute(new GetDeleted{{ className }}ByIdQuery({{ identifier.testValue }}));
+
+    expect(result).toBe(tombstone);
+    expect(result.deletedAt).toEqual(deletedAt);
+    expect(gateway.execute).toHaveBeenCalledWith({{ identifier.testValue }});
+  });
+
+  it('raises NotFoundException for a row this route does not cover', async () => {
+    // Both an unknown identifier and an active one arrive here as undefined.
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }}Tombstone | undefined> => undefined),
+    };
+    const useCase = new GetDeleted{{ className }}ByIdUseCase(gateway);
+
+    await expect(useCase.execute(new GetDeleted{{ className }}ByIdQuery({{ identifier.testValue }})))
+      .rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('rejects an invalid identifier before reaching the gateway', async () => {
+    const gateway = {
+      execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }}Tombstone | undefined> => tombstone),
+    };
+    const useCase = new GetDeleted{{ className }}ByIdUseCase(gateway);
+
+    await expect(useCase.execute(new GetDeleted{{ className }}ByIdQuery({{ identifier.invalidTestValue }})))
+      .rejects.toBeInstanceOf(ValidationException);
+    expect(gateway.execute).not.toHaveBeenCalled();
+  });
+});

@@ -1,0 +1,8 @@
+import { {{ className }}Tombstone } from '../../models/{{ fileName }}-tombstone.model';
+import { GetDeleted{{ className }}ByIdQuery } from './get-deleted-{{ fileName }}-by-id.query';
+
+export interface IGetDeleted{{ className }}ByIdUseCase {
+  execute(query: GetDeleted{{ className }}ByIdQuery): Promise<{{ className }}Tombstone>;
+}
+
+export const IGetDeleted{{ className }}ByIdUseCaseSymbol = Symbol('IGetDeleted{{ className }}ByIdUseCase');
