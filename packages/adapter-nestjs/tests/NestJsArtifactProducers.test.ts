@@ -59,6 +59,7 @@ describe("NestJS clean architecture artifact producers", () => {
       "build-dockerfile",
       "build-dockerignore",
       "build-docker-compose",
+      "build-github-actions-ci",
     ]);
   });
 

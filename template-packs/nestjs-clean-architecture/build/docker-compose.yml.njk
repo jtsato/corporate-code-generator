@@ -5,5 +5,5 @@ services:
       dockerfile: Dockerfile
     image: {{ applicationName }}:latest
     ports:
-      - "3000:3000"
+      - "{{ containerPort }}:{{ containerPort }}"
     restart: unless-stopped

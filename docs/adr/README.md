@@ -88,3 +88,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [088](ADR-088-nestjs-locale-negotiation-policy.md) | NestJS Locale Negotiation Policy | Accepted — milestone 7.23 release-complete | Milestone 7.23 | 084 (in part) | Not recorded |
 | [089](ADR-089-querydsl-fork-migration-for-cve-2024-49203.md) | Querydsl Fork Migration for CVE-2024-49203 | Accepted — dependency security fix | Not a milestone | 059 (in part) | Not recorded |
 | [090](ADR-090-nestjs-container-packaging.md) | NestJS Container Packaging | Accepted — milestone 7.24 release-complete; image build unverified, see ADR | Milestone 7.24 | Not recorded | Not recorded |
+| [091](ADR-091-nestjs-generated-continuous-integration.md) | NestJS Generated Continuous Integration | Accepted — milestone 7.25 release-complete; workflow never executed, see ADR | Milestone 7.25 | 090 (in part) | Not recorded |

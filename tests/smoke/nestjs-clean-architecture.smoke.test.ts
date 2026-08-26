@@ -29,6 +29,7 @@ const GENERATED_PATHS = [
   "Dockerfile",
   ".dockerignore",
   "docker-compose.yml",
+  ".github/workflows/node-ci.yml",
   "src/core/exceptions/core.exception.ts",
   "src/core/exceptions/field-violation.ts",
   "src/core/exceptions/not-found.exception.ts",

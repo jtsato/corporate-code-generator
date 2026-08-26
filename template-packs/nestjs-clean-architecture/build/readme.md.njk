@@ -73,6 +73,17 @@ container rejects cross-origin browser calls rather than accepting all of them.
 Its `HEALTHCHECK` polls `/health-check/ready`, so `docker ps` reports the
 container healthy only once the application is actually serving traffic.
 
+## Continuous integration
+
+`.github/workflows/node-ci.yml` runs on pushes to `main`, on pull requests, and
+on demand through `workflow_dispatch`. It installs, lints, builds, runs the unit
+and end-to-end suites, then builds the container image and starts it to confirm
+the readiness endpoint answers — building an image proves less than serving from
+one.
+
+Actions are pinned by commit SHA with the tag in a trailing comment, so a moved
+tag cannot change what CI executes.
+
 ## Configuration
 
 `NODE_ENV` selects one of three committed environment files — `.env.development`,

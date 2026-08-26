@@ -18,6 +18,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { parse } from "yaml";
 
 const execFileAsync = promisify(execFile);
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -37,6 +38,7 @@ let dockerfile: string;
 let dockerignore: string;
 let compose: string;
 let productionEnvironment: string;
+let workflow: string;
 
 async function read(relativePath: string): Promise<string> {
   return (await readFile(join(projectRoot, relativePath), "utf8")).replaceAll("\r\n", "\n");
@@ -55,6 +57,7 @@ describe("NestJS container packaging smoke test", () => {
     dockerignore = await read(".dockerignore");
     compose = await read("docker-compose.yml");
     productionEnvironment = await read(".env.production");
+    workflow = await read(".github/workflows/node-ci.yml");
   }, 60_000);
 
   afterAll(async () => {
@@ -68,6 +71,9 @@ describe("NestJS container packaging smoke test", () => {
     expect(dockerfile).toContain(`EXPOSE ${declaredPort}`);
     expect(dockerfile).toContain(`http://localhost:${declaredPort}/`);
     expect(compose).toContain(`"${declaredPort}:${declaredPort}"`);
+    // The workflow starts the image and polls it, so it restates the port twice.
+    expect(workflow).toContain(`-p ${declaredPort}:${declaredPort}`);
+    expect(workflow).toContain(`http://localhost:${declaredPort}/`);
   });
 
   it("health-checks a route the generated health controller declares", async () => {
@@ -109,6 +115,44 @@ describe("NestJS container packaging smoke test", () => {
     expect(user).not.toBe("root");
     expect(user).not.toBe("0");
     expect(runtimeStage).toContain("--chown=node:node");
+  });
+
+  it("generates a workflow that parses as YAML", () => {
+    const parsed = parse(workflow) as { readonly jobs?: Record<string, { readonly steps?: readonly unknown[] }> };
+
+    expect(parsed.jobs?.["build"]?.steps?.length ?? 0).toBeGreaterThan(0);
+  });
+
+  it("pins every workflow action by commit SHA with its tag in a comment", () => {
+    const uses = [...workflow.matchAll(/uses:\s*(\S+)(.*)$/gm)];
+    expect(uses.length).toBeGreaterThan(0);
+
+    for (const [, reference = "", trailing = ""] of uses) {
+      expect(reference, `${reference} must be pinned by 40-character commit SHA`).toMatch(/@[0-9a-f]{40}$/);
+      expect(trailing, `${reference} must carry its tag in a trailing comment`).toMatch(/#\s*v\d/);
+    }
+  });
+
+  it("only runs npm scripts the generated manifest declares", async () => {
+    const manifest = JSON.parse(await read("package.json")) as { readonly scripts: Record<string, string> };
+
+    // `npm test` is the one invocation that does not spell `run`.
+    const invoked = [...workflow.matchAll(/run:\s*npm (?:run )?([a-z0-9:]+)/g)]
+      .map((match) => match[1] ?? "")
+      .filter((script) => script !== "install");
+
+    expect(invoked.length).toBeGreaterThan(0);
+    for (const script of invoked) {
+      expect(Object.keys(manifest.scripts), `the workflow runs '${script}'`).toContain(script);
+    }
+  });
+
+  it("builds and probes the container image in CI", () => {
+    // The milestone that added the Dockerfile could not build it: no container
+    // runtime was available. This step is where that verification actually happens.
+    expect(workflow).toContain("docker build");
+    expect(workflow).toContain("docker run");
+    expect(workflow).toContain("docker logs");
   });
 
   it("names the image after the application and omits the obsolete version key", () => {

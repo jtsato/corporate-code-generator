@@ -62,6 +62,10 @@ templates:
     module: build
     template: build/docker-compose.yml.njk
     output: docker-compose.yml
+  - id: build-github-actions-ci
+    module: build
+    template: build/github-actions-node-ci.yml.njk
+    output: .github/workflows/node-ci.yml
 
   - id: core-exception
     module: core

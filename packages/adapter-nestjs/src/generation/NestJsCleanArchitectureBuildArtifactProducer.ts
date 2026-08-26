@@ -22,7 +22,36 @@ const BUILD_TEMPLATE_IDS = [
   "build-dockerfile",
   "build-dockerignore",
   "build-docker-compose",
+  "build-github-actions-ci",
 ] as const;
+
+/**
+ * Runtime coordinates the packaging and CI artifacts must agree on.
+ *
+ * These are declared once because three generated files restate them — the
+ * Dockerfile, the Compose file and the CI workflow — and a disagreement between
+ * them surfaces only at deploy time. `tests/smoke/nestjs-container.smoke.test.ts`
+ * additionally checks them against `.env.production` and the generated health
+ * controller, which are the sources these values shadow.
+ */
+const containerPort = 3000;
+const healthPath = "/health-check/ready";
+const nodeVersion = "22";
+
+/**
+ * Pinned by commit SHA with the tag in a trailing comment, so a moved tag cannot
+ * change what CI executes. Each SHA was verified against its tag through the
+ * GitHub API rather than copied from documentation.
+ */
+const checkoutActionRef = "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1";
+const setupNodeActionRef = "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0";
+
+/** Templates that need the packaging coordinates on top of the application model. */
+const PACKAGING_TEMPLATE_IDS = new Set<string>([
+  "build-dockerfile",
+  "build-docker-compose",
+  "build-github-actions-ci",
+]);
 
 export class NestJsCleanArchitectureBuildArtifactProducer
   implements GenerationArtifactProducer {
@@ -39,10 +68,18 @@ export class NestJsCleanArchitectureBuildArtifactProducer
     request: GenerationRequest,
   ): readonly TemplateInvocation[] {
     const model = this.transformer.transformApplication(request.application);
+    const packagingModel = {
+      ...model,
+      containerPort,
+      healthPath,
+      nodeVersion,
+      checkoutActionRef,
+      setupNodeActionRef,
+    };
 
     return BUILD_TEMPLATE_IDS.map((templateId) => ({
       templateId,
-      model,
+      model: PACKAGING_TEMPLATE_IDS.has(templateId) ? packagingModel : model,
       outputVariables: {},
     }));
   }
