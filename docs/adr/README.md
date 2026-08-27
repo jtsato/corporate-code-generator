@@ -91,3 +91,4 @@ This index lists all ADR files currently present under `docs/adr` in numeric ord
 | [091](ADR-091-nestjs-generated-continuous-integration.md) | NestJS Generated Continuous Integration | Accepted — milestone 7.25 release-complete; workflow never executed, see ADR | Milestone 7.25 | 090 (in part) | Not recorded |
 | [092](ADR-092-nestjs-orm-persistence-foundation.md) | NestJS ORM Persistence Foundation | Accepted — milestone 7.26 release-complete; PostgreSQL configured but never connected to, see ADR | Milestone 7.26 | 017, 084 (reverses in part) | Not recorded |
 | [093](ADR-093-nestjs-soft-delete-and-restore.md) | NestJS Soft Delete and Restore | Accepted — milestone 7.27 release-complete | Milestone 7.27 | 052, 053 (mirrors), 092 | Not recorded |
+| [094](ADR-094-nestjs-auditing.md) | NestJS Auditing | Accepted — milestone 7.28 release-complete | Milestone 7.28 | 055 (mirrors), 092, 093 (fixes a defect in) | Not recorded |

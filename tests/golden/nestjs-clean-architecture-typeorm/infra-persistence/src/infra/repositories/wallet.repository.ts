@@ -129,6 +129,22 @@ export class WalletRepository {
     return this.entities.existsBy({ id } as FindOptionsWhere<WalletEntity>);
   }
 
+  /**
+   * Whether the identifier is taken at all, tombstones included.
+   *
+   * Soft delete releases a unique *business* value but never the identifier: the
+   * row that holds it still exists, and restore is how it comes back. Without
+   * this, `save` would write over the tombstone and quietly resurrect it, while
+   * the in-memory adapter would end up with two rows sharing an identifier —
+   * exactly the kind of divergence the two persistence options must not have.
+   */
+  public async existsAnyById(id: string): Promise<boolean> {
+    return this.entities.createQueryBuilder('entity')
+      .withDeleted()
+      .where(`entity.id = :id`, { id })
+      .getExists();
+  }
+
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
     // Active-only without saying so: `@DeleteDateColumn` makes the query builder
     // exclude tombstones unless `withDeleted()` opts out.

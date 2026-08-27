@@ -64,10 +64,12 @@ import { WalletRepository } from '../infra/repositories/wallet.repository';
 import { WalletController } from '../web-api/entrypoints/wallets/wallet.controller';
 
 @Module({
-  // Registers the entity's TypeORM repository so `@InjectRepository` can resolve
-  // it, and lets `autoLoadEntities` discover the entity without AppModule having
-  // to list every one of them.
-  imports: [TypeOrmModule.forFeature([WalletEntity])],
+  // `TypeOrmModule.forFeature` registers the entity's repository so
+  // `@InjectRepository` can resolve it, and lets `autoLoadEntities` discover the
+  // entity without AppModule having to list every one of them.
+  imports: [
+    TypeOrmModule.forFeature([WalletEntity]),
+  ],
   controllers: [WalletController],
   providers: [
     WalletRepository,

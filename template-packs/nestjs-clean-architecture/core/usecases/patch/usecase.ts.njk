@@ -1,3 +1,6 @@
+{% if audited -%}
+import { IClock } from '../../common/time/clock';
+{% endif -%}
 import { NotFoundException } from '../../exceptions/not-found.exception';
 import { {{ className }} } from '../../models/{{ fileName }}.model';
 import { IGet{{ className }}ByIdGateway } from '../get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
@@ -10,6 +13,9 @@ export class Patch{{ className }}UseCase implements IPatch{{ className }}UseCase
   public constructor(
     private readonly getByIdGateway: IGet{{ className }}ByIdGateway,
     private readonly updateGateway: IUpdate{{ className }}Gateway,
+{%- if audited %}
+    private readonly clock: IClock,
+{%- endif %}
     private readonly validator: Patch{{ className }}CommandValidator = new Patch{{ className }}CommandValidator(),
   ) {}
 
@@ -31,6 +37,13 @@ export class Patch{{ className }}UseCase implements IPatch{{ className }}UseCase
         : current.{{ property.name }},
 {%- endif %}
 {%- endfor %}
+{%- if audited %}
+      // Null even though `current` holds the real value, so that update and
+      // patch state the same rule: the creation timestamp is the adapter's to
+      // preserve, and nothing else may claim to supply it.
+      null,
+      this.clock.now(),
+{%- endif %}
     );
     const updated = await this.updateGateway.execute(updatedEntity);
 

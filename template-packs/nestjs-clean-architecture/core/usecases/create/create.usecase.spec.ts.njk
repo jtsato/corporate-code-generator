@@ -2,13 +2,22 @@ import { ValidationException } from '../../exceptions/validation.exception';
 import { {{ className }} } from '../../models/{{ fileName }}.model';
 import { Create{{ className }}Command } from './create-{{ fileName }}.command';
 import { Create{{ className }}UseCase } from './create-{{ fileName }}.usecase';
+{%- if audited %}
+
+/**
+ * A fixed clock. An assertion about a timestamp the production code invented is
+ * either tautological or flaky; pinning "now" makes it neither.
+ */
+const NOW = new Date('2025-01-01T00:00:00.000Z');
+const clock = { now: (): Date => NOW };
+{%- endif %}
 
 describe('Create{{ className }}UseCase', () => {
   it('rejects invalid commands before calling the gateway', async () => {
     const gateway = {
       execute: jest.fn(async ({{ propertyName }}: {{ className }}): Promise<{{ className }}> => {{ propertyName }}),
     };
-    const useCase = new Create{{ className }}UseCase(gateway);
+    const useCase = new Create{{ className }}UseCase(gateway{% if audited %}, clock{% endif %});
 
     await expect(useCase.execute(new Create{{ className }}Command(
 {%- for property in properties %}
@@ -22,7 +31,7 @@ describe('Create{{ className }}UseCase', () => {
     const gateway = {
       execute: jest.fn(async ({{ propertyName }}: {{ className }}): Promise<{{ className }}> => {{ propertyName }}),
     };
-    const useCase = new Create{{ className }}UseCase(gateway);
+    const useCase = new Create{{ className }}UseCase(gateway{% if audited %}, clock{% endif %});
 
     const result = await useCase.execute(new Create{{ className }}Command(
 {%- for property in properties %}
@@ -34,4 +43,25 @@ describe('Create{{ className }}UseCase', () => {
     expect(gateway.execute).toHaveBeenCalledTimes(1);
     expect(gateway.execute.mock.calls[0][0]).toBeInstanceOf({{ className }});
   });
+{%- if audited %}
+
+  it('stamps a fresh record with one clock reading for both timestamps', async () => {
+    const gateway = {
+      execute: jest.fn(async ({{ propertyName }}: {{ className }}): Promise<{{ className }}> => {{ propertyName }}),
+    };
+    const useCase = new Create{{ className }}UseCase(gateway, clock);
+
+    const result = await useCase.execute(new Create{{ className }}Command(
+{%- for property in properties %}
+      {{ property.testValue }},
+{%- endfor %}
+    ));
+
+    // Identical, not merely close: a fresh record is defined to have the same
+    // value in both, which two clock readings would not guarantee.
+    expect(result.createdAt).toEqual(NOW);
+    expect(result.updatedAt).toEqual(NOW);
+    expect(result.createdAt).toBe(result.updatedAt);
+  });
+{%- endif %}
 });

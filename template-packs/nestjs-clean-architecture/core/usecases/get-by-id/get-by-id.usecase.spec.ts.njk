@@ -3,6 +3,10 @@ import { {{ className }} } from '../../models/{{ fileName }}.model';
 import { Get{{ className }}ByIdQuery } from './get-{{ fileName }}-by-id.query';
 import { Get{{ className }}ByIdUseCase } from './get-{{ fileName }}-by-id.usecase';
 
+{%- if audited %}
+const STORED_AT = new Date('2025-01-01T00:00:00.000Z');
+{%- endif %}
+
 describe('Get{{ className }}ByIdUseCase', () => {
   it('rejects an invalid identifier before calling the gateway', async () => {
     const gateway = {
@@ -20,6 +24,11 @@ describe('Get{{ className }}ByIdUseCase', () => {
 {%- for property in properties %}
       {{ property.testValue }},
 {%- endfor %}
+{%- if audited %}
+      // Stands for a stored record, so it carries a real creation timestamp.
+      STORED_AT,
+      STORED_AT,
+{%- endif %}
     );
     const gateway = {
       execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => expected),

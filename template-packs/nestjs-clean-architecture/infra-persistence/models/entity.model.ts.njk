@@ -8,6 +8,17 @@ export class {{ className }}Entity {
    * something a caller supplies.
    */
   public deletedAt: Date | null = null;
+{%- if audited %}
+
+  /**
+   * Written once, by the create path, and carried forward by every update. Not
+   * constructor parameters for the same reason `deletedAt` is not: the mapper
+   * builds entities from business fields, and these are the adapter's to manage.
+   */
+  public createdAt: Date;
+
+  public updatedAt: Date;
+{%- endif %}
 
   public constructor(
 {%- for property in properties %}

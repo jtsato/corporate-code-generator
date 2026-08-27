@@ -76,6 +76,19 @@ const APPLICATION_TEMPLATES = [
   "core-filter-expression",
 ] as const;
 
+/**
+ * Emitted once per application and only when some entity is audited.
+ *
+ * Gated on the application rather than on an entity because there is one clock
+ * for the whole application: two audited entities reading two independent clock
+ * instances would be harmless today and confusing the moment anyone wanted to
+ * control time in a test.
+ */
+const AUDITING_APPLICATION_TEMPLATES = [
+  "core-clock",
+  "core-clock-test",
+] as const;
+
 export class NestJsCleanArchitectureCoreArtifactProducer
   implements GenerationArtifactProducer {
 
@@ -92,7 +105,12 @@ export class NestJsCleanArchitectureCoreArtifactProducer
   ): readonly TemplateInvocation[] {
     const application = this.transformer.transformApplication(request.application);
 
-    const applicationInvocations = APPLICATION_TEMPLATES.map((templateId) => ({
+    const applicationTemplateIds = [
+      ...APPLICATION_TEMPLATES,
+      ...(application.hasAuditedEntities ? AUDITING_APPLICATION_TEMPLATES : []),
+    ];
+
+    const applicationInvocations = applicationTemplateIds.map((templateId) => ({
       templateId,
       model: application,
       outputVariables: {},

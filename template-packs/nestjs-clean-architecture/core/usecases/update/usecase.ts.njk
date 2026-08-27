@@ -1,3 +1,6 @@
+{% if audited -%}
+import { IClock } from '../../common/time/clock';
+{% endif -%}
 import { NotFoundException } from '../../exceptions/not-found.exception';
 import { {{ className }} } from '../../models/{{ fileName }}.model';
 import { Update{{ className }}Command } from './update-{{ fileName }}.command';
@@ -8,6 +11,9 @@ import { IUpdate{{ className }}UseCase } from './update-{{ fileName }}-usecase.i
 export class Update{{ className }}UseCase implements IUpdate{{ className }}UseCase {
   public constructor(
     private readonly gateway: IUpdate{{ className }}Gateway,
+{%- if audited %}
+    private readonly clock: IClock,
+{%- endif %}
     private readonly validator: Update{{ className }}CommandValidator = new Update{{ className }}CommandValidator(),
   ) {}
 
@@ -18,6 +24,13 @@ export class Update{{ className }}UseCase implements IUpdate{{ className }}UseCa
 {%- for property in properties %}
       command.{{ property.name }},
 {%- endfor %}
+{%- if audited %}
+      // Not re-read here: the adapter already loads the stored row to apply the
+      // update, so preserving the original there costs nothing, while fetching
+      // it here would be a second read for the same value.
+      null,
+      this.clock.now(),
+{%- endif %}
     );
     const updated = await this.gateway.execute({{ propertyName }});
 

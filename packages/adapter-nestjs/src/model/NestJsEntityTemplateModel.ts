@@ -48,6 +48,8 @@ export interface NestJsEntityTemplateModel {
   readonly patchRequestValidationImports: readonly string[];
   /** Relational table name; plural, snake_case. */
   readonly tableName: string;
+  /** Opt-in `createdAt`/`updatedAt` tracking, declared per entity in the model. */
+  readonly audited: boolean;
   /** True when at least one column needs the string-to-number transformer. */
   readonly usesNumericTransformer: boolean;
 }
@@ -55,4 +57,10 @@ export interface NestJsEntityTemplateModel {
 export interface NestJsApplicationTemplateModel {
   readonly applicationName: string;
   readonly entities: readonly NestJsEntityTemplateModel[];
+  /**
+   * True when at least one entity is audited. The clock port and its module are
+   * emitted once per application rather than once per entity, so they are gated
+   * on this rather than on any single entity's flag.
+   */
+  readonly hasAuditedEntities: boolean;
 }

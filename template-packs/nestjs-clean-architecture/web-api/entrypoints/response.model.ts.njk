@@ -5,4 +5,13 @@ export class {{ className }}Response {
   @ApiProperty()
   public {{ property.name }}: {{ property.type }};
 {% endfor -%}
+{%- if audited %}
+  // Read-only: no request model accepts either, and both are always
+  // server-generated.
+  @ApiProperty()
+  public createdAt: Date;
+
+  @ApiProperty()
+  public updatedAt: Date;
+{% endif -%}
 }

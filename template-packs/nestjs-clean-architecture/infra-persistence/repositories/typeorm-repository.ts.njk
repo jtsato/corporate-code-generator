@@ -130,6 +130,22 @@ export class {{ className }}Repository {
     return this.entities.existsBy({ {{ identifier.name }} } as FindOptionsWhere<{{ className }}Entity>);
   }
 
+  /**
+   * Whether the identifier is taken at all, tombstones included.
+   *
+   * Soft delete releases a unique *business* value but never the identifier: the
+   * row that holds it still exists, and restore is how it comes back. Without
+   * this, `save` would write over the tombstone and quietly resurrect it, while
+   * the in-memory adapter would end up with two rows sharing an identifier —
+   * exactly the kind of divergence the two persistence options must not have.
+   */
+  public async existsAnyById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
+    return this.entities.createQueryBuilder('entity')
+      .withDeleted()
+      .where(`entity.{{ identifier.name }} = :{{ identifier.name }}`, { {{ identifier.name }} })
+      .getExists();
+  }
+
 {%- if hasUniqueAttributes %}
 
   /**

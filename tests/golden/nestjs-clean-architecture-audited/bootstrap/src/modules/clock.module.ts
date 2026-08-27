@@ -1,0 +1,17 @@
+import { Module } from '@nestjs/common';
+
+import { IClockSymbol, SystemClock } from '../core/common/time/clock';
+
+/**
+ * One clock for the whole application, imported by every module that has an
+ * audited entity.
+ *
+ * Emitted once rather than per entity: two entities auditing against two
+ * independent clock instances would be harmless today and confusing the moment
+ * anyone wanted to control time in a test.
+ */
+@Module({
+  providers: [{ provide: IClockSymbol, useClass: SystemClock }],
+  exports: [IClockSymbol],
+})
+export class ClockModule {}

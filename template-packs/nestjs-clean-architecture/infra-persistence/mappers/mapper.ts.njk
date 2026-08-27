@@ -4,11 +4,30 @@ import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 
 export class {{ className }}Mapper {
   public static toEntity({{ propertyName }}: {{ className }}): {{ className }}Entity {
+{%- if audited %}
+    const entity = new {{ className }}Entity(
+{%- for property in properties %}
+      {{ propertyName }}.{{ property.name }},
+{%- endfor %}
+    );
+
+    // `createdAt` is copied only when the domain object carries one, which is
+    // true on creation and false on every update. Leaving it alone is what lets
+    // `Update{{ className }}Provider` write the stored value back instead.
+    if ({{ propertyName }}.createdAt !== null) {
+      entity.createdAt = {{ propertyName }}.createdAt;
+    }
+
+    entity.updatedAt = {{ propertyName }}.updatedAt;
+
+    return entity;
+{%- else %}
     return new {{ className }}Entity(
 {%- for property in properties %}
       {{ propertyName }}.{{ property.name }},
 {%- endfor %}
     );
+{%- endif %}
   }
 
   public static toDomain(entity: {{ className }}Entity): {{ className }} {
@@ -16,6 +35,10 @@ export class {{ className }}Mapper {
 {%- for property in properties %}
       entity.{{ property.name }},
 {%- endfor %}
+{%- if audited %}
+      entity.createdAt,
+      entity.updatedAt,
+{%- endif %}
     );
   }
 

@@ -19,6 +19,13 @@ export class Update{{ className }}Provider implements IUpdate{{ className }}Gate
     if (current === undefined) {
       return undefined;
     }
+{%- if audited %}
+
+    // The one place a creation timestamp survives an update. The Core deliberately
+    // supplies none, and this provider already holds the stored row, so carrying
+    // the value forward here costs nothing and cannot be forgotten elsewhere.
+    entity.createdAt = current.createdAt;
+{%- endif %}
 {%- if hasUniqueAttributes %}
     const conflicts = await this.repository.hasUniqueConflict(entity, {{ propertyName }}.{{ identifier.name }});
 

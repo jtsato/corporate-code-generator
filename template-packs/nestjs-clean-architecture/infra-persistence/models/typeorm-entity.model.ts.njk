@@ -32,6 +32,21 @@ export class {{ className }}Entity {
    */
   @DeleteDateColumn({ name: 'deleted_at' })
   public deletedAt: Date | null;
+{%- if audited %}
+
+  /**
+   * Plain columns rather than `@CreateDateColumn` and `@UpdateDateColumn`: the
+   * timestamps come from the Core clock port, so a generated test can state what
+   * "now" was instead of asserting against a value the database invented. They
+   * declare no `type` for the same reason the other columns do not — no spelling
+   * of a date column is accepted by both PostgreSQL and SQLite.
+   */
+  @Column({ name: 'created_at' })
+  public createdAt: Date;
+
+  @Column({ name: 'updated_at' })
+  public updatedAt: Date;
+{%- endif %}
 
   public constructor(
 {%- for property in properties %}

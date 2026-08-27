@@ -94,6 +94,21 @@ export class WalletRepository {
     ));
   }
 
+  /**
+   * Whether the identifier is taken at all, tombstones included.
+   *
+   * Soft delete releases a unique *business* value but never the identifier: the
+   * row that holds it still exists, and restore is how it comes back. Creating
+   * over it would either resurrect a tombstone or leave two rows sharing an
+   * identifier, depending on the adapter — which is exactly the kind of
+   * divergence the two persistence options must not have.
+   */
+  public async existsAnyById(id: string): Promise<boolean> {
+    return Promise.resolve(this.wallets.some((current) =>
+      compareValues(current.id, id) === 0,
+    ));
+  }
+
   public async findPage(pageRequest: PageRequest, filterExpression: FilterExpression): Promise<PageResult<WalletEntity>> {
     return this.page(this.wallets.filter(isActive), pageRequest, filterExpression);
   }

@@ -6,6 +6,32 @@ import request = require('supertest');
 import { AppModule } from '../src/app.module';
 import { ResponseTransformerInterceptor } from '../src/web-api/commons/interceptors/response-transformer.interceptor';
 
+{%- if entities[0].audited %}
+
+/**
+ * Audit timestamps are server-generated, so a test cannot name their values.
+ * Everything else is compared exactly and these are required only to parse.
+ */
+function matchesRepresentation(expected: Record<string, unknown>) {
+  return ({ body }: { body: Record<string, unknown> }): void => {
+    const { createdAt, updatedAt, ...rest } = body as { createdAt: string; updatedAt: string };
+
+    expect(rest).toEqual(expected);
+    // Jest's `expect` takes no message argument, so the value is asserted on its
+    // own; a failure names the field through the enclosing test.
+    expect(Number.isNaN(Date.parse(createdAt))).toBe(false);
+    expect(Number.isNaN(Date.parse(updatedAt))).toBe(false);
+  };
+}
+
+function matchesPageOfOne(expected: Record<string, unknown>) {
+  return ({ body }: { body: { items: Record<string, unknown>[]; totalItems: number } }): void => {
+    expect(body.totalItems).toBe(1);
+    matchesRepresentation(expected)({ body: body.items[0] });
+  };
+}
+{%- endif %}
+
 describe('generated NestJS HTTP API', () => {
   let app: INestApplication;
 
@@ -65,11 +91,22 @@ describe('generated NestJS HTTP API', () => {
       {{ entities[0].identifier.name }}: identifier,
     };
 
+{%- if entities[0].audited %}
+    const created = await request(app.getHttpServer())
+      .post('/{{ entities[0].pluralFileName }}')
+      .send({ {{ entities[0].identifier.name }}: identifier, ...initial })
+      .expect(201)
+      .expect(matchesRepresentation(createdRepresentation));
+
+    // A fresh record carries one clock reading in both fields.
+    expect(created.body.createdAt).toBe(created.body.updatedAt);
+{%- else %}
     await request(app.getHttpServer())
       .post('/{{ entities[0].pluralFileName }}')
       .send({ {{ entities[0].identifier.name }}: identifier, ...initial })
       .expect(201)
       .expect(createdRepresentation);
+{%- endif %}
 {%- if entities[0].hasUniqueAttributes %}
 
     await request(app.getHttpServer())
@@ -91,11 +128,14 @@ describe('generated NestJS HTTP API', () => {
     await request(app.getHttpServer())
       .get('/{{ entities[0].pluralFileName }}/' + identifier)
       .expect(200)
-      .expect(createdRepresentation);
+      .expect({% if entities[0].audited %}matchesRepresentation(createdRepresentation){% else %}createdRepresentation{% endif %});
 
     await request(app.getHttpServer())
       .get('/{{ entities[0].pluralFileName }}?page=0&size=20')
       .expect(200)
+{%- if entities[0].audited %}
+      .expect(matchesPageOfOne(createdRepresentation));
+{%- else %}
       .expect({
         items: [createdRepresentation],
         page: 0,
@@ -103,19 +143,44 @@ describe('generated NestJS HTTP API', () => {
         totalItems: 1,
         totalPages: 1,
       });
+{%- endif %}
 
 {%- if entities[0].mutableProperties.length > 0 %}
+{%- if entities[0].audited %}
+    const replaced = await request(app.getHttpServer())
+      .put('/{{ entities[0].pluralFileName }}/' + identifier)
+      .send(replacement)
+      .expect(200)
+      .expect(matchesRepresentation(replacedRepresentation));
+
+    // The contract, and the one thing no unit test can establish: the creation
+    // timestamp survives a write that never supplied it, and only the other moves.
+    expect(replaced.body.createdAt).toBe(created.body.createdAt);
+    expect(Date.parse(replaced.body.updatedAt))
+      .toBeGreaterThanOrEqual(Date.parse(created.body.updatedAt));
+{%- else %}
     await request(app.getHttpServer())
       .put('/{{ entities[0].pluralFileName }}/' + identifier)
       .send(replacement)
       .expect(200)
       .expect(replacedRepresentation);
+{%- endif %}
 
+{%- if entities[0].audited %}
+    const patched = await request(app.getHttpServer())
+      .patch('/{{ entities[0].pluralFileName }}/' + identifier)
+      .send(patch)
+      .expect(200)
+      .expect(matchesRepresentation(patchedRepresentation));
+
+    expect(patched.body.createdAt).toBe(created.body.createdAt);
+{%- else %}
     await request(app.getHttpServer())
       .patch('/{{ entities[0].pluralFileName }}/' + identifier)
       .send(patch)
       .expect(200)
       .expect(patchedRepresentation);
+{%- endif %}
 
     await request(app.getHttpServer())
       .patch('/{{ entities[0].pluralFileName }}/' + identifier)
@@ -185,7 +250,7 @@ describe('generated NestJS HTTP API', () => {
     await request(app.getHttpServer())
       .get('/{{ entities[0].pluralFileName }}/' + identifier)
       .expect(200)
-      .expect(representation);
+      .expect({% if entities[0].audited %}matchesRepresentation(representation){% else %}representation{% endif %});
 
     // Restoring an active record is a refusal, not an absence.
     await request(app.getHttpServer())

@@ -14,7 +14,7 @@ import { NestJsCleanArchitectureWebApiArtifactProducer } from "../src/generation
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
-function requestWith(persistence: string): GenerationRequest {
+function requestWith(persistence: string, audited = false): GenerationRequest {
   return {
     application: {
       schemaVersion: "1.0",
@@ -22,6 +22,7 @@ function requestWith(persistence: string): GenerationRequest {
       entities: [
         {
           name: "Wallet",
+          audited,
           attributes: [
             { name: "id", type: "uuid", required: true, identifier: true },
             { name: "balance", type: "decimal", required: true, identifier: false },
@@ -35,6 +36,7 @@ function requestWith(persistence: string): GenerationRequest {
 
 const request = requestWith("memory");
 const typeormRequest = requestWith("typeorm");
+const auditedRequest = requestWith("memory", true);
 
 describe("NestJS clean architecture artifact producers", () => {
   it("declares the expected profile and module identifiers", () => {
@@ -115,6 +117,45 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(templateIds).toContain("core-page-usecase");
     expect(templateIds).toContain("core-page-request-test");
     expect(invocations.at(-1)?.outputVariables).toEqual({ fileName: "wallet", pluralFileName: "wallets" });
+  });
+
+  it("emits the clock once per application and only when something is audited", () => {
+    const plain = new NestJsCleanArchitectureCoreArtifactProducer().produce(request)
+      .map((invocation) => invocation.templateId);
+    const audited = new NestJsCleanArchitectureCoreArtifactProducer().produce(auditedRequest)
+      .map((invocation) => invocation.templateId);
+
+    expect(plain).not.toContain("core-clock");
+    expect(plain).not.toContain("core-clock-test");
+    // Once, not once per entity: there is one clock for the application, and two
+    // audited entities reading two instances would be confusing the moment
+    // anyone wanted to control time in a test.
+    expect(audited.filter((id) => id === "core-clock")).toHaveLength(1);
+    expect(audited.filter((id) => id === "core-clock-test")).toHaveLength(1);
+
+    const plainBootstrap = new NestJsCleanArchitectureBootstrapArtifactProducer().produce(request)
+      .map((invocation) => invocation.templateId);
+    const auditedBootstrap = new NestJsCleanArchitectureBootstrapArtifactProducer().produce(auditedRequest)
+      .map((invocation) => invocation.templateId);
+
+    expect(plainBootstrap).not.toContain("bootstrap-clock-module");
+    expect(auditedBootstrap.filter((id) => id === "bootstrap-clock-module")).toHaveLength(1);
+  });
+
+  it("carries the audited flag into the models that branch on it", () => {
+    const invocations = [
+      ...new NestJsCleanArchitectureCoreArtifactProducer().produce(auditedRequest),
+      ...new NestJsCleanArchitectureWebApiArtifactProducer().produce(auditedRequest),
+      ...new NestJsCleanArchitectureInfraPersistenceArtifactProducer().produce(auditedRequest),
+    ];
+    const entityModels = invocations
+      .map((invocation) => invocation.model as { readonly audited?: boolean; readonly className?: string })
+      .filter((model) => model.className !== undefined);
+
+    expect(entityModels.length).toBeGreaterThan(0);
+    for (const model of entityModels) {
+      expect(model.audited).toBe(true);
+    }
   });
 
   it("passes both file-name variables to web-api templates", () => {
@@ -284,6 +325,9 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(repositoryTemplate).toContain(
       "public async existsById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
     );
+    expect(repositoryTemplate).toContain(
+      "public async existsAnyById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean>",
+    );
     expect(repositoryTemplate).toContain("public async hasUniqueConflict(");
     expect(repositoryTemplate).toContain("ignoredIdentifier?: {{ identifier.type }}");
     // Uniqueness is scoped to active rows, which is what releases a unique value
@@ -296,7 +340,9 @@ describe("NestJS clean architecture artifact producers", () => {
       "utf8",
     );
     expect(createProviderTemplate).toContain("import { ConflictException } from '../../core/exceptions/conflict.exception';");
-    expect(createProviderTemplate).toContain("const identifierConflict = await this.repository.existsById(entity.{{ identifier.name }});");
+    // Tombstones included: a soft delete releases a unique business value but not
+    // the identifier, so creating over a tombstone is a conflict.
+    expect(createProviderTemplate).toContain("const identifierConflict = await this.repository.existsAnyById(entity.{{ identifier.name }});");
     expect(createProviderTemplate).toContain("if (identifierConflict");
 
     const restoreProviderTemplate = await readFile(
@@ -357,10 +403,10 @@ describe("NestJS clean architecture artifact producers", () => {
     expect(moduleTemplate).toContain("provide: IPatch{{ className }}UseCaseSymbol,");
     expect(moduleTemplate).toContain("provide: IDelete{{ className }}UseCaseSymbol,");
     expect(moduleTemplate).toContain(
-      "useFactory: (getByIdGateway: IGet{{ className }}ByIdGateway, updateGateway: IUpdate{{ className }}Gateway): Patch{{ className }}UseCase =>",
+      "useFactory: (getByIdGateway: IGet{{ className }}ByIdGateway, updateGateway: IUpdate{{ className }}Gateway{% if audited %}, clock: IClock{% endif %}): Patch{{ className }}UseCase =>",
     );
     expect(moduleTemplate).toContain(
-      "inject: [IGet{{ className }}ByIdGatewaySymbol, IUpdate{{ className }}GatewaySymbol],",
+      "inject: [IGet{{ className }}ByIdGatewaySymbol, IUpdate{{ className }}GatewaySymbol{% if audited %}, IClockSymbol{% endif %}],",
     );
     expect(moduleTemplate).toContain(
       "useFactory: (gateway: IDelete{{ className }}Gateway): Delete{{ className }}UseCase =>",

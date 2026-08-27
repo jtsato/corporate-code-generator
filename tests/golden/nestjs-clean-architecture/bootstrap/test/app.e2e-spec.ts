@@ -56,7 +56,6 @@ describe('generated NestJS HTTP API', () => {
       ...patch,
       id: identifier,
     };
-
     await request(app.getHttpServer())
       .post('/wallets')
       .send({ id: identifier, ...initial })
@@ -83,7 +82,6 @@ describe('generated NestJS HTTP API', () => {
       .send(replacement)
       .expect(200)
       .expect(replacedRepresentation);
-
     await request(app.getHttpServer())
       .patch('/wallets/' + identifier)
       .send(patch)

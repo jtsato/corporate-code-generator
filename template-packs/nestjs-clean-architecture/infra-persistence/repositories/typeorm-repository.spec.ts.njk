@@ -18,18 +18,31 @@ import { SortOrder } from '../../core/common/paging/sort-order';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 import { {{ className }}Repository } from './{{ fileName }}.repository';
 
+{%- if audited %}
+const STORED_AT = new Date('2025-01-01T00:00:00.000Z');
+{%- endif %}
+
 describe('{{ className }}Repository', () => {
   let dataSource: DataSource;
   let repository: {{ className }}Repository;
 
   function createEntity(overrides: Record<string, unknown> = {}): {{ className }}Entity {
-    return new {{ className }}Entity(
+    const entity = new {{ className }}Entity(
 {%- for property in properties %}
       Object.prototype.hasOwnProperty.call(overrides, '{{ property.name }}')
         ? overrides['{{ property.name }}'] as unknown as {{ property.type }}
         : {{ property.testValue }},
 {%- endfor %}
     );
+{%- if audited %}
+    // Set here rather than in the constructor for the same reason the mapper
+    // sets them: they are the adapter's to manage, and the columns are not
+    // nullable, so a row cannot be written without them.
+    entity.createdAt = STORED_AT;
+    entity.updatedAt = STORED_AT;
+{%- endif %}
+
+    return entity;
   }
 
   async function page(

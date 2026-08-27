@@ -2,6 +2,11 @@ import { Module } from '@nestjs/common';
 {%- if persistence == 'typeorm' %}
 import { TypeOrmModule } from '@nestjs/typeorm';
 {%- endif %}
+{%- if audited %}
+
+import { IClock, IClockSymbol } from '../core/common/time/clock';
+import { ClockModule } from './clock.module';
+{%- endif %}
 
 import {
   ICreate{{ className }}Gateway,
@@ -68,11 +73,20 @@ import { {{ className }}Repository } from '../infra/repositories/{{ fileName }}.
 import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller';
 
 @Module({
+{%- if persistence == 'typeorm' or audited %}
 {%- if persistence == 'typeorm' %}
-  // Registers the entity's TypeORM repository so `@InjectRepository` can resolve
-  // it, and lets `autoLoadEntities` discover the entity without AppModule having
-  // to list every one of them.
-  imports: [TypeOrmModule.forFeature([{{ className }}Entity])],
+  // `TypeOrmModule.forFeature` registers the entity's repository so
+  // `@InjectRepository` can resolve it, and lets `autoLoadEntities` discover the
+  // entity without AppModule having to list every one of them.
+{%- endif %}
+  imports: [
+{%- if persistence == 'typeorm' %}
+    TypeOrmModule.forFeature([{{ className }}Entity]),
+{%- endif %}
+{%- if audited %}
+    ClockModule,
+{%- endif %}
+  ],
 {%- endif %}
   controllers: [{{ className }}Controller],
   providers: [
@@ -95,9 +109,9 @@ import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileN
     },
     {
       provide: ICreate{{ className }}UseCaseSymbol,
-      useFactory: (gateway: ICreate{{ className }}Gateway): Create{{ className }}UseCase =>
-        new Create{{ className }}UseCase(gateway),
-      inject: [ICreate{{ className }}GatewaySymbol],
+      useFactory: (gateway: ICreate{{ className }}Gateway{% if audited %}, clock: IClock{% endif %}): Create{{ className }}UseCase =>
+        new Create{{ className }}UseCase(gateway{% if audited %}, clock{% endif %}),
+      inject: [ICreate{{ className }}GatewaySymbol{% if audited %}, IClockSymbol{% endif %}],
     },
     {
       provide: IGet{{ className }}ByIdUseCaseSymbol,
@@ -107,15 +121,15 @@ import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileN
     },
     {
       provide: IUpdate{{ className }}UseCaseSymbol,
-      useFactory: (gateway: IUpdate{{ className }}Gateway): Update{{ className }}UseCase =>
-        new Update{{ className }}UseCase(gateway),
-      inject: [IUpdate{{ className }}GatewaySymbol],
+      useFactory: (gateway: IUpdate{{ className }}Gateway{% if audited %}, clock: IClock{% endif %}): Update{{ className }}UseCase =>
+        new Update{{ className }}UseCase(gateway{% if audited %}, clock{% endif %}),
+      inject: [IUpdate{{ className }}GatewaySymbol{% if audited %}, IClockSymbol{% endif %}],
     },
     {
       provide: IPatch{{ className }}UseCaseSymbol,
-      useFactory: (getByIdGateway: IGet{{ className }}ByIdGateway, updateGateway: IUpdate{{ className }}Gateway): Patch{{ className }}UseCase =>
-        new Patch{{ className }}UseCase(getByIdGateway, updateGateway),
-      inject: [IGet{{ className }}ByIdGatewaySymbol, IUpdate{{ className }}GatewaySymbol],
+      useFactory: (getByIdGateway: IGet{{ className }}ByIdGateway, updateGateway: IUpdate{{ className }}Gateway{% if audited %}, clock: IClock{% endif %}): Patch{{ className }}UseCase =>
+        new Patch{{ className }}UseCase(getByIdGateway, updateGateway{% if audited %}, clock{% endif %}),
+      inject: [IGet{{ className }}ByIdGatewaySymbol, IUpdate{{ className }}GatewaySymbol{% if audited %}, IClockSymbol{% endif %}],
     },
     {
       provide: IDelete{{ className }}UseCaseSymbol,

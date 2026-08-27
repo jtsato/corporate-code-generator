@@ -23,7 +23,7 @@ describe('WalletRepository', () => {
   let repository: WalletRepository;
 
   function createEntity(overrides: Record<string, unknown> = {}): WalletEntity {
-    return new WalletEntity(
+    const entity = new WalletEntity(
       Object.prototype.hasOwnProperty.call(overrides, 'id')
         ? overrides['id'] as unknown as string
         : "00000000-0000-4000-8000-000000000001",
@@ -31,6 +31,8 @@ describe('WalletRepository', () => {
         ? overrides['balance'] as unknown as number
         : 1.5,
     );
+
+    return entity;
   }
 
   async function page(

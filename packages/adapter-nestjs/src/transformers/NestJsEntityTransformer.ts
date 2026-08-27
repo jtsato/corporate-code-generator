@@ -252,6 +252,7 @@ export class NestJsEntityTransformer {
       updateRequestValidationImports,
       patchRequestValidationImports,
       tableName: toPluralKebabCaseName(entity.name).replaceAll("-", "_"),
+      audited: entity.audited ?? false,
       usesNumericTransformer: columns.some((column) => column.usesNumericTransformer),
     };
   }
@@ -259,9 +260,12 @@ export class NestJsEntityTransformer {
   public transformApplication(
     application: ApplicationModel,
   ): NestJsApplicationTemplateModel {
+    const entities = application.entities.map((entity) => this.transform(entity));
+
     return {
       applicationName: application.name,
-      entities: application.entities.map((entity) => this.transform(entity)),
+      entities,
+      hasAuditedEntities: entities.some((entity) => entity.audited),
     };
   }
 }

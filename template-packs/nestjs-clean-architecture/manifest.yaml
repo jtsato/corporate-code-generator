@@ -135,6 +135,15 @@ templates:
     module: core
     template: core/models/tombstone.model.ts.njk
     output: src/core/models/{{ fileName }}-tombstone.model.ts
+  # Emitted once per application, and only when at least one entity is audited.
+  - id: core-clock
+    module: core
+    template: core/common/time/clock.ts.njk
+    output: src/core/common/time/clock.ts
+  - id: core-clock-test
+    module: core
+    template: core/common/time/clock.spec.ts.njk
+    output: src/core/common/time/clock.spec.ts
   - id: core-create-command
     module: core
     template: core/usecases/create/create.command.ts.njk
@@ -538,6 +547,10 @@ templates:
     module: bootstrap
     template: bootstrap/setup-e2e-environment.ts.njk
     output: test/setup-e2e-environment.ts
+  - id: bootstrap-clock-module
+    module: bootstrap
+    template: bootstrap/modules/clock.module.ts.njk
+    output: src/modules/clock.module.ts
   - id: bootstrap-entity-module
     module: bootstrap
     template: bootstrap/modules/module.ts.njk

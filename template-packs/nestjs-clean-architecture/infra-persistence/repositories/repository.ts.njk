@@ -94,6 +94,21 @@ export class {{ className }}Repository {
     ));
   }
 
+  /**
+   * Whether the identifier is taken at all, tombstones included.
+   *
+   * Soft delete releases a unique *business* value but never the identifier: the
+   * row that holds it still exists, and restore is how it comes back. Creating
+   * over it would either resurrect a tombstone or leave two rows sharing an
+   * identifier, depending on the adapter — which is exactly the kind of
+   * divergence the two persistence options must not have.
+   */
+  public async existsAnyById({{ identifier.name }}: {{ identifier.type }}): Promise<boolean> {
+    return Promise.resolve(this.{{ propertyName }}s.some((current) =>
+      compareValues(current.{{ identifier.name }}, {{ identifier.name }}) === 0,
+    ));
+  }
+
 {%- if hasUniqueAttributes %}
   /**
    * Considers active rows only, which is what lets a unique value be reused

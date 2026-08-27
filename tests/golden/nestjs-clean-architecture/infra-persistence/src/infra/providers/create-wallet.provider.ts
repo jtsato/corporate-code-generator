@@ -12,7 +12,9 @@ export class CreateWalletProvider implements ICreateWalletGateway {
 
   public async execute(wallet: Wallet): Promise<Wallet> {
     const entity = WalletMapper.toEntity(wallet);
-    const identifierConflict = await this.repository.existsById(entity.id);
+    // Tombstones included: soft delete keeps the identifier, so creating over one
+    // is a conflict and restore is the way back.
+    const identifierConflict = await this.repository.existsAnyById(entity.id);
 
     if (identifierConflict) {
       throw new ConflictException('wallet.already-exists', 'Wallet already exists.');

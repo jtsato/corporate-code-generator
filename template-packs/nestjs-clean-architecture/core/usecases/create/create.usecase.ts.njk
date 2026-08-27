@@ -1,3 +1,6 @@
+{% if audited -%}
+import { IClock } from '../../common/time/clock';
+{% endif -%}
 import { {{ className }} } from '../../models/{{ fileName }}.model';
 import { Create{{ className }}Command } from './create-{{ fileName }}.command';
 import { Create{{ className }}CommandValidator } from './create-{{ fileName }}-command.validator';
@@ -7,16 +10,30 @@ import { ICreate{{ className }}UseCase } from './create-{{ fileName }}-usecase.i
 export class Create{{ className }}UseCase implements ICreate{{ className }}UseCase {
   public constructor(
     private readonly gateway: ICreate{{ className }}Gateway,
+{%- if audited %}
+    private readonly clock: IClock,
+{%- endif %}
     private readonly validator: Create{{ className }}CommandValidator = new Create{{ className }}CommandValidator(),
   ) {}
 
   public async execute(command: Create{{ className }}Command): Promise<{{ className }}> {
     this.validator.validate(command);
+{%- if audited %}
+
+    // One clock read, not two: a fresh record is defined to have identical
+    // timestamps, and reading twice makes that untrue at sub-millisecond
+    // resolution on a real clock.
+    const createdAt = this.clock.now();
+{%- endif %}
 
     const {{ propertyName }} = new {{ className }}(
 {%- for property in properties %}
       command.{{ property.name }},
 {%- endfor %}
+{%- if audited %}
+      createdAt,
+      createdAt,
+{%- endif %}
     );
 
     return this.gateway.execute({{ propertyName }});

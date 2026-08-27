@@ -7,6 +7,18 @@ export class {{ className }}Presenter {
 {%- for property in properties %}
     response.{{ property.name }} = {{ propertyName }}.{{ property.name }};
 {%- endfor %}
+{%- if audited %}
+
+    // Everything presented here has been through a gateway, so a null creation
+    // timestamp means the adapter failed to preserve the stored one. That is a
+    // defect, not a state a caller should see rendered as null.
+    if ({{ propertyName }}.createdAt === null) {
+      throw new Error('{{ className }}Presenter requires a persisted {{ className }}.');
+    }
+
+    response.createdAt = {{ propertyName }}.createdAt;
+    response.updatedAt = {{ propertyName }}.updatedAt;
+{%- endif %}
     return response;
   }
 }

@@ -62,6 +62,9 @@ export class NestJsCleanArchitectureBootstrapArtifactProducer
       ENVIRONMENT_TEST_TEMPLATE_ID_BY_OPTION[persistence],
       "bootstrap-e2e-test",
       ...EXTRA_TEMPLATE_IDS_BY_OPTION[persistence],
+      // One clock module per application, not per audited entity; see the Core
+      // producer for why the clock is application-scoped.
+      ...(transformed.hasAuditedEntities ? ["bootstrap-clock-module"] : []),
     ];
 
     const applicationInvocations = applicationTemplateIds.map((templateId) => ({

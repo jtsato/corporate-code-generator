@@ -5,6 +5,15 @@ import { IGet{{ className }}ByIdGateway } from '../get-{{ fileName }}-by-id/get-
 import { IUpdate{{ className }}Gateway } from '../update-{{ fileName }}/update-{{ fileName }}.gateway';
 import { Patch{{ className }}Command } from './patch-{{ fileName }}.command';
 import { Patch{{ className }}UseCase } from './patch-{{ fileName }}.usecase';
+{%- if audited %}
+
+/**
+ * A fixed clock. An assertion about a timestamp the production code invented is
+ * either tautological or flaky; pinning "now" makes it neither.
+ */
+const NOW = new Date('2025-01-01T00:00:00.000Z');
+const clock = { now: (): Date => NOW };
+{%- endif %}
 
 describe('Patch{{ className }}UseCase', () => {
   it('rejects invalid commands before loading the current entity', async () => {
@@ -14,7 +23,7 @@ describe('Patch{{ className }}UseCase', () => {
     const updateGateway: IUpdate{{ className }}Gateway = {
       execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
     };
-    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway{% if audited %}, clock{% endif %});
 
     await expect(useCase.execute(new Patch{{ className }}Command(
       {{ identifier.invalidTestValue }},
@@ -35,7 +44,7 @@ describe('Patch{{ className }}UseCase', () => {
     const updateGateway: IUpdate{{ className }}Gateway = {
       execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
     };
-    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway{% if audited %}, clock{% endif %});
 
     await expect(useCase.execute(new Patch{{ className }}Command(
       {{ identifier.testValue }},
@@ -52,7 +61,7 @@ describe('Patch{{ className }}UseCase', () => {
     const updateGateway: IUpdate{{ className }}Gateway = {
       execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
     };
-    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway{% if audited %}, clock{% endif %});
 
     await expect(useCase.execute(new Patch{{ className }}Command(
       {{ identifier.testValue }},
@@ -72,6 +81,11 @@ describe('Patch{{ className }}UseCase', () => {
 {%- for property in properties %}
       {{ property.testValue }},
 {%- endfor %}
+{%- if audited %}
+      // Stands for a stored record, so it carries a real creation timestamp.
+      NOW,
+      NOW,
+{%- endif %}
     );
     const updated = new {{ className }}(
 {%- for property in properties %}
@@ -83,6 +97,11 @@ describe('Patch{{ className }}UseCase', () => {
       {{ property.testValue }},
 {%- endif %}
 {%- endfor %}
+{%- if audited %}
+      // Stands for a stored record, so it carries a real creation timestamp.
+      NOW,
+      NOW,
+{%- endif %}
     );
     const getByIdGateway: IGet{{ className }}ByIdGateway = {
       execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => current),
@@ -90,7 +109,7 @@ describe('Patch{{ className }}UseCase', () => {
     const updateGateway: IUpdate{{ className }}Gateway = {
       execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => updated),
     };
-    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway{% if audited %}, clock{% endif %});
 
     const result = await useCase.execute(new Patch{{ className }}Command(
       {{ identifier.testValue }},
@@ -115,6 +134,12 @@ describe('Patch{{ className }}UseCase', () => {
       {{ property.testValue }},
 {%- endif %}
     {%- endfor %}
+{%- if audited %}
+      // What patch supplies, not what the row holds: the creation timestamp is
+      // the adapter's to preserve, so patch states the same rule update does.
+      null,
+      NOW,
+{%- endif %}
     ));
   });
 {%- endif %}
@@ -126,7 +151,7 @@ describe('Patch{{ className }}UseCase', () => {
     const updateGateway: IUpdate{{ className }}Gateway = {
       execute: jest.fn(async (entity: {{ className }}): Promise<{{ className }} | undefined> => entity),
     };
-    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway{% if audited %}, clock{% endif %});
 
     await expect(useCase.execute(new Patch{{ className }}Command(
       {{ identifier.testValue }},
@@ -146,6 +171,11 @@ describe('Patch{{ className }}UseCase', () => {
 {%- for property in properties %}
       {{ property.testValue }},
 {%- endfor %}
+{%- if audited %}
+      // Stands for a stored record, so it carries a real creation timestamp.
+      NOW,
+      NOW,
+{%- endif %}
     );
     const getByIdGateway: IGet{{ className }}ByIdGateway = {
       execute: jest.fn(async (_id: {{ identifier.type }}): Promise<{{ className }} | undefined> => current),
@@ -153,7 +183,7 @@ describe('Patch{{ className }}UseCase', () => {
     const updateGateway: IUpdate{{ className }}Gateway = {
       execute: jest.fn(async (_entity: {{ className }}): Promise<{{ className }} | undefined> => undefined),
     };
-    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway);
+    const useCase = new Patch{{ className }}UseCase(getByIdGateway, updateGateway{% if audited %}, clock{% endif %});
 
     await expect(useCase.execute(new Patch{{ className }}Command(
       {{ identifier.testValue }},

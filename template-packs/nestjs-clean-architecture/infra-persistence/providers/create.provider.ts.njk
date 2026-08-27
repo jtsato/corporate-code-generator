@@ -12,7 +12,9 @@ export class Create{{ className }}Provider implements ICreate{{ className }}Gate
 
   public async execute({{ propertyName }}: {{ className }}): Promise<{{ className }}> {
     const entity = {{ className }}Mapper.toEntity({{ propertyName }});
-    const identifierConflict = await this.repository.existsById(entity.{{ identifier.name }});
+    // Tombstones included: soft delete keeps the identifier, so creating over one
+    // is a conflict and restore is the way back.
+    const identifierConflict = await this.repository.existsAnyById(entity.{{ identifier.name }});
 {%- if hasUniqueAttributes %}
     const uniqueConflicts = await this.repository.hasUniqueConflict(entity);
 {%- endif %}

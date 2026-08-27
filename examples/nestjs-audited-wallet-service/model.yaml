@@ -1,0 +1,25 @@
+# Deliberately the same application name and attributes as
+# `examples/nestjs-wallet-service`, differing only in `audited: true`.
+#
+# That is what lets the auditing golden be stored as the difference between the
+# two generations rather than as a second near-identical tree, and what makes
+# "auditing touches exactly these files" an assertion a test can make.
+schemaVersion: "1.0"
+
+application:
+  name: wallet-service
+  namespace: io.github.jtsato.walletservice
+
+entities:
+  - name: Wallet
+    audited: true
+
+    attributes:
+      - name: id
+        type: uuid
+        identifier: true
+        required: true
+
+      - name: balance
+        type: decimal
+        required: true
