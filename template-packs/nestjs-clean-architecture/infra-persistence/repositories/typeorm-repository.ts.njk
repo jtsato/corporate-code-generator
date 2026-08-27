@@ -1,12 +1,13 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import type { FindOptionsWhere } from 'typeorm';
 import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
-import { FilterExpression } from '../../core/common/filter/filter-expression';
-import { PageRequest } from '../../core/common/paging/page-request';
-import { PageResult } from '../../core/common/paging/page-result';
+import { FilterExpression } from '{{ coreRoot }}/common/filter/filter-expression';
+import { PageRequest } from '{{ coreRoot }}/common/paging/page-request';
+import { PageResult } from '{{ coreRoot }}/common/paging/page-result';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 
 /**

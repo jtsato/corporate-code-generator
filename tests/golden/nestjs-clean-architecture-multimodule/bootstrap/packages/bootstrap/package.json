@@ -1,0 +1,29 @@
+{
+  "name": "@wallet-service/bootstrap",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "dependencies": {
+    "@wallet-service/core": "0.1.0",
+    "@wallet-service/infra-persistence": "0.1.0",
+    "@wallet-service/web-api": "0.1.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "nestjs-i18n": "10.6.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "scripts": {
+    "build": "tsc --build"
+  }
+}

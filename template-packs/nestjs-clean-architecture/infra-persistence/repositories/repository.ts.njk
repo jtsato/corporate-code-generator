@@ -1,8 +1,9 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Injectable } from '@nestjs/common';
 
-import { FilterExpression } from '../../core/common/filter/filter-expression';
-import { PageRequest } from '../../core/common/paging/page-request';
-import { PageResult } from '../../core/common/paging/page-result';
+import { FilterExpression } from '{{ coreRoot }}/common/filter/filter-expression';
+import { PageRequest } from '{{ coreRoot }}/common/paging/page-request';
+import { PageResult } from '{{ coreRoot }}/common/paging/page-result';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 
 function compareStrings(left: string, right: string): number {

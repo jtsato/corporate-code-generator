@@ -1,0 +1,20 @@
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Inject } from '@nestjs/common';
+import { Response } from 'express';
+
+import { ValidationException } from '@wallet-service/core/exceptions/validation.exception';
+import { II18nService, II18nServiceSymbol } from '@wallet-service/core/i18n/i18n-service.interface';
+
+@Catch(ValidationException)
+export class ValidationExceptionFilter implements ExceptionFilter {
+  public constructor(@Inject(II18nServiceSymbol) private readonly i18n: II18nService) {}
+
+  public catch(exception: ValidationException, host: ArgumentsHost): void {
+    const response = host.switchToHttp().getResponse<Response>();
+
+    response.status(HttpStatus.BAD_REQUEST).json({
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: this.i18n.translate(exception.messageKey, exception.defaultMessage),
+      violations: exception.violations,
+    });
+  }
+}

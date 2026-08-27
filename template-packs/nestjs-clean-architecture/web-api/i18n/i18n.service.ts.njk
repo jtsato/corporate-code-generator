@@ -1,7 +1,8 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Injectable } from '@nestjs/common';
 import { I18nContext, I18nService as NestI18nService } from 'nestjs-i18n';
 
-import { II18nService } from '../../core/i18n/i18n-service.interface';
+import { II18nService } from '{{ coreRoot }}/i18n/i18n-service.interface';
 
 @Injectable()
 export class I18nService implements II18nService {

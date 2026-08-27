@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+{%- for package in packages %}
+      "@{{ applicationName }}/{{ package.name }}/*": ["packages/{{ package.name }}/src/*"]{% if not loop.last %},{% endif %}
+{%- endfor %}
+    }
+  }
+}

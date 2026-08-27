@@ -1,0 +1,23 @@
+{
+  "name": "@{{ applicationName }}/{{ packageName }}",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+{%- if packageDependencies.length > 0 %}
+  "dependencies": {
+{%- for dependency in packageDependencies %}
+    "{{ dependency.name }}": "{{ dependency.version }}"{% if not loop.last %},{% endif %}
+{%- endfor %}
+  },
+{%- endif %}
+  "scripts": {
+    "build": "tsc --build"
+  }
+}

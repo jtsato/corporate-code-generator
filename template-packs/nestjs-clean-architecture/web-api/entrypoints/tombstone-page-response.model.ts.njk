@@ -1,6 +1,7 @@
+{%- set coreRoot = corePackage | default('../../../core') -%}
 import { ApiProperty } from '@nestjs/swagger';
 
-import { PageResult } from '../../../core/common/paging/page-result';
+import { PageResult } from '{{ coreRoot }}/common/paging/page-result';
 import { {{ className }}TombstoneResponse } from './{{ fileName }}-tombstone-response.model';
 
 export class {{ className }}TombstonePageResponse {

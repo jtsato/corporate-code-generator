@@ -1,0 +1,29 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+import { PageResult } from '@wallet-service/core/common/paging/page-result';
+import { WalletResponse } from './wallet-response.model';
+
+export class WalletPageResponse {
+  @ApiProperty({ type: [WalletResponse] })
+  public readonly items: readonly WalletResponse[];
+
+  @ApiProperty()
+  public readonly page: number;
+
+  @ApiProperty()
+  public readonly size: number;
+
+  @ApiProperty()
+  public readonly totalItems: number;
+
+  @ApiProperty()
+  public readonly totalPages: number;
+
+  public constructor(page: PageResult<WalletResponse>) {
+    this.items = page.items;
+    this.page = page.page;
+    this.size = page.size;
+    this.totalItems = page.totalItems;
+    this.totalPages = page.totalPages;
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
+  ]{% if packageReferences.length > 0 %},
+  "references": [
+{%- for reference in packageReferences %}
+    { "path": "../{{ reference }}" }{% if not loop.last %},{% endif %}
+{%- endfor %}
+  ]{% endif %}
+}

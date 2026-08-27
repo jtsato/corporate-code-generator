@@ -1,6 +1,7 @@
+{%- set coreRoot = corePackage | default('../core') -%}
 import { Module } from '@nestjs/common';
 
-import { IClockSymbol, SystemClock } from '../core/common/time/clock';
+import { IClockSymbol, SystemClock } from '{{ coreRoot }}/common/time/clock';
 
 /**
  * One clock for the whole application, imported by every module that has an

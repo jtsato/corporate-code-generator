@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@wallet-service/core/*": ["packages/core/src/*"],
+      "@wallet-service/infra-persistence/*": ["packages/infra-persistence/src/*"],
+      "@wallet-service/web-api/*": ["packages/web-api/src/*"],
+      "@wallet-service/bootstrap/*": ["packages/bootstrap/src/*"]
+    }
+  }
+}

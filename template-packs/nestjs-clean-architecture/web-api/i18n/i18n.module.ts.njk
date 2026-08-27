@@ -1,8 +1,9 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Module } from '@nestjs/common';
 import { join } from 'path';
 import { I18nJsonLoader, I18nModule as NestI18nModule } from 'nestjs-i18n';
 
-import { II18nServiceSymbol } from '../../core/i18n/i18n-service.interface';
+import { II18nServiceSymbol } from '{{ coreRoot }}/i18n/i18n-service.interface';
 import { FALLBACK_LANGUAGE } from './language-negotiation';
 import { I18nService } from './i18n.service';
 import { SupportedLanguageResolver } from './supported-language.resolver';

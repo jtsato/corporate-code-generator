@@ -4,7 +4,7 @@ import { parse } from "yaml";
 import {
   validateOutputPattern,
 } from "../generation/OutputPathResolver.js";
-import type { TemplatePack, TemplateDefinition } from "./TemplatePack.js";
+import type { TemplatePack, TemplateDefinition, TemplatePackReference } from "./TemplatePack.js";
 import {
   TemplatePackValidationError,
   type TemplatePackValidationIssue,
@@ -24,6 +24,7 @@ function parseTemplatePack(document: unknown): TemplatePack {
   const pack = recordAt(document, "", issues);
   const id = stringAt(pack, "id", "id", issues);
   const version = stringAt(pack, "version", "version", issues);
+  const base = parseExtends(pack, issues);
   const templates = parseTemplates(pack, issues);
 
   const hasDuplicateTemplateIds = issues.some(
@@ -40,8 +41,35 @@ function parseTemplatePack(document: unknown): TemplatePack {
   return {
     id: id as string,
     version: version as string,
+    ...(base !== undefined ? { extends: base } : {}),
     templates: templates as readonly TemplateDefinition[],
   };
+}
+
+/**
+ * `extends` is absent from every pack that stands alone, so a missing key means
+ * "borrows nothing" rather than an invalid manifest. A present but malformed one
+ * is still an error.
+ */
+function parseExtends(
+  pack: Record<string, unknown> | undefined,
+  issues: TemplatePackValidationIssue[],
+): TemplatePackReference | undefined {
+  const value = pack?.extends;
+
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const reference = recordAt(value, "extends", issues);
+  const id = stringAt(reference, "id", "extends.id", issues);
+  const version = stringAt(reference, "version", "extends.version", issues);
+
+  if (id === undefined || version === undefined) {
+    return undefined;
+  }
+
+  return { id, version };
 }
 
 function parseTemplates(

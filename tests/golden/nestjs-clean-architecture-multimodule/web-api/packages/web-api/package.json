@@ -1,0 +1,24 @@
+{
+  "name": "@wallet-service/web-api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "dependencies": {
+    "@wallet-service/core": "0.1.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "nestjs-i18n": "10.6.0"
+  },
+  "scripts": {
+    "build": "tsc --build"
+  }
+}

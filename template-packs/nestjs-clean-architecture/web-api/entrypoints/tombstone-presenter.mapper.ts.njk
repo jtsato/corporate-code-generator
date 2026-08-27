@@ -1,4 +1,5 @@
-import { {{ className }}Tombstone } from '../../../core/models/{{ fileName }}-tombstone.model';
+{%- set coreRoot = corePackage | default('../../../core') -%}
+import { {{ className }}Tombstone } from '{{ coreRoot }}/models/{{ fileName }}-tombstone.model';
 import { {{ className }}TombstoneResponse } from './{{ fileName }}-tombstone-response.model';
 
 export class {{ className }}TombstonePresenter {

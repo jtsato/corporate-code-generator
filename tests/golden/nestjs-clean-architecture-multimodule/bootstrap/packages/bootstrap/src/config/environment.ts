@@ -1,0 +1,145 @@
+/**
+ * Environment configuration for wallet-service.
+ *
+ * This module is deliberately framework-free and pure: it turns a bag of strings
+ * into a validated, typed object, or throws. The composition root provides the
+ * result under `EnvironmentSymbol`, instantiated eagerly at application start, so
+ * an invalid deployment fails before the server begins accepting traffic rather
+ * than at the first request that happens to need a value.
+ */
+
+export const ENVIRONMENT_NAMES = ['development', 'test', 'production'] as const;
+
+export type EnvironmentName = (typeof ENVIRONMENT_NAMES)[number];
+
+export interface CorsPolicy {
+  /** False when no origin is allowed, in which case CORS is never enabled at all. */
+  readonly enabled: boolean;
+  readonly allowedOrigins: readonly string[];
+  readonly allowedMethods: readonly string[];
+  readonly allowedHeaders: readonly string[];
+  readonly exposedHeaders: readonly string[];
+  readonly allowCredentials: boolean;
+  readonly maxAge: number;
+}
+
+export interface Environment {
+  readonly name: EnvironmentName;
+  /** Zero asks the operating system for an ephemeral port. */
+  readonly port: number;
+  readonly cors: CorsPolicy;
+}
+
+/**
+ * Injection token for the validated configuration.
+ *
+ * The validated object is provided under this symbol rather than read back through
+ * `ConfigService`. `@nestjs/config` publishes non-string values by writing
+ * `JSON.stringify(value)` into `process.env`, so `configService.get('cors')` hands
+ * back a JSON *string* whose `.enabled` is `undefined` — CORS would then be
+ * silently disabled with no error anywhere.
+ */
+export const EnvironmentSymbol = Symbol.for('Environment');
+
+/** Carries every fault at once: fixing one variable per restart is a poor loop. */
+export class EnvironmentValidationError extends Error {
+  public constructor(public readonly problems: readonly string[]) {
+    super(`Invalid environment configuration:\n  - ${problems.join('\n  - ')}`);
+    this.name = 'EnvironmentValidationError';
+  }
+}
+
+function readString(source: Record<string, unknown>, key: string): string | undefined {
+  const value = source[key];
+  if (value === undefined || value === null) return undefined;
+  const text = String(value).trim();
+  return text === '' ? undefined : text;
+}
+
+function readList(source: Record<string, unknown>, key: string): readonly string[] {
+  const raw = readString(source, key);
+  if (raw === undefined) return [];
+  return raw
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry !== '');
+}
+
+function readInteger(
+  source: Record<string, unknown>,
+  key: string,
+  fallback: number,
+  minimum: number,
+  maximum: number,
+  problems: string[],
+): number {
+  const raw = readString(source, key);
+  if (raw === undefined) return fallback;
+  if (!/^\d+$/.test(raw)) {
+    problems.push(`${key} must be a whole number, but was '${raw}'.`);
+    return fallback;
+  }
+  const parsed = Number(raw);
+  if (parsed < minimum || parsed > maximum) {
+    problems.push(`${key} must be between ${minimum} and ${maximum}, but was ${parsed}.`);
+    return fallback;
+  }
+  return parsed;
+}
+
+function readBoolean(source: Record<string, unknown>, key: string, problems: string[]): boolean {
+  const raw = readString(source, key);
+  if (raw === undefined) return false;
+  if (raw !== 'true' && raw !== 'false') {
+    problems.push(`${key} must be exactly 'true' or 'false', but was '${raw}'.`);
+    return false;
+  }
+  return raw === 'true';
+}
+
+function readEnvironmentName(source: Record<string, unknown>, problems: string[]): EnvironmentName {
+  const raw = readString(source, 'NODE_ENV');
+  if (raw === undefined) return 'development';
+  if (!(ENVIRONMENT_NAMES as readonly string[]).includes(raw)) {
+    problems.push(`NODE_ENV must be one of ${ENVIRONMENT_NAMES.join(', ')}, but was '${raw}'.`);
+    return 'development';
+  }
+  return raw as EnvironmentName;
+}
+
+/**
+ * Validates raw environment variables and returns the typed configuration.
+ *
+ * Throws `EnvironmentValidationError` listing every problem found. Absent values
+ * fall back to a documented default, so this rejects values that are *wrong*
+ * rather than values that are merely unset.
+ */
+export function validateEnvironment(source: Record<string, unknown> = process.env): Environment {
+  const problems: string[] = [];
+
+  const name = readEnvironmentName(source, problems);
+  const port = readInteger(source, 'PORT', 3000, 0, 65535, problems);
+
+  const allowedOrigins = readList(source, 'CORS_ALLOWED_ORIGINS');
+  const allowCredentials = readBoolean(source, 'CORS_ALLOW_CREDENTIALS', problems);
+
+  // The browser rejects this combination outright, so a deployment that sets it
+  // has CORS that silently never works. Failing at boot is the honest outcome.
+  if (allowCredentials && allowedOrigins.includes('*')) {
+    problems.push("CORS_ALLOW_CREDENTIALS cannot be true while CORS_ALLOWED_ORIGINS contains '*'.");
+  }
+
+  const cors: CorsPolicy = {
+    enabled: allowedOrigins.length > 0,
+    allowedOrigins,
+    allowedMethods: readList(source, 'CORS_ALLOWED_METHODS'),
+    allowedHeaders: readList(source, 'CORS_ALLOWED_HEADERS'),
+    exposedHeaders: readList(source, 'CORS_EXPOSED_HEADERS'),
+    allowCredentials,
+    maxAge: readInteger(source, 'CORS_MAX_AGE', 3600, 0, 86400, problems),
+  };
+
+  if (problems.length > 0) throw new EnvironmentValidationError(problems);
+
+  return { name, port, cors };
+}

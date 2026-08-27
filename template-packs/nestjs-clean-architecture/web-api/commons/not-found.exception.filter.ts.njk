@@ -1,7 +1,8 @@
+{%- set coreRoot = corePackage | default('../../../core') -%}
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 
-import { NotFoundException } from '../../../core/exceptions/not-found.exception';
+import { NotFoundException } from '{{ coreRoot }}/exceptions/not-found.exception';
 import { I18nService } from '../../i18n/i18n.service';
 
 @Catch(NotFoundException)

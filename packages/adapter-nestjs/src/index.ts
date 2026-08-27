@@ -43,3 +43,18 @@ export {
 export {
   NestJsCleanArchitectureBootstrapArtifactProducer,
 } from "./generation/NestJsCleanArchitectureBootstrapArtifactProducer.js";
+
+export {
+  NestJsMultimoduleArtifactProducer,
+  NestJsMultimoduleBuildArtifactProducer,
+} from "./generation/NestJsMultimoduleArtifactProducer.js";
+
+export {
+  packageRootsFor,
+  workspacePackagesFor,
+} from "./generation/NestJsMultimoduleLayout.js";
+
+export type {
+  NestJsPackageRoots,
+  NestJsWorkspacePackage,
+} from "./generation/NestJsMultimoduleLayout.js";

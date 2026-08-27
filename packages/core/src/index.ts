@@ -128,6 +128,7 @@ export type {
 export type {
   TemplateDefinition,
   TemplatePack,
+  TemplatePackReference,
 } from "./template-packs/TemplatePack.js";
 export type {
   ResolvedTemplatePack,

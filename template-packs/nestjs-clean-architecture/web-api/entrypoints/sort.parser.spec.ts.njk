@@ -1,6 +1,7 @@
-import { ValidationException } from '../../../core/exceptions/validation.exception';
-import { SortDirection } from '../../../core/common/paging/sort-direction';
-import { SortOrder } from '../../../core/common/paging/sort-order';
+{%- set coreRoot = corePackage | default('../../../core') -%}
+import { ValidationException } from '{{ coreRoot }}/exceptions/validation.exception';
+import { SortDirection } from '{{ coreRoot }}/common/paging/sort-direction';
+import { SortOrder } from '{{ coreRoot }}/common/paging/sort-order';
 import { {{ className }}SortParser } from './{{ fileName }}-sort.parser';
 
 const sortProperty = '{{ properties[0].name }}';

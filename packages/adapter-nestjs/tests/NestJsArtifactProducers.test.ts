@@ -339,7 +339,10 @@ describe("NestJS clean architecture artifact producers", () => {
       join(repoRoot, "template-packs", "nestjs-clean-architecture", "infra-persistence", "providers", "create.provider.ts.njk"),
       "utf8",
     );
-    expect(createProviderTemplate).toContain("import { ConflictException } from '../../core/exceptions/conflict.exception';");
+    // The layer root is a variable so the same template renders a relative path
+    // in the single-package layout and a package name in the workspace one.
+    expect(createProviderTemplate).toContain("{%- set coreRoot = corePackage | default('../../core') -%}");
+    expect(createProviderTemplate).toContain("import { ConflictException } from '{{ coreRoot }}/exceptions/conflict.exception';");
     // Tombstones included: a soft delete releases a unique business value but not
     // the identifier, so creating over a tombstone is a conflict.
     expect(createProviderTemplate).toContain("const identifierConflict = await this.repository.existsAnyById(entity.{{ identifier.name }});");

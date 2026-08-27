@@ -1,10 +1,11 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Injectable } from '@nestjs/common';
 
-import { FilterExpression } from '../../core/common/filter/filter-expression';
-import { PageRequest } from '../../core/common/paging/page-request';
-import { PageResult } from '../../core/common/paging/page-result';
-import { {{ className }}Tombstone } from '../../core/models/{{ fileName }}-tombstone.model';
-import { IPageDeleted{{ className }}Gateway } from '../../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.gateway';
+import { FilterExpression } from '{{ coreRoot }}/common/filter/filter-expression';
+import { PageRequest } from '{{ coreRoot }}/common/paging/page-request';
+import { PageResult } from '{{ coreRoot }}/common/paging/page-result';
+import { {{ className }}Tombstone } from '{{ coreRoot }}/models/{{ fileName }}-tombstone.model';
+import { IPageDeleted{{ className }}Gateway } from '{{ coreRoot }}/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.gateway';
 import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
 import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
 

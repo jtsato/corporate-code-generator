@@ -1,3 +1,4 @@
+{%- set webApiRoot = webApiPackage | default('./web-api') -%}
 import 'reflect-metadata';
 
 import { ValidationPipe } from '@nestjs/common';
@@ -7,7 +8,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { EnvironmentSymbol } from './config/environment';
 import type { Environment } from './config/environment';
-import { ResponseTransformerInterceptor } from './web-api/commons/interceptors/response-transformer.interceptor';
+import { ResponseTransformerInterceptor } from '{{ webApiRoot }}/commons/interceptors/response-transformer.interceptor';
 
 async function bootstrap(): Promise<void> {
   // Environment validation runs inside this call, through ConfigModule, so an

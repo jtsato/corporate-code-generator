@@ -1,0 +1,27 @@
+# Multi-stage, as in the single-package layout, with one difference that matters:
+# the build stage installs the whole workspace, because `tsc --build` walks the
+# project references and needs every package's sources present.
+FROM node:{{ nodeVersion }}-alpine AS build
+WORKDIR /build
+COPY package.json tsconfig.base.json tsconfig.spec.json ./
+COPY packages ./packages
+RUN npm install --no-audit --no-fund
+RUN npm run build
+# Development dependencies carry the compiler and the test runner; the runtime
+# stage needs neither.
+RUN npm prune --omit=dev
+
+FROM node:{{ nodeVersion }}-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /build/node_modules ./node_modules
+COPY --from=build /build/packages ./packages
+COPY --from=build /build/package.json ./package.json
+COPY --from=build /build/.env.production ./.env.production
+# Already present in `node:alpine` at UID/GID 1000, so the image never runs as
+# root and no second user has to be created.
+USER node
+EXPOSE {{ containerPort }}
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:{{ containerPort }}{{ healthPath }} || exit 1
+CMD ["node", "packages/bootstrap/dist/main"]

@@ -1,0 +1,26 @@
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Inject } from '@nestjs/common';
+import { Response } from 'express';
+
+import { NotFoundException } from '@wallet-service/core/exceptions/not-found.exception';
+import { II18nService, II18nServiceSymbol } from '@wallet-service/core/i18n/i18n-service.interface';
+
+@Catch(NotFoundException)
+export class NotFoundExceptionFilter implements ExceptionFilter {
+  public constructor(@Inject(II18nServiceSymbol) private readonly i18n: II18nService) {}
+
+  public catch(exception: NotFoundException, host: ArgumentsHost): void {
+    const response = host.switchToHttp().getResponse<Response>();
+    const translated = this.i18n.translate(exception.messageKey, exception.defaultMessage);
+    const detail = exception.defaultMessage.includes(': ')
+      ? exception.defaultMessage.slice(exception.defaultMessage.indexOf(': ') + 2)
+      : undefined;
+    const message = translated === exception.defaultMessage
+      ? exception.defaultMessage
+      : `${translated}${detail === undefined ? '' : `: ${detail}`}`;
+
+    response.status(HttpStatus.NOT_FOUND).json({
+      statusCode: HttpStatus.NOT_FOUND,
+      message,
+    });
+  }
+}

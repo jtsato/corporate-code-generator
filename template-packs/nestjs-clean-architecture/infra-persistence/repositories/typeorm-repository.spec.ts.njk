@@ -1,3 +1,4 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 /**
  * Runs the repository against a real SQL engine rather than a mock.
  *
@@ -10,11 +11,11 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import type { Repository } from 'typeorm';
 
-import { FilterCondition } from '../../core/common/filter/filter-condition';
-import { FilterExpression } from '../../core/common/filter/filter-expression';
-import { PageRequest } from '../../core/common/paging/page-request';
-import { SortDirection } from '../../core/common/paging/sort-direction';
-import { SortOrder } from '../../core/common/paging/sort-order';
+import { FilterCondition } from '{{ coreRoot }}/common/filter/filter-condition';
+import { FilterExpression } from '{{ coreRoot }}/common/filter/filter-expression';
+import { PageRequest } from '{{ coreRoot }}/common/paging/page-request';
+import { SortDirection } from '{{ coreRoot }}/common/paging/sort-direction';
+import { SortOrder } from '{{ coreRoot }}/common/paging/sort-order';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 import { {{ className }}Repository } from './{{ fileName }}.repository';
 

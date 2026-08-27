@@ -1,0 +1,12 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "../../..",
+  "testRegex": "packages/bootstrap/test/.*\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "<rootDir>/tsconfig.spec.json" }]
+  },
+  "moduleNameMapper": {
+    "^@wallet-service/([^/]+)/(.*)$": "<rootDir>/packages/$1/src/$2"
+  },
+  "testEnvironment": "node"
+}

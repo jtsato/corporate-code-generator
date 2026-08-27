@@ -1,0 +1,19 @@
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Inject } from '@nestjs/common';
+import { Response } from 'express';
+
+import { ConflictException } from '@wallet-service/core/exceptions/conflict.exception';
+import { II18nService, II18nServiceSymbol } from '@wallet-service/core/i18n/i18n-service.interface';
+
+@Catch(ConflictException)
+export class ConflictExceptionFilter implements ExceptionFilter {
+  public constructor(@Inject(II18nServiceSymbol) private readonly i18n: II18nService) {}
+
+  public catch(exception: ConflictException, host: ArgumentsHost): void {
+    const response = host.switchToHttp().getResponse<Response>();
+
+    response.status(HttpStatus.CONFLICT).json({
+      statusCode: HttpStatus.CONFLICT,
+      message: this.i18n.translate(exception.messageKey, exception.defaultMessage),
+    });
+  }
+}

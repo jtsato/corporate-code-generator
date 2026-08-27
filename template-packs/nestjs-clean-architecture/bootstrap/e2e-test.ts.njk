@@ -1,10 +1,11 @@
+{%- set webApiRoot = webApiPackage | default('../src/web-api') -%}
 import { ValidationPipe } from '@nestjs/common';
 import type { INestApplication } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import request = require('supertest');
 
 import { AppModule } from '../src/app.module';
-import { ResponseTransformerInterceptor } from '../src/web-api/commons/interceptors/response-transformer.interceptor';
+import { ResponseTransformerInterceptor } from '{{ webApiRoot }}/commons/interceptors/response-transformer.interceptor';
 
 {%- if entities[0].audited %}
 

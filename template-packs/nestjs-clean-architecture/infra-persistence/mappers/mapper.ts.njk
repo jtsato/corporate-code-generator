@@ -1,5 +1,6 @@
-import { {{ className }} } from '../../core/models/{{ fileName }}.model';
-import { {{ className }}Tombstone } from '../../core/models/{{ fileName }}-tombstone.model';
+{%- set coreRoot = corePackage | default('../../core') -%}
+import { {{ className }} } from '{{ coreRoot }}/models/{{ fileName }}.model';
+import { {{ className }}Tombstone } from '{{ coreRoot }}/models/{{ fileName }}-tombstone.model';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 
 export class {{ className }}Mapper {

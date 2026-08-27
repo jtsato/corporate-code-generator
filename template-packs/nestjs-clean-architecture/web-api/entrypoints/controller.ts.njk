@@ -1,49 +1,50 @@
+{%- set coreRoot = corePackage | default('../../../core') -%}
 import { Body, Controller, Delete, Get, HttpStatus, Inject, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiConflictResponse, ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import { Create{{ className }}Command } from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}.command';
-import { Delete{{ className }}Command } from '../../../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.command';
+import { Create{{ className }}Command } from '{{ coreRoot }}/usecases/create-{{ fileName }}/create-{{ fileName }}.command';
+import { Delete{{ className }}Command } from '{{ coreRoot }}/usecases/delete-{{ fileName }}/delete-{{ fileName }}.command';
 import {
   IDelete{{ className }}UseCase,
   IDelete{{ className }}UseCaseSymbol,
-} from '../../../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface';
-import { PageRequest } from '../../../core/common/paging/page-request';
-import { PageResult } from '../../../core/common/paging/page-result';
-import { Page{{ className }}Query } from '../../../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.query';
+} from '{{ coreRoot }}/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface';
+import { PageRequest } from '{{ coreRoot }}/common/paging/page-request';
+import { PageResult } from '{{ coreRoot }}/common/paging/page-result';
+import { Page{{ className }}Query } from '{{ coreRoot }}/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.query';
 import {
   IPage{{ className }}UseCase,
   IPage{{ className }}UseCaseSymbol,
-} from '../../../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface';
+} from '{{ coreRoot }}/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface';
 import {
   ICreate{{ className }}UseCase,
   ICreate{{ className }}UseCaseSymbol,
-} from '../../../core/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface';
-import { Patch{{ className }}Command } from '../../../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.command';
-import type { Patch{{ className }}Changes } from '../../../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.changes';
+} from '{{ coreRoot }}/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface';
+import { Patch{{ className }}Command } from '{{ coreRoot }}/usecases/patch-{{ fileName }}/patch-{{ fileName }}.command';
+import type { Patch{{ className }}Changes } from '{{ coreRoot }}/usecases/patch-{{ fileName }}/patch-{{ fileName }}.changes';
 import {
   IPatch{{ className }}UseCase,
   IPatch{{ className }}UseCaseSymbol,
-} from '../../../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface';
-import { GetDeleted{{ className }}ByIdQuery } from '../../../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.query';
+} from '{{ coreRoot }}/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface';
+import { GetDeleted{{ className }}ByIdQuery } from '{{ coreRoot }}/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.query';
 import {
   IGetDeleted{{ className }}ByIdUseCase,
   IGetDeleted{{ className }}ByIdUseCaseSymbol,
-} from '../../../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id-usecase.interface';
-import { PageDeleted{{ className }}Query } from '../../../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.query';
+} from '{{ coreRoot }}/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id-usecase.interface';
+import { PageDeleted{{ className }}Query } from '{{ coreRoot }}/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.query';
 import {
   IPageDeleted{{ className }}UseCase,
   IPageDeleted{{ className }}UseCaseSymbol,
-} from '../../../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}-usecase.interface';
-import { Restore{{ className }}Command } from '../../../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.command';
+} from '{{ coreRoot }}/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}-usecase.interface';
+import { Restore{{ className }}Command } from '{{ coreRoot }}/usecases/restore-{{ fileName }}/restore-{{ fileName }}.command';
 import {
   IRestore{{ className }}UseCase,
   IRestore{{ className }}UseCaseSymbol,
-} from '../../../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}-usecase.interface';
-import { Get{{ className }}ByIdQuery } from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.query';
+} from '{{ coreRoot }}/usecases/restore-{{ fileName }}/restore-{{ fileName }}-usecase.interface';
+import { Get{{ className }}ByIdQuery } from '{{ coreRoot }}/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.query';
 import {
   IGet{{ className }}ByIdUseCase,
   IGet{{ className }}ByIdUseCaseSymbol,
-} from '../../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
+} from '{{ coreRoot }}/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
 import { Create{{ className }}Request } from './create-{{ fileName }}-request.model';
 import { Patch{{ className }}Request } from './patch-{{ fileName }}-request.model';
 import { {{ className }}FilterParser } from './{{ fileName }}-filter.parser';
@@ -51,11 +52,11 @@ import { {{ className }}SortParser } from './{{ fileName }}-sort.parser';
 import { {{ className }}PageRequest } from './{{ fileName }}-page-request.model';
 import { {{ className }}PageResponse } from './{{ fileName }}-page-response.model';
 import { Update{{ className }}Request } from './update-{{ fileName }}-request.model';
-import { Update{{ className }}Command } from '../../../core/usecases/update-{{ fileName }}/update-{{ fileName }}.command';
+import { Update{{ className }}Command } from '{{ coreRoot }}/usecases/update-{{ fileName }}/update-{{ fileName }}.command';
 import {
   IUpdate{{ className }}UseCase,
   IUpdate{{ className }}UseCaseSymbol,
-} from '../../../core/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface';
+} from '{{ coreRoot }}/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface';
 import { HttpResponseBuilder } from '../../commons/models/http-response.builder';
 import { HttpResponse } from '../../commons/models/http-response.model';
 import { {{ className }}Presenter } from './{{ fileName }}-presenter.mapper';

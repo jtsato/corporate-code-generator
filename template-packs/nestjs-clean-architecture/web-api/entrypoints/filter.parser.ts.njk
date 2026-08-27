@@ -1,8 +1,9 @@
-import { FieldViolation } from '../../../core/exceptions/field-violation';
-import { ValidationException } from '../../../core/exceptions/validation.exception';
-import { FilterCondition } from '../../../core/common/filter/filter-condition';
-import { FilterExpression } from '../../../core/common/filter/filter-expression';
-import { FilterOperator } from '../../../core/common/filter/filter-operator';
+{%- set coreRoot = corePackage | default('../../../core') -%}
+import { FieldViolation } from '{{ coreRoot }}/exceptions/field-violation';
+import { ValidationException } from '{{ coreRoot }}/exceptions/validation.exception';
+import { FilterCondition } from '{{ coreRoot }}/common/filter/filter-condition';
+import { FilterExpression } from '{{ coreRoot }}/common/filter/filter-expression';
+import { FilterOperator } from '{{ coreRoot }}/common/filter/filter-operator';
 
 export class {{ className }}FilterParser {
   public static parse(value: string | string[] | undefined): FilterExpression {

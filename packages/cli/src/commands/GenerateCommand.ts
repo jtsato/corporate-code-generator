@@ -33,6 +33,8 @@ import {
   NestJsCleanArchitectureCoreArtifactProducer,
   NestJsCleanArchitectureInfraPersistenceArtifactProducer,
   NestJsCleanArchitectureWebApiArtifactProducer,
+  NestJsMultimoduleArtifactProducer,
+  NestJsMultimoduleBuildArtifactProducer,
 } from "@corporate-code-generator/adapter-nestjs";
 import { NunjucksTemplateEngine } from "@corporate-code-generator/template-engine-nunjucks";
 import { NodeFileWriter } from "@corporate-code-generator/file-writer-node";
@@ -65,6 +67,28 @@ const PRODUCER_REGISTRY: Readonly<Record<string, Readonly<Record<string, Produce
     "web-api": () => new NestJsCleanArchitectureWebApiArtifactProducer(),
     "bootstrap": () => new NestJsCleanArchitectureBootstrapArtifactProducer(),
   },
+  // The same artifacts, rendered into npm workspace packages. Each module
+  // delegates to its single-package producer and contributes the package
+  // scaffolding it owns, so an artifact added to one profile appears in both.
+  "nestjs-clean-architecture-multimodule": {
+    "build": () => new NestJsMultimoduleBuildArtifactProducer(),
+    "core": () => new NestJsMultimoduleArtifactProducer(
+      new NestJsCleanArchitectureCoreArtifactProducer(),
+      ["core-package-json", "core-tsconfig-json"],
+    ),
+    "infra-persistence": () => new NestJsMultimoduleArtifactProducer(
+      new NestJsCleanArchitectureInfraPersistenceArtifactProducer(),
+      ["infra-persistence-package-json", "infra-persistence-tsconfig-json"],
+    ),
+    "web-api": () => new NestJsMultimoduleArtifactProducer(
+      new NestJsCleanArchitectureWebApiArtifactProducer(),
+      ["web-api-package-json", "web-api-tsconfig-json"],
+    ),
+    "bootstrap": () => new NestJsMultimoduleArtifactProducer(
+      new NestJsCleanArchitectureBootstrapArtifactProducer(),
+      ["bootstrap-package-json", "bootstrap-tsconfig-json", "nest-cli-json", "e2e-jest-config"],
+    ),
+  },
 };
 
 export class GenerateCommand {
@@ -91,7 +115,7 @@ export class GenerateCommand {
       const operations = [];
       for (const producer of producers) {
         const planner = new GenerationPlanner(
-          new NunjucksTemplateEngine([resolvedPack.directory]),
+          new NunjucksTemplateEngine(resolvedPack.directories),
           producer,
           resolvedPack.templatePack,
         );

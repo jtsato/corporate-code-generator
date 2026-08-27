@@ -1,7 +1,8 @@
-import { FieldViolation } from '../../../core/exceptions/field-violation';
-import { SortDirection } from '../../../core/common/paging/sort-direction';
-import { SortOrder } from '../../../core/common/paging/sort-order';
-import { ValidationException } from '../../../core/exceptions/validation.exception';
+{%- set coreRoot = corePackage | default('../../../core') -%}
+import { FieldViolation } from '{{ coreRoot }}/exceptions/field-violation';
+import { SortDirection } from '{{ coreRoot }}/common/paging/sort-direction';
+import { SortOrder } from '{{ coreRoot }}/common/paging/sort-order';
+import { ValidationException } from '{{ coreRoot }}/exceptions/validation.exception';
 
 export class {{ className }}SortParser {
   public static parse(value: unknown): SortOrder[] {

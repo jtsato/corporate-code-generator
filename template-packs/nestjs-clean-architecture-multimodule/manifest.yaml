@@ -1,0 +1,597 @@
+id: nestjs-clean-architecture-multimodule
+version: 0.1.0
+
+# Template *files* are borrowed from the single-package pack; template
+# definitions are not. Every artifact this pack emits is declared below with its
+# own output path, so the two layouts share one source for each artifact and
+# differ only in where it lands. Duplicating a hundred templates would have let
+# the two drift apart, which is the failure this inheritance exists to prevent.
+extends:
+  id: nestjs-clean-architecture
+  version: 0.1.0
+
+templates:
+  # Workspace scaffolding. These have no counterpart in the single-package pack:
+  # a root manifest that declares the workspaces, a shared compiler baseline, and
+  # a test configuration that resolves package names to sources.
+  - id: package-json
+    module: build
+    template: build/root-package.json.njk
+    output: package.json
+  - id: tsconfig-base-json
+    module: build
+    template: build/tsconfig.base.json.njk
+    output: tsconfig.base.json
+  - id: tsconfig-spec-json
+    module: build
+    template: build/tsconfig.spec.json.njk
+    output: tsconfig.spec.json
+  - id: build-eslint-config
+    module: build
+    template: build/eslint.config.mjs.njk
+    output: eslint.config.mjs
+  - id: build-readme
+    module: build
+    template: build/readme.md.njk
+    output: README.md
+  - id: build-dockerfile
+    module: build
+    template: build/dockerfile.njk
+    output: Dockerfile
+  # Borrowed verbatim: these say nothing about the layout.
+  - id: build-gitignore
+    module: build
+    template: build/gitignore.njk
+    output: .gitignore
+  - id: build-dockerignore
+    module: build
+    template: build/dockerignore.njk
+    output: .dockerignore
+  - id: build-docker-compose
+    module: build
+    template: build/docker-compose.yml.njk
+    output: docker-compose.yml
+  - id: build-github-actions-ci
+    module: build
+    template: build/github-actions-node-ci.yml.njk
+    output: .github/workflows/node-ci.yml
+  - id: build-env-example
+    module: build
+    template: build/env-example.njk
+    output: .env.example
+  - id: build-env-development
+    module: build
+    template: build/env-development.njk
+    output: .env.development
+  - id: build-env-test
+    module: build
+    template: build/env-test.njk
+    output: .env.test
+  - id: build-env-production
+    module: build
+    template: build/env-production.njk
+    output: .env.production
+
+  # Each package carries its own manifest and compiler configuration, so a single
+  # module selection produces something coherent rather than a folder of orphans.
+  - id: core-package-json
+    module: core
+    template: build/package-package.json.njk
+    output: packages/core/package.json
+  - id: core-tsconfig-json
+    module: core
+    template: build/package-tsconfig.json.njk
+    output: packages/core/tsconfig.json
+  - id: infra-persistence-package-json
+    module: infra-persistence
+    template: build/package-package.json.njk
+    output: packages/infra-persistence/package.json
+  - id: infra-persistence-tsconfig-json
+    module: infra-persistence
+    template: build/package-tsconfig.json.njk
+    output: packages/infra-persistence/tsconfig.json
+  - id: web-api-package-json
+    module: web-api
+    template: build/package-package.json.njk
+    output: packages/web-api/package.json
+  - id: web-api-tsconfig-json
+    module: web-api
+    template: build/package-tsconfig.json.njk
+    output: packages/web-api/tsconfig.json
+  - id: bootstrap-package-json
+    module: bootstrap
+    template: build/package-package.json.njk
+    output: packages/bootstrap/package.json
+  - id: bootstrap-tsconfig-json
+    module: bootstrap
+    template: build/package-tsconfig.json.njk
+    output: packages/bootstrap/tsconfig.json
+  - id: nest-cli-json
+    module: bootstrap
+    template: build/nest-cli.json.njk
+    output: packages/bootstrap/nest-cli.json
+  - id: e2e-jest-config
+    module: bootstrap
+    template: build/e2e-jest.json.njk
+    output: packages/bootstrap/test/jest-e2e.json
+
+  - id: core-exception
+    module: core
+    template: core/exceptions/core.exception.ts.njk
+    output: packages/core/src/exceptions/core.exception.ts
+  - id: core-field-violation
+    module: core
+    template: core/exceptions/field-violation.ts.njk
+    output: packages/core/src/exceptions/field-violation.ts
+  - id: core-not-found-exception
+    module: core
+    template: core/exceptions/not-found.exception.ts.njk
+    output: packages/core/src/exceptions/not-found.exception.ts
+  - id: core-conflict-exception
+    module: core
+    template: core/exceptions/conflict.exception.ts.njk
+    output: packages/core/src/exceptions/conflict.exception.ts
+  - id: core-i18n-service-interface
+    module: core
+    template: core/i18n/i18n-service.interface.ts.njk
+    output: packages/core/src/i18n/i18n-service.interface.ts
+  - id: core-validation-exception
+    module: core
+    template: core/exceptions/validation.exception.ts.njk
+    output: packages/core/src/exceptions/validation.exception.ts
+  - id: core-sort-direction
+    module: core
+    template: core/common/paging/sort-direction.ts.njk
+    output: packages/core/src/common/paging/sort-direction.ts
+  - id: core-sort-order
+    module: core
+    template: core/common/paging/sort-order.ts.njk
+    output: packages/core/src/common/paging/sort-order.ts
+  - id: core-sort-order-test
+    module: core
+    template: core/common/paging/sort-order.spec.ts.njk
+    output: packages/core/src/common/paging/sort-order.spec.ts
+  - id: core-page-request
+    module: core
+    template: core/common/paging/page-request.ts.njk
+    output: packages/core/src/common/paging/page-request.ts
+  - id: core-page-request-test
+    module: core
+    template: core/common/paging/page-request.spec.ts.njk
+    output: packages/core/src/common/paging/page-request.spec.ts
+  - id: core-page-result
+    module: core
+    template: core/common/paging/page-result.ts.njk
+    output: packages/core/src/common/paging/page-result.ts
+  - id: core-filter-operator
+    module: core
+    template: core/common/filter/filter-operator.ts.njk
+    output: packages/core/src/common/filter/filter-operator.ts
+  - id: core-filter-condition
+    module: core
+    template: core/common/filter/filter-condition.ts.njk
+    output: packages/core/src/common/filter/filter-condition.ts
+  - id: core-filter-expression
+    module: core
+    template: core/common/filter/filter-expression.ts.njk
+    output: packages/core/src/common/filter/filter-expression.ts
+  - id: core-domain-model
+    module: core
+    template: core/models/model.ts.njk
+    output: packages/core/src/models/{{ fileName }}.model.ts
+  - id: core-tombstone-model
+    module: core
+    template: core/models/tombstone.model.ts.njk
+    output: packages/core/src/models/{{ fileName }}-tombstone.model.ts
+  - id: core-clock
+    module: core
+    template: core/common/time/clock.ts.njk
+    output: packages/core/src/common/time/clock.ts
+  - id: core-clock-test
+    module: core
+    template: core/common/time/clock.spec.ts.njk
+    output: packages/core/src/common/time/clock.spec.ts
+  - id: core-create-command
+    module: core
+    template: core/usecases/create/create.command.ts.njk
+    output: packages/core/src/usecases/create-{{ fileName }}/create-{{ fileName }}.command.ts
+  - id: core-create-command-validator
+    module: core
+    template: core/usecases/create/create-command.validator.ts.njk
+    output: packages/core/src/usecases/create-{{ fileName }}/create-{{ fileName }}-command.validator.ts
+  - id: core-create-gateway
+    module: core
+    template: core/usecases/create/create.gateway.ts.njk
+    output: packages/core/src/usecases/create-{{ fileName }}/create-{{ fileName }}.gateway.ts
+  - id: core-create-usecase-interface
+    module: core
+    template: core/usecases/create/create-usecase.interface.ts.njk
+    output: packages/core/src/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface.ts
+  - id: core-create-usecase
+    module: core
+    template: core/usecases/create/create.usecase.ts.njk
+    output: packages/core/src/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase.ts
+  - id: core-create-usecase-test
+    module: core
+    template: core/usecases/create/create.usecase.spec.ts.njk
+    output: packages/core/src/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase.spec.ts
+  - id: core-update-command
+    module: core
+    template: core/usecases/update/command.ts.njk
+    output: packages/core/src/usecases/update-{{ fileName }}/update-{{ fileName }}.command.ts
+  - id: core-update-command-validator
+    module: core
+    template: core/usecases/update/command.validator.ts.njk
+    output: packages/core/src/usecases/update-{{ fileName }}/update-{{ fileName }}-command.validator.ts
+  - id: core-update-gateway
+    module: core
+    template: core/usecases/update/gateway.ts.njk
+    output: packages/core/src/usecases/update-{{ fileName }}/update-{{ fileName }}.gateway.ts
+  - id: core-update-usecase-interface
+    module: core
+    template: core/usecases/update/usecase.interface.ts.njk
+    output: packages/core/src/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface.ts
+  - id: core-update-usecase
+    module: core
+    template: core/usecases/update/usecase.ts.njk
+    output: packages/core/src/usecases/update-{{ fileName }}/update-{{ fileName }}.usecase.ts
+  - id: core-update-usecase-test
+    module: core
+    template: core/usecases/update/usecase.spec.ts.njk
+    output: packages/core/src/usecases/update-{{ fileName }}/update-{{ fileName }}.usecase.spec.ts
+  - id: core-patch-command
+    module: core
+    template: core/usecases/patch/command.ts.njk
+    output: packages/core/src/usecases/patch-{{ fileName }}/patch-{{ fileName }}.command.ts
+  - id: core-patch-changes
+    module: core
+    template: core/usecases/patch/changes.ts.njk
+    output: packages/core/src/usecases/patch-{{ fileName }}/patch-{{ fileName }}.changes.ts
+  - id: core-patch-command-validator
+    module: core
+    template: core/usecases/patch/command.validator.ts.njk
+    output: packages/core/src/usecases/patch-{{ fileName }}/patch-{{ fileName }}-command.validator.ts
+  - id: core-patch-usecase-interface
+    module: core
+    template: core/usecases/patch/usecase.interface.ts.njk
+    output: packages/core/src/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface.ts
+  - id: core-patch-usecase
+    module: core
+    template: core/usecases/patch/usecase.ts.njk
+    output: packages/core/src/usecases/patch-{{ fileName }}/patch-{{ fileName }}.usecase.ts
+  - id: core-patch-usecase-test
+    module: core
+    template: core/usecases/patch/usecase.spec.ts.njk
+    output: packages/core/src/usecases/patch-{{ fileName }}/patch-{{ fileName }}.usecase.spec.ts
+  - id: core-delete-command
+    module: core
+    template: core/usecases/delete/command.ts.njk
+    output: packages/core/src/usecases/delete-{{ fileName }}/delete-{{ fileName }}.command.ts
+  - id: core-delete-gateway
+    module: core
+    template: core/usecases/delete/gateway.ts.njk
+    output: packages/core/src/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway.ts
+  - id: core-delete-usecase-interface
+    module: core
+    template: core/usecases/delete/usecase.interface.ts.njk
+    output: packages/core/src/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface.ts
+  - id: core-delete-usecase
+    module: core
+    template: core/usecases/delete/usecase.ts.njk
+    output: packages/core/src/usecases/delete-{{ fileName }}/delete-{{ fileName }}.usecase.ts
+  - id: core-delete-usecase-test
+    module: core
+    template: core/usecases/delete/usecase.spec.ts.njk
+    output: packages/core/src/usecases/delete-{{ fileName }}/delete-{{ fileName }}.usecase.spec.ts
+  - id: core-get-by-id-query
+    module: core
+    template: core/usecases/get-by-id/get-by-id.query.ts.njk
+    output: packages/core/src/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.query.ts
+  - id: core-get-by-id-query-validator
+    module: core
+    template: core/usecases/get-by-id/get-by-id-query.validator.ts.njk
+    output: packages/core/src/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-query.validator.ts
+  - id: core-get-by-id-gateway
+    module: core
+    template: core/usecases/get-by-id/get-by-id.gateway.ts.njk
+    output: packages/core/src/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway.ts
+  - id: core-get-by-id-usecase-interface
+    module: core
+    template: core/usecases/get-by-id/get-by-id-usecase.interface.ts.njk
+    output: packages/core/src/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface.ts
+  - id: core-get-by-id-usecase
+    module: core
+    template: core/usecases/get-by-id/get-by-id.usecase.ts.njk
+    output: packages/core/src/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase.ts
+  - id: core-get-by-id-usecase-test
+    module: core
+    template: core/usecases/get-by-id/get-by-id.usecase.spec.ts.njk
+    output: packages/core/src/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase.spec.ts
+  - id: core-page-query
+    module: core
+    template: core/usecases/page/page.query.ts.njk
+    output: packages/core/src/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.query.ts
+  - id: core-page-gateway
+    module: core
+    template: core/usecases/page/page.gateway.ts.njk
+    output: packages/core/src/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.gateway.ts
+  - id: core-page-usecase-interface
+    module: core
+    template: core/usecases/page/page-usecase.interface.ts.njk
+    output: packages/core/src/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface.ts
+  - id: core-page-usecase
+    module: core
+    template: core/usecases/page/page.usecase.ts.njk
+    output: packages/core/src/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.usecase.ts
+  - id: infra-persistence-entity-model
+    module: infra-persistence
+    template: infra-persistence/models/entity.model.ts.njk
+    output: packages/infra-persistence/src/models/{{ fileName }}-entity.model.ts
+  - id: infra-persistence-typeorm-entity-model
+    module: infra-persistence
+    template: infra-persistence/models/typeorm-entity.model.ts.njk
+    output: packages/infra-persistence/src/models/{{ fileName }}-entity.model.ts
+  - id: infra-persistence-column-transformers
+    module: infra-persistence
+    template: infra-persistence/persistence/column.transformers.ts.njk
+    output: packages/infra-persistence/src/persistence/column.transformers.ts
+  - id: infra-persistence-mapper
+    module: infra-persistence
+    template: infra-persistence/mappers/mapper.ts.njk
+    output: packages/infra-persistence/src/mappers/{{ fileName }}.mapper.ts
+  - id: infra-persistence-repository
+    module: infra-persistence
+    template: infra-persistence/repositories/repository.ts.njk
+    output: packages/infra-persistence/src/repositories/{{ fileName }}.repository.ts
+  - id: infra-persistence-typeorm-repository
+    module: infra-persistence
+    template: infra-persistence/repositories/typeorm-repository.ts.njk
+    output: packages/infra-persistence/src/repositories/{{ fileName }}.repository.ts
+  - id: infra-persistence-repository-test
+    module: infra-persistence
+    template: infra-persistence/repositories/repository.spec.ts.njk
+    output: packages/infra-persistence/src/repositories/{{ fileName }}.repository.spec.ts
+  - id: infra-persistence-typeorm-repository-test
+    module: infra-persistence
+    template: infra-persistence/repositories/typeorm-repository.spec.ts.njk
+    output: packages/infra-persistence/src/repositories/{{ fileName }}.repository.spec.ts
+  - id: infra-persistence-create-provider
+    module: infra-persistence
+    template: infra-persistence/providers/create.provider.ts.njk
+    output: packages/infra-persistence/src/providers/create-{{ fileName }}.provider.ts
+  - id: infra-persistence-get-by-id-provider
+    module: infra-persistence
+    template: infra-persistence/providers/get-by-id.provider.ts.njk
+    output: packages/infra-persistence/src/providers/get-{{ fileName }}-by-id.provider.ts
+  - id: infra-persistence-page-provider
+    module: infra-persistence
+    template: infra-persistence/providers/page.provider.ts.njk
+    output: packages/infra-persistence/src/providers/page-{{ pluralFileName }}.provider.ts
+  - id: infra-persistence-update-provider
+    module: infra-persistence
+    template: infra-persistence/providers/update.provider.ts.njk
+    output: packages/infra-persistence/src/providers/update-{{ fileName }}.provider.ts
+  - id: infra-persistence-delete-provider
+    module: infra-persistence
+    template: infra-persistence/providers/delete.provider.ts.njk
+    output: packages/infra-persistence/src/providers/delete-{{ fileName }}.provider.ts
+  - id: infra-persistence-restore-provider
+    module: infra-persistence
+    template: infra-persistence/providers/restore.provider.ts.njk
+    output: packages/infra-persistence/src/providers/restore-{{ fileName }}.provider.ts
+  - id: infra-persistence-get-deleted-by-id-provider
+    module: infra-persistence
+    template: infra-persistence/providers/get-deleted-by-id.provider.ts.njk
+    output: packages/infra-persistence/src/providers/get-deleted-{{ fileName }}-by-id.provider.ts
+  - id: infra-persistence-page-deleted-provider
+    module: infra-persistence
+    template: infra-persistence/providers/page-deleted.provider.ts.njk
+    output: packages/infra-persistence/src/providers/page-deleted-{{ pluralFileName }}.provider.ts
+  - id: core-restore-command
+    module: core
+    template: core/usecases/restore/command.ts.njk
+    output: packages/core/src/usecases/restore-{{ fileName }}/restore-{{ fileName }}.command.ts
+  - id: core-restore-gateway
+    module: core
+    template: core/usecases/restore/gateway.ts.njk
+    output: packages/core/src/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway.ts
+  - id: core-restore-usecase-interface
+    module: core
+    template: core/usecases/restore/usecase.interface.ts.njk
+    output: packages/core/src/usecases/restore-{{ fileName }}/restore-{{ fileName }}-usecase.interface.ts
+  - id: core-restore-usecase
+    module: core
+    template: core/usecases/restore/usecase.ts.njk
+    output: packages/core/src/usecases/restore-{{ fileName }}/restore-{{ fileName }}.usecase.ts
+  - id: core-restore-usecase-test
+    module: core
+    template: core/usecases/restore/usecase.spec.ts.njk
+    output: packages/core/src/usecases/restore-{{ fileName }}/restore-{{ fileName }}.usecase.spec.ts
+  - id: core-get-deleted-by-id-query
+    module: core
+    template: core/usecases/get-deleted-by-id/query.ts.njk
+    output: packages/core/src/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.query.ts
+  - id: core-get-deleted-by-id-gateway
+    module: core
+    template: core/usecases/get-deleted-by-id/gateway.ts.njk
+    output: packages/core/src/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.gateway.ts
+  - id: core-get-deleted-by-id-usecase-interface
+    module: core
+    template: core/usecases/get-deleted-by-id/usecase.interface.ts.njk
+    output: packages/core/src/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id-usecase.interface.ts
+  - id: core-get-deleted-by-id-usecase
+    module: core
+    template: core/usecases/get-deleted-by-id/usecase.ts.njk
+    output: packages/core/src/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.usecase.ts
+  - id: core-get-deleted-by-id-usecase-test
+    module: core
+    template: core/usecases/get-deleted-by-id/usecase.spec.ts.njk
+    output: packages/core/src/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.usecase.spec.ts
+  - id: core-page-deleted-query
+    module: core
+    template: core/usecases/page-deleted/query.ts.njk
+    output: packages/core/src/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.query.ts
+  - id: core-page-deleted-gateway
+    module: core
+    template: core/usecases/page-deleted/gateway.ts.njk
+    output: packages/core/src/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.gateway.ts
+  - id: core-page-deleted-usecase-interface
+    module: core
+    template: core/usecases/page-deleted/usecase.interface.ts.njk
+    output: packages/core/src/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}-usecase.interface.ts
+  - id: core-page-deleted-usecase
+    module: core
+    template: core/usecases/page-deleted/usecase.ts.njk
+    output: packages/core/src/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.usecase.ts
+  - id: web-api-not-found-exception-filter
+    module: web-api
+    template: web-api/commons/filters/not-found.exception.filter.ts.njk
+    output: packages/web-api/src/commons/filters/not-found.exception.filter.ts
+  - id: web-api-conflict-exception-filter
+    module: web-api
+    template: web-api/commons/filters/conflict.exception.filter.ts.njk
+    output: packages/web-api/src/commons/filters/conflict.exception.filter.ts
+  - id: web-api-health-response
+    module: web-api
+    template: web-api/health/health-response.model.ts.njk
+    output: packages/web-api/src/health/health-response.model.ts
+  - id: web-api-health-controller
+    module: web-api
+    template: web-api/health/health.controller.ts.njk
+    output: packages/web-api/src/health/health.controller.ts
+  - id: web-api-i18n-messages-en
+    module: web-api
+    template: web-api/i18n/messages.en.json.njk
+    output: packages/web-api/src/i18n/en/messages.json
+  - id: web-api-i18n-messages-pt
+    module: web-api
+    template: web-api/i18n/messages.pt.json.njk
+    output: packages/web-api/src/i18n/pt/messages.json
+  - id: web-api-i18n-language-negotiation
+    module: web-api
+    template: web-api/i18n/language-negotiation.ts.njk
+    output: packages/web-api/src/i18n/language-negotiation.ts
+  - id: web-api-i18n-language-negotiation-test
+    module: web-api
+    template: web-api/i18n/language-negotiation.spec.ts.njk
+    output: packages/web-api/src/i18n/language-negotiation.spec.ts
+  - id: web-api-i18n-language-resolver
+    module: web-api
+    template: web-api/i18n/supported-language.resolver.ts.njk
+    output: packages/web-api/src/i18n/supported-language.resolver.ts
+  - id: web-api-i18n-module
+    module: web-api
+    template: web-api/i18n/i18n.module.ts.njk
+    output: packages/web-api/src/i18n/i18n.module.ts
+  - id: web-api-i18n-service
+    module: web-api
+    template: web-api/i18n/i18n.service.ts.njk
+    output: packages/web-api/src/i18n/i18n.service.ts
+  - id: web-api-http-response
+    module: web-api
+    template: web-api/commons/models/http-response.model.ts.njk
+    output: packages/web-api/src/commons/models/http-response.model.ts
+  - id: web-api-http-response-builder
+    module: web-api
+    template: web-api/commons/models/http-response.builder.ts.njk
+    output: packages/web-api/src/commons/models/http-response.builder.ts
+  - id: web-api-response-transformer-interceptor
+    module: web-api
+    template: web-api/commons/interceptors/response-transformer.interceptor.ts.njk
+    output: packages/web-api/src/commons/interceptors/response-transformer.interceptor.ts
+  - id: web-api-validation-exception-filter
+    module: web-api
+    template: web-api/commons/filters/validation.exception.filter.ts.njk
+    output: packages/web-api/src/commons/filters/validation.exception.filter.ts
+  - id: web-api-create-request
+    module: web-api
+    template: web-api/entrypoints/create-request.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/create-{{ fileName }}-request.model.ts
+  - id: web-api-update-request
+    module: web-api
+    template: web-api/entrypoints/update-request.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/update-{{ fileName }}-request.model.ts
+  - id: web-api-patch-request
+    module: web-api
+    template: web-api/entrypoints/patch-request.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/patch-{{ fileName }}-request.model.ts
+  - id: web-api-response
+    module: web-api
+    template: web-api/entrypoints/response.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-response.model.ts
+  - id: web-api-presenter
+    module: web-api
+    template: web-api/entrypoints/presenter.mapper.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-presenter.mapper.ts
+  - id: web-api-tombstone-response
+    module: web-api
+    template: web-api/entrypoints/tombstone-response.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-tombstone-response.model.ts
+  - id: web-api-tombstone-presenter
+    module: web-api
+    template: web-api/entrypoints/tombstone-presenter.mapper.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-tombstone-presenter.mapper.ts
+  - id: web-api-page-request
+    module: web-api
+    template: web-api/entrypoints/page-request.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-page-request.model.ts
+  - id: web-api-filter-parser
+    module: web-api
+    template: web-api/entrypoints/filter.parser.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-filter.parser.ts
+  - id: web-api-sort-parser
+    module: web-api
+    template: web-api/entrypoints/sort.parser.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-sort.parser.ts
+  - id: web-api-sort-parser-test
+    module: web-api
+    template: web-api/entrypoints/sort.parser.spec.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-sort.parser.spec.ts
+  - id: web-api-page-response
+    module: web-api
+    template: web-api/entrypoints/page-response.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-page-response.model.ts
+  - id: web-api-tombstone-page-response
+    module: web-api
+    template: web-api/entrypoints/tombstone-page-response.model.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}-tombstone-page-response.model.ts
+  - id: web-api-controller
+    module: web-api
+    template: web-api/entrypoints/controller.ts.njk
+    output: packages/web-api/src/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller.ts
+  - id: bootstrap-main
+    module: bootstrap
+    template: bootstrap/main.ts.njk
+    output: packages/bootstrap/src/main.ts
+  - id: bootstrap-app-module
+    module: bootstrap
+    template: bootstrap/app.module.ts.njk
+    output: packages/bootstrap/src/app.module.ts
+  - id: bootstrap-environment-config
+    module: bootstrap
+    template: bootstrap/config/environment.ts.njk
+    output: packages/bootstrap/src/config/environment.ts
+  - id: bootstrap-environment-config-test
+    module: bootstrap
+    template: bootstrap/config/environment.spec.ts.njk
+    output: packages/bootstrap/src/config/environment.spec.ts
+  - id: bootstrap-typeorm-environment-config-test
+    module: bootstrap
+    template: bootstrap/config/typeorm-environment.spec.ts.njk
+    output: packages/bootstrap/src/config/environment.spec.ts
+  - id: bootstrap-e2e-test
+    module: bootstrap
+    template: bootstrap/e2e-test.ts.njk
+    output: packages/bootstrap/test/app.e2e-spec.ts
+  - id: bootstrap-e2e-environment-setup
+    module: bootstrap
+    template: bootstrap/setup-e2e-environment.ts.njk
+    output: packages/bootstrap/test/setup-e2e-environment.ts
+  - id: bootstrap-clock-module
+    module: bootstrap
+    template: bootstrap/modules/clock.module.ts.njk
+    output: packages/bootstrap/src/modules/clock.module.ts
+  - id: bootstrap-entity-module
+    module: bootstrap
+    template: bootstrap/modules/module.ts.njk
+    output: packages/bootstrap/src/modules/{{ fileName }}.module.ts

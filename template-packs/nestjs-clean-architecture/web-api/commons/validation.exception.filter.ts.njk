@@ -1,7 +1,8 @@
+{%- set coreRoot = corePackage | default('../../../core') -%}
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 
-import { ValidationException } from '../../../core/exceptions/validation.exception';
+import { ValidationException } from '{{ coreRoot }}/exceptions/validation.exception';
 import { I18nService } from '../../i18n/i18n.service';
 
 @Catch(ValidationException)

@@ -1,0 +1,74 @@
+import parser from '@typescript-eslint/parser';
+
+/**
+ * Layer boundaries, enforced across workspace packages.
+ *
+ * In the single-package layout these are relative-path zones; here a boundary
+ * violation is an import of another package by name, which is both easier to
+ * write and easier to forbid. One config object per zone, because ESLint's flat
+ * config replaces rule options rather than merging them: two objects naming
+ * `no-restricted-imports` for the same files would silently discard the first.
+ */
+const zones = [
+  {
+    files: ['packages/core/**/*.ts'],
+    patterns: [
+{%- for package in packages %}
+{%- if package.name != 'core' %}
+      '@{{ applicationName }}/{{ package.name }}',
+      '@{{ applicationName }}/{{ package.name }}/*',
+{%- endif %}
+{%- endfor %}
+      '@nestjs/*',
+      'class-validator',
+      'class-transformer',
+      'nestjs-i18n',
+      'typeorm',
+      '@nestjs/typeorm',
+    ],
+  },
+  {
+    files: ['packages/infra-persistence/**/*.ts'],
+    patterns: [
+      '@{{ applicationName }}/web-api',
+      '@{{ applicationName }}/web-api/*',
+      '@{{ applicationName }}/bootstrap',
+      '@{{ applicationName }}/bootstrap/*',
+    ],
+  },
+  {
+    files: ['packages/web-api/**/*.ts'],
+    patterns: [
+      '@{{ applicationName }}/infra-persistence',
+      '@{{ applicationName }}/infra-persistence/*',
+      '@{{ applicationName }}/bootstrap',
+      '@{{ applicationName }}/bootstrap/*',
+    ],
+  },
+];
+
+export default [
+  {
+    ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**'],
+  },
+  ...zones.map((zone) => ({
+    files: zone.files,
+    languageOptions: {
+      parser,
+      parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+    },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: zone.patterns,
+              message: 'Dependencies point inward. Only the composition root sees every package.',
+            },
+          ],
+        },
+      ],
+    },
+  })),
+];

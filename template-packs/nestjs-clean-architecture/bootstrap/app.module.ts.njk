@@ -1,3 +1,4 @@
+{%- set webApiRoot = webApiPackage | default('./web-api') -%}
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 {%- if persistence == 'typeorm' %}
@@ -8,11 +9,11 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 {% for entity in entities -%}
 import { {{ entity.className }}Module } from './modules/{{ entity.fileName }}.module';
 {% endfor %}
-import { ConflictExceptionFilter } from './web-api/commons/filters/conflict.exception.filter';
-import { HealthController } from './web-api/health/health.controller';
-import { I18nModule } from './web-api/i18n/i18n.module';
-import { NotFoundExceptionFilter } from './web-api/commons/filters/not-found.exception.filter';
-import { ValidationExceptionFilter } from './web-api/commons/filters/validation.exception.filter';
+import { ConflictExceptionFilter } from '{{ webApiRoot }}/commons/filters/conflict.exception.filter';
+import { HealthController } from '{{ webApiRoot }}/health/health.controller';
+import { I18nModule } from '{{ webApiRoot }}/i18n/i18n.module';
+import { NotFoundExceptionFilter } from '{{ webApiRoot }}/commons/filters/not-found.exception.filter';
+import { ValidationExceptionFilter } from '{{ webApiRoot }}/commons/filters/validation.exception.filter';
 import { APP_FILTER } from '@nestjs/core';
 import { Scope } from '@nestjs/common';
 

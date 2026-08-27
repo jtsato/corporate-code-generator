@@ -1,11 +1,14 @@
+export type TemplatePackResolutionCode =
+  | "TEMPLATE001"
+  | "TEMPLATE003"
+  | "TEMPLATE004"
+  | "TEMPLATE006";
+
 export class TemplatePackResolutionError extends Error {
-  public readonly code:
-    | "TEMPLATE001"
-    | "TEMPLATE003"
-    | "TEMPLATE004";
+  public readonly code: TemplatePackResolutionCode;
 
   public constructor(
-    code: "TEMPLATE001" | "TEMPLATE003" | "TEMPLATE004",
+    code: TemplatePackResolutionCode,
     message: string,
   ) {
     super(message);

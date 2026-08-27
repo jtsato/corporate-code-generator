@@ -1,7 +1,8 @@
-import { FilterExpression } from '../../core/common/filter/filter-expression';
-import { PageRequest } from '../../core/common/paging/page-request';
-import { SortDirection } from '../../core/common/paging/sort-direction';
-import { SortOrder } from '../../core/common/paging/sort-order';
+{%- set coreRoot = corePackage | default('../../core') -%}
+import { FilterExpression } from '{{ coreRoot }}/common/filter/filter-expression';
+import { PageRequest } from '{{ coreRoot }}/common/paging/page-request';
+import { SortDirection } from '{{ coreRoot }}/common/paging/sort-direction';
+import { SortOrder } from '{{ coreRoot }}/common/paging/sort-order';
 import { {{ className }}Entity } from '../models/{{ fileName }}-entity.model';
 import { {{ className }}Repository } from './{{ fileName }}.repository';
 

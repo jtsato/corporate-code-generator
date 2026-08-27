@@ -1,6 +1,7 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Injectable } from '@nestjs/common';
 
-import { IDelete{{ className }}Gateway } from '../../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway';
+import { IDelete{{ className }}Gateway } from '{{ coreRoot }}/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway';
 import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
 
 @Injectable()

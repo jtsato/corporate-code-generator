@@ -1,7 +1,8 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Injectable } from '@nestjs/common';
 
-import { {{ className }} } from '../../core/models/{{ fileName }}.model';
-import { IGet{{ className }}ByIdGateway } from '../../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
+import { {{ className }} } from '{{ coreRoot }}/models/{{ fileName }}.model';
+import { IGet{{ className }}ByIdGateway } from '{{ coreRoot }}/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
 import { {{ className }}Mapper } from '../mappers/{{ fileName }}.mapper';
 import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
 

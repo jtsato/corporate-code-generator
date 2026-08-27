@@ -1,4 +1,5 @@
-import { {{ className }} } from '../../../core/models/{{ fileName }}.model';
+{%- set coreRoot = corePackage | default('../../../core') -%}
+import { {{ className }} } from '{{ coreRoot }}/models/{{ fileName }}.model';
 import { {{ className }}Response } from './{{ fileName }}-response.model';
 
 export class {{ className }}Presenter {

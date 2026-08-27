@@ -1,7 +1,8 @@
+{%- set coreRoot = corePackage | default('../../core') -%}
 import { Injectable } from '@nestjs/common';
 
-import { ConflictException } from '../../core/exceptions/conflict.exception';
-import { IRestore{{ className }}Gateway } from '../../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway';
+import { ConflictException } from '{{ coreRoot }}/exceptions/conflict.exception';
+import { IRestore{{ className }}Gateway } from '{{ coreRoot }}/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway';
 import { {{ className }}Repository } from '../repositories/{{ fileName }}.repository';
 
 @Injectable()

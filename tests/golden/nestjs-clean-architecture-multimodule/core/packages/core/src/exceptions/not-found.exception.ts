@@ -1,0 +1,7 @@
+import { CoreException } from './core.exception';
+
+export class NotFoundException extends CoreException {
+  public constructor(defaultMessage: string) {
+    super('notFound', defaultMessage);
+  }
+}

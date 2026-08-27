@@ -1,0 +1,15 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "../../..",
+  "testRegex": "packages/bootstrap/test/.*\\.e2e-spec\\.ts$",
+{%- if persistence == 'typeorm' %}
+  "setupFiles": ["<rootDir>/packages/bootstrap/test/setup-e2e-environment.ts"],
+{%- endif %}
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "<rootDir>/tsconfig.spec.json" }]
+  },
+  "moduleNameMapper": {
+    "^@{{ applicationName }}/([^/]+)/(.*)$": "<rootDir>/packages/$1/src/$2"
+  },
+  "testEnvironment": "node"
+}

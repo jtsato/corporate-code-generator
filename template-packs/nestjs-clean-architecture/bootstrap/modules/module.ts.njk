@@ -1,76 +1,79 @@
+{%- set coreRoot = corePackage | default('../core') -%}
+{%- set infraRoot = infraPackage | default('../infra') -%}
+{%- set webApiRoot = webApiPackage | default('../web-api') -%}
 import { Module } from '@nestjs/common';
 {%- if persistence == 'typeorm' %}
 import { TypeOrmModule } from '@nestjs/typeorm';
 {%- endif %}
 {%- if audited %}
 
-import { IClock, IClockSymbol } from '../core/common/time/clock';
+import { IClock, IClockSymbol } from '{{ coreRoot }}/common/time/clock';
 import { ClockModule } from './clock.module';
 {%- endif %}
 
 import {
   ICreate{{ className }}Gateway,
   ICreate{{ className }}GatewaySymbol,
-} from '../core/usecases/create-{{ fileName }}/create-{{ fileName }}.gateway';
-import { ICreate{{ className }}UseCaseSymbol } from '../core/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface';
-import { Create{{ className }}UseCase } from '../core/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase';
+} from '{{ coreRoot }}/usecases/create-{{ fileName }}/create-{{ fileName }}.gateway';
+import { ICreate{{ className }}UseCaseSymbol } from '{{ coreRoot }}/usecases/create-{{ fileName }}/create-{{ fileName }}-usecase.interface';
+import { Create{{ className }}UseCase } from '{{ coreRoot }}/usecases/create-{{ fileName }}/create-{{ fileName }}.usecase';
 import {
   IGet{{ className }}ByIdGateway,
   IGet{{ className }}ByIdGatewaySymbol,
-} from '../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
-import { IGet{{ className }}ByIdUseCaseSymbol } from '../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
-import { Get{{ className }}ByIdUseCase } from '../core/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase';
+} from '{{ coreRoot }}/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.gateway';
+import { IGet{{ className }}ByIdUseCaseSymbol } from '{{ coreRoot }}/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id-usecase.interface';
+import { Get{{ className }}ByIdUseCase } from '{{ coreRoot }}/usecases/get-{{ fileName }}-by-id/get-{{ fileName }}-by-id.usecase';
 import {
   IUpdate{{ className }}Gateway,
   IUpdate{{ className }}GatewaySymbol,
-} from '../core/usecases/update-{{ fileName }}/update-{{ fileName }}.gateway';
-import { IUpdate{{ className }}UseCaseSymbol } from '../core/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface';
-import { Update{{ className }}UseCase } from '../core/usecases/update-{{ fileName }}/update-{{ fileName }}.usecase';
-import { IPatch{{ className }}UseCaseSymbol } from '../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface';
-import { Patch{{ className }}UseCase } from '../core/usecases/patch-{{ fileName }}/patch-{{ fileName }}.usecase';
+} from '{{ coreRoot }}/usecases/update-{{ fileName }}/update-{{ fileName }}.gateway';
+import { IUpdate{{ className }}UseCaseSymbol } from '{{ coreRoot }}/usecases/update-{{ fileName }}/update-{{ fileName }}-usecase.interface';
+import { Update{{ className }}UseCase } from '{{ coreRoot }}/usecases/update-{{ fileName }}/update-{{ fileName }}.usecase';
+import { IPatch{{ className }}UseCaseSymbol } from '{{ coreRoot }}/usecases/patch-{{ fileName }}/patch-{{ fileName }}-usecase.interface';
+import { Patch{{ className }}UseCase } from '{{ coreRoot }}/usecases/patch-{{ fileName }}/patch-{{ fileName }}.usecase';
 import {
   IDelete{{ className }}Gateway,
   IDelete{{ className }}GatewaySymbol,
-} from '../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway';
-import { IDelete{{ className }}UseCaseSymbol } from '../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface';
-import { Delete{{ className }}UseCase } from '../core/usecases/delete-{{ fileName }}/delete-{{ fileName }}.usecase';
+} from '{{ coreRoot }}/usecases/delete-{{ fileName }}/delete-{{ fileName }}.gateway';
+import { IDelete{{ className }}UseCaseSymbol } from '{{ coreRoot }}/usecases/delete-{{ fileName }}/delete-{{ fileName }}-usecase.interface';
+import { Delete{{ className }}UseCase } from '{{ coreRoot }}/usecases/delete-{{ fileName }}/delete-{{ fileName }}.usecase';
 import {
   IPage{{ className }}Gateway,
   IPage{{ className }}GatewaySymbol,
-} from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.gateway';
+} from '{{ coreRoot }}/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.gateway';
 import {
   IGetDeleted{{ className }}ByIdGateway,
   IGetDeleted{{ className }}ByIdGatewaySymbol,
-} from '../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.gateway';
-import { IGetDeleted{{ className }}ByIdUseCaseSymbol } from '../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id-usecase.interface';
-import { GetDeleted{{ className }}ByIdUseCase } from '../core/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.usecase';
+} from '{{ coreRoot }}/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.gateway';
+import { IGetDeleted{{ className }}ByIdUseCaseSymbol } from '{{ coreRoot }}/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id-usecase.interface';
+import { GetDeleted{{ className }}ByIdUseCase } from '{{ coreRoot }}/usecases/get-deleted-{{ fileName }}-by-id/get-deleted-{{ fileName }}-by-id.usecase';
 import {
   IPageDeleted{{ className }}Gateway,
   IPageDeleted{{ className }}GatewaySymbol,
-} from '../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.gateway';
-import { IPageDeleted{{ className }}UseCaseSymbol } from '../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}-usecase.interface';
-import { PageDeleted{{ className }}UseCase } from '../core/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.usecase';
+} from '{{ coreRoot }}/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.gateway';
+import { IPageDeleted{{ className }}UseCaseSymbol } from '{{ coreRoot }}/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}-usecase.interface';
+import { PageDeleted{{ className }}UseCase } from '{{ coreRoot }}/usecases/page-deleted-{{ pluralFileName }}/page-deleted-{{ pluralFileName }}.usecase';
 import {
   IRestore{{ className }}Gateway,
   IRestore{{ className }}GatewaySymbol,
-} from '../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway';
-import { IRestore{{ className }}UseCaseSymbol } from '../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}-usecase.interface';
-import { Restore{{ className }}UseCase } from '../core/usecases/restore-{{ fileName }}/restore-{{ fileName }}.usecase';
-import { IPage{{ className }}UseCaseSymbol } from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface';
-import { Page{{ className }}UseCase } from '../core/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.usecase';
-import { Create{{ className }}Provider } from '../infra/providers/create-{{ fileName }}.provider';
-import { Get{{ className }}ByIdProvider } from '../infra/providers/get-{{ fileName }}-by-id.provider';
-import { Update{{ className }}Provider } from '../infra/providers/update-{{ fileName }}.provider';
-import { Delete{{ className }}Provider } from '../infra/providers/delete-{{ fileName }}.provider';
-import { Page{{ className }}Provider } from '../infra/providers/page-{{ pluralFileName }}.provider';
-import { GetDeleted{{ className }}ByIdProvider } from '../infra/providers/get-deleted-{{ fileName }}-by-id.provider';
-import { PageDeleted{{ className }}Provider } from '../infra/providers/page-deleted-{{ pluralFileName }}.provider';
-import { Restore{{ className }}Provider } from '../infra/providers/restore-{{ fileName }}.provider';
+} from '{{ coreRoot }}/usecases/restore-{{ fileName }}/restore-{{ fileName }}.gateway';
+import { IRestore{{ className }}UseCaseSymbol } from '{{ coreRoot }}/usecases/restore-{{ fileName }}/restore-{{ fileName }}-usecase.interface';
+import { Restore{{ className }}UseCase } from '{{ coreRoot }}/usecases/restore-{{ fileName }}/restore-{{ fileName }}.usecase';
+import { IPage{{ className }}UseCaseSymbol } from '{{ coreRoot }}/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}-usecase.interface';
+import { Page{{ className }}UseCase } from '{{ coreRoot }}/usecases/page-{{ pluralFileName }}/page-{{ pluralFileName }}.usecase';
+import { Create{{ className }}Provider } from '{{ infraRoot }}/providers/create-{{ fileName }}.provider';
+import { Get{{ className }}ByIdProvider } from '{{ infraRoot }}/providers/get-{{ fileName }}-by-id.provider';
+import { Update{{ className }}Provider } from '{{ infraRoot }}/providers/update-{{ fileName }}.provider';
+import { Delete{{ className }}Provider } from '{{ infraRoot }}/providers/delete-{{ fileName }}.provider';
+import { Page{{ className }}Provider } from '{{ infraRoot }}/providers/page-{{ pluralFileName }}.provider';
+import { GetDeleted{{ className }}ByIdProvider } from '{{ infraRoot }}/providers/get-deleted-{{ fileName }}-by-id.provider';
+import { PageDeleted{{ className }}Provider } from '{{ infraRoot }}/providers/page-deleted-{{ pluralFileName }}.provider';
+import { Restore{{ className }}Provider } from '{{ infraRoot }}/providers/restore-{{ fileName }}.provider';
 {% if persistence == 'typeorm' -%}
-import { {{ className }}Entity } from '../infra/models/{{ fileName }}-entity.model';
+import { {{ className }}Entity } from '{{ infraRoot }}/models/{{ fileName }}-entity.model';
 {% endif -%}
-import { {{ className }}Repository } from '../infra/repositories/{{ fileName }}.repository';
-import { {{ className }}Controller } from '../web-api/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller';
+import { {{ className }}Repository } from '{{ infraRoot }}/repositories/{{ fileName }}.repository';
+import { {{ className }}Controller } from '{{ webApiRoot }}/entrypoints/{{ pluralFileName }}/{{ fileName }}.controller';
 
 @Module({
 {%- if persistence == 'typeorm' or audited %}

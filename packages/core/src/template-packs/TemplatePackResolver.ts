@@ -15,8 +15,16 @@ export class TemplatePackResolver {
 
   public async resolve(
     reference: { readonly id: string; readonly version: string },
+    visitedPackIds: readonly string[] = [],
   ): Promise<ResolvedTemplatePack> {
     const { id, version } = reference;
+
+    if (visitedPackIds.includes(id)) {
+      throw new TemplatePackResolutionError(
+        "TEMPLATE006",
+        `Circular template pack inheritance: ${[...visitedPackIds, id].join(" -> ")}.`,
+      );
+    }
     const manifestPath = join(this.templatePacksDirectory, id, "manifest.yaml");
 
     try {
@@ -44,8 +52,18 @@ export class TemplatePackResolver {
       );
     }
 
+    const directory = join(this.templatePacksDirectory, id);
+
+    // Only file lookup is inherited. The derived pack's own templates come
+    // first, so it can override an inherited file by placing one at the same
+    // relative path.
+    const inheritedDirectories = pack.extends === undefined
+      ? []
+      : (await this.resolve(pack.extends, [...visitedPackIds, id])).directories;
+
     return {
-      directory: join(this.templatePacksDirectory, id),
+      directory,
+      directories: [directory, ...inheritedDirectories],
       templatePack: pack,
     };
   }

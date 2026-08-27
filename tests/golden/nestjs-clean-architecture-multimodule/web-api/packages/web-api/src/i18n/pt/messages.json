@@ -1,0 +1,8 @@
+{
+  "validationFailed": "Falha de validação",
+  "notFound": "Recurso não encontrado",
+  "conflict": "Recurso já existe",
+  "wallet": {
+    "already-exists": "Wallet já existe."
+  }
+}
